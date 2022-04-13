@@ -1,0 +1,42 @@
+{
+  "name": "tacsimulator",
+  "version": "1.0.0",
+  "description": "TaC simulator written by TypeScript",
+  "main": "build/main.js",
+  "scripts": {
+    "compile": "tsc",
+    "start": "tsc && electron .",
+    "fmt": "prettier --write src/**/*",
+    "lint": "eslint src/**/*.ts",
+    "build:mac": "tsc && electron-packager . TacSimulator --platform=darwin --arch=x64 --overwrite",
+    "build:win": "tsc && electron-packager . TacSimulator --platform=win32 --arch=x64 --overwrite",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TacSimTeam/TacSimulator-TS.git"
+  },
+  "keywords": [],
+  "author": "i18furuta",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TacSimTeam/TacSimulator-TS/issues"
+  },
+  "homepage": "https://github.com/TacSimTeam/TacSimulator-TS#readme",
+  "devDependencies": {
+    "@types/jest": "^27.4.1",
+    "@types/node": "^17.0.23",
+    "@typescript-eslint/eslint-plugin": "^5.19.0",
+    "@typescript-eslint/parser": "^5.19.0",
+    "electron": "^18.0.3",
+    "electron-builder": "^23.0.3",
+    "electron-packager": "^15.4.0",
+    "eslint": "^8.13.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jest": "^26.1.4",
+    "jest": "^27.5.1",
+    "prettier": "^2.6.2",
+    "ts-jest": "^27.1.4",
+    "typescript": "^4.6.3"
+  }
+}
