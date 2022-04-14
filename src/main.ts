@@ -7,7 +7,7 @@ function createWindow() {
     webPreferences: { nodeIntegration: true },
   };
   const win = new BrowserWindow(options);
-  win.loadFile('src/index.html');
+  win.loadFile('public/index.html');
 }
 
 // Electron の初期化が完了したらウィンドウを作成
