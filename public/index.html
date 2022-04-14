@@ -3,11 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-    <title>TacSimulator</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <link href="style.css" rel="stylesheet" />
+    <title>TaC Simulator</title>
   </head>
+
   <body>
-    TacSimulator
+    <h1>TaC Simulator</h1>
+    
+    <audio id="sound" preload="auto">
+      <source src="./sound/sound1.mp3" type="audio/mp3" />
+      <source src="./sound/sound1.wav" type="audio/wav" />
+
+      <source src="./sound/sound2.mp3" type="audio/mp3" />
+      <source src="./sound/sound2.wav" type="audio/wav" />
+    </audio>
+
+    <audio id="sound2" preload="auto">
+      <source src="./sound/sound2.mp3" type="audio/mp3" />
+      <source src="./sound/sound2.wav" type="audio/wav" />
+    </audio>
+
+    <canvas height="390px" width="430px" id="console"> TeC7コンソール </canvas>
+    <textarea id="terminal" rows="18" cols="64" readonly></textarea><br /><br />
+    <textarea id="order" rows="4" cols="55"></textarea><br />
+    <input type="button" name="WRITEP" id="writep" value="WRITEP" />
+
   </body>
 </html>
