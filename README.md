@@ -13,7 +13,7 @@
   コードフォーマッター. コードスタイルの一貫性を保つのに用いる.  
 - [Jest](https://jestjs.io/ja/)  
   JavaScript向けのテスティングフレームワーク. 本プロジェクトでは主に単体テストで用いる.  
-- [webpack](https://webpack.js.org/)
+- [webpack](https://webpack.js.org/)  
   静的ファイルを1つにまとめるツール. レンダラープロセス用のJavaScriptコードをまとめるのに用いる.
 
 ### npm scripts
