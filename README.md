@@ -10,9 +10,21 @@
 - [ESlint](https://eslint.org/)  
   JavaScript向けの静的解析ツール. TypeScriptにも対応している.  
 - [Prettier](https://prettier.io/)  
-  コードフォーマッター. コードスタイルの一貫性を保つのに使用する.  
+  コードフォーマッター. コードスタイルの一貫性を保つのに用いる.  
 - [Jest](https://jestjs.io/ja/)  
   JavaScript向けのテスティングフレームワーク. 本プロジェクトでは主に単体テストで用いる.  
+- [webpack](https://webpack.js.org/)
+  静的ファイルを1つにまとめるツール. レンダラープロセス用のJavaScriptコードをまとめるのに用いる.
+
+### npm scripts
+```
+npm start  // アプリを実行する(ビルドはしない)
+npm test   // テスト実行
+npm run dev        // ビルドしてから開発者モードで実行する
+npm run clean      // ビルド結果のファイルを削除する
+npm run build:mac  // MacOS用のパッケージを作成する
+npm run build:win  // Windows用のパッケージを作成する
+```
 
 ### タスク
 - [ ] 過去のTacSimulatorのプログラムを移植する
