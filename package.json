@@ -4,17 +4,16 @@
   "description": "TaC simulator written by TypeScript",
   "main": "dist/main.js",
   "scripts": {
+    "clean": "rimraf dist && rimraf TacSimulator",
     "compile": "run-p compile:*",
     "compile:main": "tsc --project tsconfig.main.json",
     "compile:renderer": "webpack",
-    "exec": "electron .",
-    "start": "run-s compile exec",
-    "fmt": "prettier --write src/**/*",
-    "lint": "eslint src/**/*.ts",
-    "package:mac": "electron-packager . TacSimulator --platform=darwin --arch=x64 --overwrite",
-    "package:win": "electron-packager . TacSimulator --platform=win32 --arch=x64 --overwrite",
-    "build:mac": "run-s compile package:mac",
-    "build:win": "run-s compile package:win",
+    "dev": "cross-env NODE_ENV=\"development\" run-s compile start",
+    "start": "electron .",
+    "package:mac": "electron-builder --mac --x64",
+    "package:win": "electron-builder --win --x64",
+    "build:mac": "cross-env NODE_ENV=\"production\" run-s compile package:mac",
+    "build:win": "cross-env NODE_ENV=\"production\" run-s compile package:win",
     "test": "jest"
   },
   "repository": {
@@ -36,17 +35,41 @@
     "cross-env": "^7.0.3",
     "electron": "^18.0.3",
     "electron-builder": "^23.0.3",
-    "electron-packager": "^15.4.0",
     "eslint": "^8.13.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-jest": "^26.1.4",
     "jest": "^27.5.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.6.2",
+    "rimraf": "^3.0.2",
     "ts-jest": "^27.1.4",
     "ts-loader": "^9.2.9",
+    "ts-node": "^10.7.0",
     "typescript": "^4.6.3",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2"
+  },
+  "build": {
+    "directories": {
+      "output": "TacSimulator"
+    },
+    "files": [
+      "dist",
+      "public",
+      "package.json",
+      "package-lock.json"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis":{
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

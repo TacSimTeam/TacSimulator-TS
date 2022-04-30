@@ -18,5 +18,10 @@
   },
   "include": [
     "src/renderer/**/*"
-  ]
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  }
 }
