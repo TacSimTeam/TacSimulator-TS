@@ -1,5 +1,5 @@
 import { app, BrowserWindow } from 'electron';
-import path from 'path';
+import * as path from 'path';
 
 function createWindow() {
   const options: Electron.BrowserWindowConstructorOptions = {

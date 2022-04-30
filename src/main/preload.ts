@@ -1,4 +1,4 @@
-import fs from 'fs';
+import * as fs from 'fs';
 import { contextBridge } from 'electron';
 
 const SECTOR_SIZE = 512;

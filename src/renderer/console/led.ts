@@ -14,4 +14,8 @@ export class Led {
     this.offColor = offColor;
     this.state = false;
   }
+
+  getState() {
+    return this.state;
+  }
 }

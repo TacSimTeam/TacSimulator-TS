@@ -10,4 +10,8 @@ export class Switch {
     this.name = name;
     this.state = false;
   }
+
+  getState() {
+    return this.state;
+  }
 }

@@ -9,7 +9,7 @@ const COLOR_GREEN_DARK = '#004000';
 const COLOR_YELLOW_LIGHT = '#FFFF00';
 const COLOR_YELLOW_DARK = '#DAA520';
 
-class Console {
+export class Console {
   private buttons: [...Button[]];
   private switches: [...Switch[]];
   private addrLeds: [...Led[]];
@@ -133,7 +133,92 @@ class Console {
     this.switches.push(new Switch(100, 330, 'STEP'));
     this.switches.push(new Switch(60, 330, 'BREAK'));
   }
-}
 
-// const canvas = <HTMLCanvasElement>document.getElementById('canvas');
-// const context = canvas.getContext('2d');
+  drawButtons() {
+    this.buttons.forEach((element) => {
+      this.ctx.beginPath();
+      this.ctx.rect(element.posX, element.posY, 26, 26);
+      this.ctx.fillStyle = '#777777';
+      this.ctx.fill();
+      this.ctx.beginPath();
+      this.ctx.arc(element.posX + 13, element.posY + 13, 8, (0 * Math.PI) / 180, (360 * Math.PI) / 180, false);
+      this.ctx.fillStyle = '#cccccc';
+      this.ctx.fill();
+      this.ctx.fillStyle = '#000080';
+      this.ctx.font = '10px serif';
+      this.ctx.fillText(element.name, element.posX + 12, element.posY + 38);
+    });
+  }
+
+  drawSwitches() {
+    this.switches.forEach((element) => {
+      this.ctx.clearRect(element.posX - 5, element.posY - 14, 40, 65);
+      this.ctx.beginPath();
+      this.ctx.rect(element.posX, element.posY, 26, 26);
+      this.ctx.fillStyle = '#777777';
+      this.ctx.fill();
+      this.ctx.beginPath();
+      this.ctx.arc(element.posX + 13, element.posY + 13, 10, (0 * Math.PI) / 180, (360 * Math.PI) / 180, false);
+      this.ctx.fillStyle = '#000000';
+      this.ctx.fill();
+
+      this.ctx.beginPath();
+      if (element.getState() === true) {
+        this.ctx.rect(element.posX + 9, element.posY + 12, 8, -20);
+        this.ctx.fillStyle = '#cccccc';
+        this.ctx.fill();
+        this.ctx.beginPath();
+        this.ctx.rect(element.posX + 9, element.posY - 12, 8, 8);
+        this.ctx.fillStyle = '#993300';
+        this.ctx.fill();
+      } else {
+        this.ctx.rect(element.posX + 9, element.posY + 12, 8, 20);
+        this.ctx.fillStyle = '#cccccc';
+        this.ctx.fill();
+        this.ctx.beginPath();
+        this.ctx.rect(element.posX + 9, element.posY + 30, 8, 8);
+        this.ctx.fillStyle = '#993300';
+        this.ctx.fill();
+      }
+      this.ctx.beginPath();
+      this.ctx.fillStyle = '#000080';
+      this.ctx.font = '10px serif';
+      this.ctx.fillText(element.name, element.posX + 12, element.posY + 50);
+    });
+  }
+
+  private drawLed(element: Led) {
+    this.ctx.beginPath();
+    this.ctx.arc(element.posX, element.posY, 10, 0, Math.PI * 2, false);
+    if (element.getState() === true) {
+      this.ctx.fillStyle = element.onColor;
+    } else {
+      this.ctx.fillStyle = element.offColor;
+    }
+    this.ctx.fill();
+  }
+
+  drawLeds() {
+    this.addrLeds.forEach((element) => {
+      this.drawLed(element);
+    });
+    this.dataLeds.forEach((element) => {
+      this.drawLed(element);
+    });
+    this.registerLeds.forEach((element) => {
+      this.drawLed(element);
+    });
+    this.flagLeds.forEach((element) => {
+      this.drawLed(element);
+    });
+    this.runLeds.forEach((element) => {
+      this.drawLed(element);
+    });
+  }
+
+  drawAll() {
+    this.drawButtons();
+    this.drawSwitches();
+    this.drawLeds();
+  }
+}
