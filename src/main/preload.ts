@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { contextBridge } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
 const SECTOR_SIZE = 512;
 const DEFAULT_SD_IMAGE_FILEPATH = 'public/TacOS.dmg';
@@ -26,7 +26,10 @@ function writeSector(sectorNum: number, data: Uint8Array) {
   }
 }
 
-contextBridge.exposeInMainWorld('electron', {
+contextBridge.exposeInMainWorld('electronAPI', {
   readSector: readSector,
   writeSector: writeSector,
+  openFile: () => {
+    return ipcRenderer.invoke('dialog:openFile');
+  },
 });

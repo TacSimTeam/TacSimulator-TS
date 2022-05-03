@@ -1,5 +1,19 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import * as path from 'path';
+
+let mainWindow: BrowserWindow;
+
+async function handleFileOpen() {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    title: 'ファイルを選択してください',
+  });
+
+  if (canceled) {
+    return;
+  } else {
+    return filePaths[0];
+  }
+}
 
 function createWindow() {
   const options: Electron.BrowserWindowConstructorOptions = {
@@ -7,21 +21,23 @@ function createWindow() {
     height: 800,
     webPreferences: {
       nodeIntegration: false,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
     },
     show: false,
   };
-  const win = new BrowserWindow(options);
-  win.loadFile('public/index.html');
+  mainWindow = new BrowserWindow(options);
+  mainWindow.loadFile('public/index.html');
 
   // レンダリング終了後にウィンドウを表示する
-  win.once('ready-to-show', () => {
-    win.show();
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
   });
 }
 
 // Electron の初期化が完了したらウィンドウを作成
 app.whenReady().then(() => {
+  ipcMain.handle('dialog:openFile', handleFileOpen);
   createWindow();
 
   app.on('activate', () => {

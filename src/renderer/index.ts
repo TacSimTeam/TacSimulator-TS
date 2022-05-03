@@ -9,3 +9,13 @@ if (ctx !== null) {
 } else {
   console.log('error : loading console failed');
 }
+
+const btn = document.getElementById('btn-openFile');
+const filePathElement = document.getElementById('filePath');
+
+btn?.addEventListener('click', async () => {
+  const filePath = await window.electronAPI.openFile();
+  if (filePathElement !== null) {
+    filePathElement.innerText = filePath;
+  }
+});
