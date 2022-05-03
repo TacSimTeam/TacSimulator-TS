@@ -3,9 +3,11 @@ import * as path from 'path';
 
 let mainWindow: BrowserWindow;
 
-async function handleFileOpen() {
+// ファイルダイアログを開き「.dmg」ファイルのパスを返す
+async function handleGetSDImagePath() {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     title: 'ファイルを選択してください',
+    filters: [{ name: 'SDイメージファイル', extensions: ['dmg'] }],
   });
 
   if (canceled) {
@@ -37,7 +39,7 @@ function createWindow() {
 
 // Electron の初期化が完了したらウィンドウを作成
 app.whenReady().then(() => {
-  ipcMain.handle('dialog:openFile', handleFileOpen);
+  ipcMain.handle('dialog:getSDImagePath', handleGetSDImagePath);
   createWindow();
 
   app.on('activate', () => {

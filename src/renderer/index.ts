@@ -14,8 +14,17 @@ const btn = document.getElementById('btn-openFile');
 const filePathElement = document.getElementById('filePath');
 
 btn?.addEventListener('click', async () => {
-  const filePath = await window.electronAPI.openFile();
+  let text: string;
+  const filePath = await window.electronAPI.getSDImagePath();
+  if (filePath === undefined) {
+    text = 'ファイルが選択されていません';
+    return;
+  } else {
+    window.electronAPI.openFile(filePath);
+    text = filePath;
+  }
+
   if (filePathElement !== null) {
-    filePathElement.innerText = filePath;
+    filePathElement.innerText = text;
   }
 });
