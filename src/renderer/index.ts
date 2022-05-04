@@ -3,9 +3,11 @@ import { Console } from './console/console';
 const canvas = <HTMLCanvasElement>document.getElementById('console');
 const ctx = canvas.getContext('2d');
 
+let tacConsole: Console;
+
 if (ctx !== null) {
-  const console = new Console(ctx);
-  console.drawAll();
+  tacConsole = new Console(ctx);
+  tacConsole.drawAll();
 } else {
   console.log('error : loading console failed');
 }
@@ -27,4 +29,11 @@ btn?.addEventListener('click', async () => {
   if (filePathElement !== null) {
     filePathElement.innerText = text;
   }
+});
+
+canvas.addEventListener('mousedown', (e) => {
+  const x = e.clientX - canvas.getBoundingClientRect().left;
+  const y = e.clientY - canvas.getBoundingClientRect().top;
+
+  tacConsole.click(x, y);
 });

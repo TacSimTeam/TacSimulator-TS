@@ -9,6 +9,9 @@ const COLOR_GREEN_DARK = '#004000';
 const COLOR_YELLOW_LIGHT = '#FFFF00';
 const COLOR_YELLOW_DARK = '#DAA520';
 
+const CONSOLE_WIDTH = 430;
+const CONSOLE_HEIGHT = 390;
+
 export class Console {
   private buttons: [...Button[]];
   private switches: [...Switch[]];
@@ -220,5 +223,16 @@ export class Console {
     this.drawButtons();
     this.drawSwitches();
     this.drawLeds();
+  }
+
+  click(x: number, y: number) {
+    this.buttons.forEach((element) => {
+      element.click(x, y);
+    });
+    this.switches.forEach((element) => {
+      element.click(x, y);
+    });
+    this.ctx.clearRect(0, 0, CONSOLE_WIDTH, CONSOLE_HEIGHT);
+    this.drawAll();
   }
 }
