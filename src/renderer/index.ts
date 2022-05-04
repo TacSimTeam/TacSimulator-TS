@@ -1,26 +1,28 @@
-import { Console } from './console/console';
+import { assertIsDefined } from './utils';
+import { Tac } from './TaC/tac';
 
-const canvas = <HTMLCanvasElement>document.getElementById('console');
+const c = document.getElementById('console');
+assertIsDefined(c);
+const canvas = c as HTMLCanvasElement;
+
 const ctx = canvas.getContext('2d');
+assertIsDefined(ctx);
 
-let tacConsole: Console;
+const openBtn = document.getElementById('btn-openFile');
+assertIsDefined(openBtn);
 
-if (ctx !== null) {
-  tacConsole = new Console(ctx);
-  tacConsole.drawAll();
-} else {
-  console.log('error : loading console failed');
-}
-
-const btn = document.getElementById('btn-openFile');
 const filePathElement = document.getElementById('filePath');
+assertIsDefined(filePathElement);
 
-btn?.addEventListener('click', async () => {
+const tac = new Tac(ctx);
+
+// 「Open a File」ボタンが押された時の動作
+openBtn.addEventListener('click', async () => {
   let text: string;
   const filePath = await window.electronAPI.getSDImagePath();
+
   if (filePath === undefined) {
     text = 'ファイルが選択されていません';
-    return;
   } else {
     window.electronAPI.openFile(filePath);
     text = filePath;
@@ -31,9 +33,10 @@ btn?.addEventListener('click', async () => {
   }
 });
 
+// TaCコンソールがクリックされた時の動作
 canvas.addEventListener('mousedown', (e) => {
   const x = e.clientX - canvas.getBoundingClientRect().left;
   const y = e.clientY - canvas.getBoundingClientRect().top;
 
-  tacConsole.click(x, y);
+  tac.click(x, y);
 });
