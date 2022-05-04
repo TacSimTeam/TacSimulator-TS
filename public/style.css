@@ -1,11 +1,27 @@
-p {
-    color: brown;
-    background-color: bisque;
-    border: 5px solid black;
-    padding: 20px 30px 30px 10px;
-  }
-  
-  canvas {
-    border: 1px solid black;
-  }
-  
+canvas {
+  border: 1px solid black;
+}
+
+#loading {
+  display: none;
+  width: 300px;
+  height: 60px;
+  border: 1px solid #ddd;
+  font-size: 10pt;
+  text-align: left;
+  position: absolute;
+  background: #fff;
+}
+
+#Loading img.load-image {
+  position: absolute;
+  top: 12px;
+  left: 50px;
+}
+
+#Loading p.load-message {
+  position: absolute;
+  text-align: left;
+  top: 12px;
+  left: 90px;
+}
