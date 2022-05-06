@@ -25,6 +25,11 @@ export class Console {
 
   private ctx: CanvasRenderingContext2D;
 
+  private rotSwitchCursor: number;
+
+  /* TaCが動いている(true)ならコンソールは操作できない */
+  private isRunning: boolean;
+
   constructor(ctx: CanvasRenderingContext2D) {
     this.buttons = [];
     this.switches = [];
@@ -34,6 +39,8 @@ export class Console {
     this.flagLeds = [];
     this.runLeds = [];
     this.ctx = ctx;
+    this.rotSwitchCursor = 0;
+    this.isRunning = false;
 
     this.initLeds();
     this.initButtons();
@@ -87,41 +94,13 @@ export class Console {
         console.log('<- pushed');
       })
     );
-    this.buttons.push(
-      new Button(360, 330, 'WRITE', () => {
-        console.log('WRITE pushed');
-      })
-    );
-    this.buttons.push(
-      new Button(320, 330, 'DECA', () => {
-        console.log('DECA pushed');
-      })
-    );
-    this.buttons.push(
-      new Button(280, 330, 'INCA', () => {
-        console.log('INCA pushed');
-      })
-    );
-    this.buttons.push(
-      new Button(240, 330, 'SETA', () => {
-        console.log('SETA pushed');
-      })
-    );
-    this.buttons.push(
-      new Button(180, 330, 'STOP', () => {
-        console.log('STOP pushed');
-      })
-    );
-    this.buttons.push(
-      new Button(140, 330, 'RUN', () => {
-        console.log('RUN pushed');
-      })
-    );
-    this.buttons.push(
-      new Button(20, 330, 'RESET', () => {
-        console.log('RESET pushed');
-      })
-    );
+    this.buttons.push(new Button(360, 330, 'WRITE', this.onClickWriteBtn));
+    this.buttons.push(new Button(320, 330, 'DECA', this.onClickDecaBtn));
+    this.buttons.push(new Button(280, 330, 'INCA', this.onClickIncaBtn));
+    this.buttons.push(new Button(240, 330, 'SETA', this.onClickSetaBtn));
+    this.buttons.push(new Button(180, 330, 'STOP', this.onClickStopBtn));
+    this.buttons.push(new Button(140, 330, 'RUN', this.onClickRunBtn));
+    this.buttons.push(new Button(20, 330, 'RESET', this.onClickResetBtn));
   }
 
   private initSwitches() {
@@ -234,5 +213,33 @@ export class Console {
     });
     this.ctx.clearRect(0, 0, CONSOLE_WIDTH, CONSOLE_HEIGHT);
     this.drawAll();
+  }
+
+  private onClickWriteBtn() {
+    if (this.isRunning) return;
+  }
+
+  private onClickDecaBtn() {
+    if (this.isRunning) return;
+  }
+
+  private onClickIncaBtn() {
+    if (this.isRunning) return;
+  }
+
+  private onClickSetaBtn() {
+    if (this.isRunning) return;
+  }
+
+  private onClickStopBtn() {
+    if (this.isRunning) return;
+  }
+
+  private onClickRunBtn() {
+    if (this.isRunning) return;
+  }
+
+  private onClickResetBtn() {
+    if (this.isRunning) return;
   }
 }
