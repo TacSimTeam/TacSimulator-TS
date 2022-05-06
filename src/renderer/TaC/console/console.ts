@@ -225,12 +225,12 @@ export class Console {
     this.drawLeds();
   }
 
-  click(x: number, y: number) {
+  onClick(x: number, y: number) {
     this.buttons.forEach((element) => {
-      element.click(x, y);
+      element.onClick(x, y);
     });
     this.switches.forEach((element) => {
-      element.click(x, y);
+      element.onClick(x, y);
     });
     this.ctx.clearRect(0, 0, CONSOLE_WIDTH, CONSOLE_HEIGHT);
     this.drawAll();

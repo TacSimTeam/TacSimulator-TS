@@ -12,7 +12,7 @@ export class Button {
   }
 
   // 押されていたら指定した関数を実行する
-  click(mouseX: number, mouseY: number) {
+  onClick(mouseX: number, mouseY: number) {
     if (this.posX <= mouseX && mouseX <= this.posX + 26 && this.posY <= mouseY && mouseY <= this.posY + 26) {
       this.event();
     }

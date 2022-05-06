@@ -44,5 +44,5 @@ canvas.addEventListener('mousedown', (e) => {
   const x = e.clientX - canvas.getBoundingClientRect().left;
   const y = e.clientY - canvas.getBoundingClientRect().top;
 
-  tac.click(x, y);
+  tac.onClick(x, y);
 });

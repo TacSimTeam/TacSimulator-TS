@@ -8,7 +8,7 @@ export class Tac {
     this.console.drawAll();
   }
 
-  click(x: number, y: number) {
-    this.console.click(x, y);
+  onClick(x: number, y: number) {
+    this.console.onClick(x, y);
   }
 }
