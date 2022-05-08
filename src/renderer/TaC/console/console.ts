@@ -2,6 +2,8 @@ import { Button } from './button';
 import { Switch } from './switch';
 import { Led } from './led';
 
+import { Memory } from '../memory/memory';
+
 const COLOR_RED_LIGHT = '#ff0000';
 const COLOR_RED_DARK = '#400000';
 const COLOR_GREEN_LIGHT = '#00ff00';
@@ -25,12 +27,15 @@ export class Console {
 
   private ctx: CanvasRenderingContext2D;
 
+  /* コンソールはDMA方式でメモリとアクセスできる */
+  private memory: Memory;
+
   private rotSwitchCursor: number;
 
   /* TaCが動いている(true)ならコンソールは操作できない */
   private isRunning: boolean;
 
-  constructor(ctx: CanvasRenderingContext2D) {
+  constructor(ctx: CanvasRenderingContext2D, memory: Memory) {
     this.buttons = [];
     this.switches = [];
     this.addrLeds = [];
@@ -39,6 +44,7 @@ export class Console {
     this.flagLeds = [];
     this.runLeds = [];
     this.ctx = ctx;
+    this.memory = memory;
     this.rotSwitchCursor = 0;
     this.isRunning = false;
 
@@ -84,16 +90,8 @@ export class Console {
   }
 
   private initButtons() {
-    this.buttons.push(
-      new Button(295, 150, '->', () => {
-        console.log('-> pushed');
-      })
-    );
-    this.buttons.push(
-      new Button(60, 150, '<-', () => {
-        console.log('<- pushed');
-      })
-    );
+    this.buttons.push(new Button(60, 150, '<-', this.onClickLArrowBtn));
+    this.buttons.push(new Button(295, 150, '->', this.onClickRArrowBtn));
     this.buttons.push(new Button(360, 330, 'WRITE', this.onClickWriteBtn));
     this.buttons.push(new Button(320, 330, 'DECA', this.onClickDecaBtn));
     this.buttons.push(new Button(280, 330, 'INCA', this.onClickIncaBtn));
@@ -213,6 +211,24 @@ export class Console {
     });
     this.ctx.clearRect(0, 0, CONSOLE_WIDTH, CONSOLE_HEIGHT);
     this.drawAll();
+  }
+
+  // '<-'ボタン
+  private onClickLArrowBtn() {
+    if (this.isRunning) return;
+
+    if (this.rotSwitchCursor < 17) {
+      this.rotSwitchCursor++;
+    }
+  }
+
+  // '->'ボタン
+  private onClickRArrowBtn() {
+    if (this.isRunning) return;
+
+    if (this.rotSwitchCursor > 0) {
+      this.rotSwitchCursor++;
+    }
   }
 
   private onClickWriteBtn() {

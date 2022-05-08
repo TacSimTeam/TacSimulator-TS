@@ -1,4 +1,5 @@
 import { Console } from './console/console';
+import { Memory } from './memory/memory';
 import { Mmu } from './memory/mmu';
 
 export class Tac {
@@ -6,8 +7,9 @@ export class Tac {
   private mmu: Mmu;
 
   constructor(ctx: CanvasRenderingContext2D) {
-    this.console = new Console(ctx);
-    this.mmu = new Mmu();
+    const memory = new Memory();
+    this.mmu = new Mmu(memory);
+    this.console = new Console(ctx, memory);
 
     this.console.drawAll();
   }

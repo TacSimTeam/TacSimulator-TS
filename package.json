@@ -14,7 +14,9 @@
     "package:win": "electron-builder --win --x64",
     "build:mac": "cross-env NODE_ENV=\"production\" run-s compile package:mac",
     "build:win": "cross-env NODE_ENV=\"production\" run-s compile package:win",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint ./src/**/*.ts",
+    "fmt": "prettier --write ./src/**/* && prettier --write ./public/**/*.{html,css}"
   },
   "repository": {
     "type": "git",

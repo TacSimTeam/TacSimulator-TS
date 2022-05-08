@@ -1,8 +1,10 @@
 import { ipl } from '../src/renderer/TaC/ipl';
+import { Memory } from '../src/renderer/TaC/memory/memory';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
 
 test('MMU Read/Write Test', () => {
-  const mmu = new Mmu();
+  const memory = new Memory();
+  const mmu = new Mmu(memory);
 
   mmu.write(0x1000, 10);
   expect(mmu.read(0x1000)).toBe(10);
@@ -13,7 +15,8 @@ test('MMU Read/Write Test', () => {
 });
 
 test('MMU IPL loading Test', () => {
-  const mmu = new Mmu();
+  const memory = new Memory();
+  const mmu = new Mmu(memory);
   mmu.loadIpl();
 
   const f1 = (mmu: Mmu) => {

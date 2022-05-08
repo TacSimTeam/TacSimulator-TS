@@ -4,11 +4,11 @@ import { ipl } from '../ipl';
 export class Mmu {
   private memory: Memory;
 
-  /* IPLロード中ならtrue */
+  // IPLロード中ならtrue
   private iplMode: boolean;
 
-  constructor() {
-    this.memory = new Memory();
+  constructor(memory: Memory) {
+    this.memory = memory;
     this.iplMode = false;
   }
 
