@@ -5,16 +5,16 @@ test('Register Read/Write Test', () => {
 
   expect(() => {
     register.read(-1);
-  }).toThrow();
+  }).toThrowError('レジスタ参照エラー');
   expect(() => {
-    register.read(16);
-  }).toThrow();
+    register.read(15);
+  }).toThrowError('レジスタ参照エラー');
   expect(() => {
     register.write(-1, 10);
-  }).toThrow();
+  }).toThrowError('レジスタ参照エラー');
   expect(() => {
-    register.write(16, 10);
-  }).toThrow();
+    register.write(15, 10);
+  }).toThrowError('レジスタ参照エラー');
 
   register.write(REGISTER_G0, 0x1234);
   expect(register.read(REGISTER_G0)).toBe(0x1234);
