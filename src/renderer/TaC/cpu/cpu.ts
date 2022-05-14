@@ -32,22 +32,22 @@ export class Cpu {
     this.pc = 0;
   }
 
-  exec(val: number) {
-    this.execInstruction(this.decode(val));
+  run() {
+    for (;;) {
+      // fetch
+      const data = this.memory.read16(this.pc);
+
+      // decode
+      const inst = this.decode(data);
+    }
   }
 
-  getPC() {
-    const nextPC = this.pc;
-    this.pc += 1;
-    return nextPC;
-  }
-
-  private decode(val: number): Instruction {
+  private decode(data: number): Instruction {
     const inst: Instruction = {
-      op: 0,
-      addrMode: 0,
-      rd: 0,
-      rx: 0,
+      op: data >>> 11,
+      addrMode: (data >>> 8) & 0x07,
+      rd: (data >>> 4) & 0x0f,
+      rx: data & 0x0f,
       dsp: 0,
     };
 
