@@ -4,37 +4,37 @@ test('Register Read/Write Test', () => {
   const register = new Register();
 
   expect(() => {
-    register.read(-1);
+    register.readReg(-1);
   }).toThrowError('レジスタ参照エラー');
   expect(() => {
-    register.read(15);
+    register.readReg(15);
   }).toThrowError('レジスタ参照エラー');
   expect(() => {
-    register.write(-1, 10);
+    register.writeReg(-1, 10);
   }).toThrowError('レジスタ参照エラー');
   expect(() => {
-    register.write(15, 10);
+    register.writeReg(15, 10);
   }).toThrowError('レジスタ参照エラー');
 
-  register.write(REGISTER_G0, 0x1234);
-  expect(register.read(REGISTER_G0)).toBe(0x1234);
-  register.write(REGISTER_FP, 0x2345);
-  expect(register.read(REGISTER_FP)).toBe(0x2345);
-  register.write(REGISTER_SP, 0x3456);
-  expect(register.read(REGISTER_SP)).toBe(0x3456);
-  expect(register.read(REGISTER_USP)).toBe(0x3456);
+  register.writeReg(REGISTER_G0, 0x1234);
+  expect(register.readReg(REGISTER_G0)).toBe(0x1234);
+  register.writeReg(REGISTER_FP, 0x2345);
+  expect(register.readReg(REGISTER_FP)).toBe(0x2345);
+  register.writeReg(REGISTER_SP, 0x3456);
+  expect(register.readReg(REGISTER_SP)).toBe(0x3456);
+  expect(register.readReg(REGISTER_USP)).toBe(0x3456);
 
   register.setPrivMode(true);
-  register.write(REGISTER_SP, 0x6543);
-  expect(register.read(REGISTER_SP)).toBe(0x6543);
-  expect(register.read(REGISTER_USP)).toBe(0x3456);
+  register.writeReg(REGISTER_SP, 0x6543);
+  expect(register.readReg(REGISTER_SP)).toBe(0x6543);
+  expect(register.readReg(REGISTER_USP)).toBe(0x3456);
 
   register.setPrivMode(false);
-  expect(register.read(REGISTER_SP)).toBe(0x3456);
+  expect(register.readReg(REGISTER_SP)).toBe(0x3456);
 
   register.reset();
   register.setPrivMode(true);
-  expect(register.read(REGISTER_G0)).toBe(0);
-  expect(register.read(REGISTER_USP)).toBe(0);
-  expect(register.read(REGISTER_SP)).toBe(0);
+  expect(register.readReg(REGISTER_G0)).toBe(0);
+  expect(register.readReg(REGISTER_USP)).toBe(0);
+  expect(register.readReg(REGISTER_SP)).toBe(0);
 });

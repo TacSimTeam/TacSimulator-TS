@@ -46,7 +46,7 @@ export class Register {
     this.privMode = flag;
   }
 
-  read(num: number) {
+  readReg(num: number) {
     if (!(REGISTER_G0 <= num && num <= REGISTER_USP)) {
       throw new Error('レジスタ参照エラー');
     }
@@ -67,7 +67,7 @@ export class Register {
     }
   }
 
-  write(num: number, val: number) {
+  writeReg(num: number, val: number) {
     if (!(REGISTER_G0 <= num && num <= REGISTER_USP)) {
       throw new Error('レジスタ参照エラー');
     }

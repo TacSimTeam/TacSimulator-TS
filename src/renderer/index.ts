@@ -1,9 +1,8 @@
 import { assertIsDefined } from './utils';
 import { Tac } from './TaC/tac';
 
-const c = document.getElementById('console');
-assertIsDefined(c);
-const canvas = c as HTMLCanvasElement;
+assertIsDefined(document.getElementById('console'));
+const canvas = document.getElementById('console') as HTMLCanvasElement;
 
 const ctx = canvas.getContext('2d');
 assertIsDefined(ctx);

@@ -2,7 +2,7 @@ import { Button } from './button';
 import { Switch } from './switch';
 import { Led } from './led';
 
-import { Memory } from '../memory/memory';
+import { IDmaSignal } from '../interface/dmaSignal';
 
 const COLOR_RED_LIGHT = '#ff0000';
 const COLOR_RED_DARK = '#400000';
@@ -28,14 +28,14 @@ export class Console {
   private ctx: CanvasRenderingContext2D;
 
   /* コンソールはDMA方式でメモリとアクセスできる */
-  private memory: Memory;
+  private memory: IDmaSignal;
 
   private rotSwitchCursor: number;
 
   /* TaCが動いている(true)ならコンソールは操作できない */
   private isRunning: boolean;
 
-  constructor(ctx: CanvasRenderingContext2D, memory: Memory) {
+  constructor(ctx: CanvasRenderingContext2D, memory: IDmaSignal) {
     this.buttons = [];
     this.switches = [];
     this.addrLeds = [];
