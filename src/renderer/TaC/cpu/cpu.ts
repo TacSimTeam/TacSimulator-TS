@@ -56,6 +56,9 @@ export class Cpu {
 
       // loading operand
       inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
+
+      // execute
+      this.execInstruction(inst);
     }
   }
 
@@ -141,6 +144,80 @@ export class Cpu {
       case operation.NOP:
         console.log('NOP');
         break;
+      case operation.LD:
+        console.log('LD');
+        break;
+      case operation.ST:
+        console.log('ST');
+        break;
+      case operation.ADD:
+        console.log('ADD');
+        break;
+      case operation.SUB:
+        console.log('SUB');
+        break;
+      case operation.CMP:
+        console.log('CMP');
+        break;
+      case operation.AND:
+        console.log('AND');
+        break;
+      case operation.OR:
+        console.log('OR');
+        break;
+      case operation.XOR:
+        console.log('XOR');
+        break;
+      case operation.ADDS:
+        console.log('ADDS');
+        break;
+      case operation.MUL:
+        console.log('MUL');
+        break;
+      case operation.DIV:
+        console.log('DIV');
+        break;
+      case operation.MOD:
+        console.log('MOD');
+        break;
+      case operation.SHLA:
+        console.log('SHLA');
+        break;
+      case operation.SHLL:
+        console.log('SHLL');
+        break;
+      case operation.SHRA:
+        console.log('SHRA');
+        break;
+      case operation.SHRL:
+        console.log('SHRL');
+        break;
+      case operation.JMP:
+        console.log('JMP');
+        break;
+      case operation.CALL:
+        console.log('CALL');
+        break;
+      case operation.IN:
+        console.log('OUT');
+        break;
+      case operation.OUT:
+        console.log('OUT');
+        break;
+      case operation.PUSH_POP:
+        console.log('PUSH_POP');
+        break;
+      case operation.RET_RETI:
+        console.log('RET_RETI');
+        break;
+      case operation.SVC:
+        console.log('SVC');
+        break;
+      case operation.HALT:
+        console.log('HALT');
+        break;
+      default:
+        throw new Error('未定義命令');
     }
   }
 
