@@ -1,7 +1,7 @@
 import { Cpu } from '../src/renderer/TaC/cpu/cpu';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
 import { Memory } from '../src/renderer/TaC/memory/memory';
-import { REGISTER_FP, REGISTER_G2, REGISTER_G3 } from '../src/renderer/TaC/cpu/register';
+import { REGISTER_FP, REGISTER_G10, REGISTER_G11, REGISTER_G2, REGISTER_G3 } from '../src/renderer/TaC/cpu/register';
 
 test('CPU decode Test', () => {
   const cpu = new Cpu(new Mmu(new Memory()));
@@ -14,7 +14,7 @@ test('CPU decode Test', () => {
   expect(inst.dsp).toBe(0);
 });
 
-test('Converting unsigned int4 to signed int4', () => {
+test('Converting unsigned int4 to signed int4 Test', () => {
   const cpu = new Cpu(new Mmu(new Memory()));
 
   expect(cpu['convSignedInt4'](0b0000)).toBe(0);
@@ -35,7 +35,7 @@ test('Converting unsigned int4 to signed int4', () => {
   expect(cpu['convSignedInt4'](0b1111)).toBe(-1);
 });
 
-test('CPU effective address calculation', () => {
+test('CPU effective address calculation Test', () => {
   const mmu = new Mmu(new Memory());
   const cpu = new Cpu(mmu);
 
@@ -63,4 +63,44 @@ test('CPU effective address calculation', () => {
   mmu.write16(0x000c, 0b0000101100111110); // Addr : 0x000c
   cpu['setRegister'](REGISTER_FP, 0x1234);
   expect(cpu['calcEffectiveAddress'](3, 0b1110)).toBe(0x1234 - 4);
+});
+
+test('CPU loading operand Test', () => {
+  const mmu = new Mmu(new Memory());
+  const cpu = new Cpu(mmu);
+
+  /* Direct Mode */
+  mmu.write16(0x3210, 0x1234);
+  expect(cpu['loadOperand'](0, 0, 0x3210)).toBe(0x1234);
+
+  /* Indexed Mode */
+  mmu.write16(0x5678 + 2, 0x7654);
+  cpu['setRegister'](REGISTER_G2, 0x0002);
+  expect(cpu['loadOperand'](1, REGISTER_G2, 0x5678)).toBe(0x7654);
+
+  /* Immediate Mode */
+  cpu['setPC'](0x5000);
+  mmu.write16(0x5000, 0x2525);
+  expect(cpu['loadOperand'](2, 0, 0)).toBe(0x2525);
+
+  /* FP Relative Mode */
+  mmu.write16(0x5432, 0x9999);
+  expect(cpu['loadOperand'](3, 0, 0x5432)).toBe(0x9999);
+
+  /* Register to Register Mode */
+  cpu['setRegister'](REGISTER_G10, 0x5555);
+  expect(cpu['loadOperand'](4, REGISTER_G10, 0)).toBe(0x5555);
+
+  /* Short Immediate Mode */
+  expect(cpu['loadOperand'](5, 0b1011, 0)).toBe(cpu['convSignedInt4'](0b1011));
+
+  /* Register Indirect Mode */
+  mmu.write16(0x8888, 0x1111);
+  cpu['setRegister'](REGISTER_G11, 0x8888);
+  expect(cpu['loadOperand'](6, REGISTER_G11, 0)).toBe(0x1111);
+
+  /* Register Indirect Mode */
+  mmu.write16(0xaaaa, 0x00aa);
+  cpu['setRegister'](REGISTER_G11, 0xaaaa);
+  expect(cpu['loadOperand'](7, REGISTER_G11, 0)).toBe(0x00aa);
 });

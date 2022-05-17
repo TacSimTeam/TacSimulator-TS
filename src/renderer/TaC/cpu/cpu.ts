@@ -53,6 +53,9 @@ export class Cpu {
 
       // effective address calculation
       inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
+
+      // loading operand
+      inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
     }
   }
 
@@ -94,6 +97,40 @@ export class Cpu {
       case ADDRMODE_FP_RELATIVE:
         // console.log(`rx : ${rx}, this.convSignedInt4(rx) : ${this.convSignedInt4(rx)}`);
         return this.register.readReg(REGISTER_FP) + this.convSignedInt4(rx) * 2;
+      default:
+        return 0;
+    }
+  }
+
+  /**
+   * オペランド読み出し
+   *
+   * @param addrMode アドレッシングモード
+   * @param rx インデクスレジスタ
+   * @param dsp 実効アドレス
+   * @returns 読み出した値
+   */
+  private loadOperand(addrMode: number, rx: number, dsp: number) {
+    switch (addrMode) {
+      case ADDRMODE_DIRECT:
+        this.nextPC();
+        return this.memory.read16(dsp);
+      case ADDRMODE_INDEXED:
+        this.nextPC();
+        return this.memory.read16(dsp + this.register.readReg(rx));
+      case ADDRMODE_IMMEDIATE:
+        this.nextPC();
+        return this.memory.read16(this.pc - 2);
+      case ADDRMODE_FP_RELATIVE:
+        return this.memory.read16(dsp);
+      case ADDRMODE_REG_TO_REG:
+        return this.register.readReg(rx);
+      case ADDRMODE_SHORT_IMMEDIATE:
+        return this.convSignedInt4(rx);
+      case ADDRMODE_REG_INDIRECT:
+        return this.memory.read16(this.register.readReg(rx));
+      case ADDRMODE_BYTE_REG_INDIRECT:
+        return this.memory.read16(this.register.readReg(rx));
       default:
         return 0;
     }
