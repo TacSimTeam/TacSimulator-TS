@@ -43,25 +43,34 @@ export class Cpu {
   }
 
   run() {
-    for (;;) {
-      // fetch
-      const data = this.memory.read16(this.pc);
+    // fetch
+    const data = this.memory.read16(this.pc);
+    this.nextPC();
+
+    // decode
+    const inst = this.decode(data);
+
+    // effective address calculation
+    inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
+
+    // loading operand
+    inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
+
+    // 2ワード命令なのでPC += 2する
+    if (this.isTwoWordInstruction(inst.addrMode)) {
       this.nextPC();
-
-      // decode
-      const inst = this.decode(data);
-
-      // effective address calculation
-      inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
-
-      // loading operand
-      inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
-
-      // execute
-      this.execInstruction(inst);
     }
+
+    // execute
+    this.execInstruction(inst);
   }
 
+  /**
+   * 命令デコード
+   *
+   * @param data Mem[PC]から取得したデータ
+   * @returns 命令オブジェクト
+   */
   private decode(data: number): Instruction {
     const inst: Instruction = {
       op: data >>> 11,
@@ -98,7 +107,6 @@ export class Cpu {
       case ADDRMODE_INDEXED:
         return data + this.register.readReg(rx);
       case ADDRMODE_FP_RELATIVE:
-        // console.log(`rx : ${rx}, this.convSignedInt4(rx) : ${this.convSignedInt4(rx)}`);
         return this.register.readReg(REGISTER_FP) + this.convSignedInt4(rx) * 2;
       default:
         return 0;
@@ -116,14 +124,11 @@ export class Cpu {
   private loadOperand(addrMode: number, rx: number, dsp: number) {
     switch (addrMode) {
       case ADDRMODE_DIRECT:
-        this.nextPC();
         return this.memory.read16(dsp);
       case ADDRMODE_INDEXED:
-        this.nextPC();
         return this.memory.read16(dsp + this.register.readReg(rx));
       case ADDRMODE_IMMEDIATE:
-        this.nextPC();
-        return this.memory.read16(this.pc - 2);
+        return this.memory.read16(this.pc);
       case ADDRMODE_FP_RELATIVE:
         return this.memory.read16(dsp);
       case ADDRMODE_REG_TO_REG:
@@ -139,6 +144,11 @@ export class Cpu {
     }
   }
 
+  /**
+   * 命令実行
+   *
+   * @param inst 命令オブジェクト
+   */
   private execInstruction(inst: Instruction) {
     switch (inst.op) {
       case operation.NOP:
@@ -221,8 +231,14 @@ export class Cpu {
     }
   }
 
+  /* PCを1ワード分(2バイト)進める */
   private nextPC() {
     this.pc += 2;
+  }
+
+  /* 2ワード命令ならTrue */
+  private isTwoWordInstruction(addrMode: number) {
+    return addrMode === ADDRMODE_DIRECT || addrMode === ADDRMODE_INDEXED || addrMode === ADDRMODE_IMMEDIATE;
   }
 
   /* テスト用関数 */
