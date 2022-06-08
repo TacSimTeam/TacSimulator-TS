@@ -2,6 +2,26 @@ import { ipl } from '../src/renderer/TaC/ipl';
 import { Memory } from '../src/renderer/TaC/memory/memory';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
 
+test('Memory Read/Write Test', () => {
+  const memory = new Memory();
+
+  memory.write16(0x1000, 10);
+  expect(memory.read16(0x1000)).toBe(10);
+  expect(memory.read16(0x2000)).toBe(0);
+
+  memory.write16(0xa000, 0x1234);
+  expect(memory.read16(0xa000)).toBe(0x1234);
+
+  memory.write16(0x4000, 0x5678);
+  expect(memory.read8(0x4000 + 0)).toBe(0x0056);
+  expect(memory.read8(0x4000 + 1)).toBe(0x0078);
+
+  memory.write8(0x4000 + 1, 0x00);
+  expect(memory.read16(0x4000)).toBe(0x5600);
+
+  expect(memory.getMemorySize()).toBe(64 * 1024);
+});
+
 test('MMU Read/Write Test', () => {
   const memory = new Memory();
   const mmu = new Mmu(memory);
@@ -12,6 +32,13 @@ test('MMU Read/Write Test', () => {
 
   mmu.write16(0xa000, 0x1234);
   expect(mmu.read16(0xa000)).toBe(0x1234);
+
+  mmu.write16(0x4000, 0x5678);
+  expect(mmu.read8(0x4000 + 0)).toBe(0x0056);
+  expect(mmu.read8(0x4000 + 1)).toBe(0x0078);
+
+  mmu.write8(0x4000 + 1, 0x00);
+  expect(mmu.read16(0x4000)).toBe(0x5600);
 });
 
 test('MMU IPL loading Test', () => {

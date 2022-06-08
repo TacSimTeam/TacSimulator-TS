@@ -13,9 +13,10 @@ export const REGISTER_G11 = 11;
 export const REGISTER_FP = 12;
 export const REGISTER_SP = 13;
 export const REGISTER_USP = 14;
-export const REGISTER_FLAG = 15;
 
 // フラグ(15番のレジスタ)はCPU側が保持する
+export const REGISTER_FLAG = 15;
+
 export class Register {
   private generals: Uint16Array;
   private fp: number;

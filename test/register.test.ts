@@ -32,6 +32,9 @@ test('Register Read/Write Test', () => {
   register.setPrivMode(false);
   expect(register.readReg(REGISTER_SP)).toBe(0x3456);
 
+  register.writeReg(REGISTER_USP, 0x5678);
+  expect(register.readReg(REGISTER_SP)).toBe(0x5678);
+
   register.reset();
   register.setPrivMode(true);
   expect(register.readReg(REGISTER_G0)).toBe(0);

@@ -3,7 +3,7 @@ import * as path from 'path';
 
 let mainWindow: BrowserWindow;
 
-// ファイルダイアログを開き「.dmg」ファイルのパスを返す
+/* ファイルダイアログを開き「.dmg」ファイルのパスを返す */
 async function handleGetSDImagePath() {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     title: 'ファイルを選択してください',

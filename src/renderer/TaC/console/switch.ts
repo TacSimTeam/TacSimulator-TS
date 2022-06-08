@@ -11,7 +11,7 @@ export class Switch {
     this.state = false;
   }
 
-  // 押されていたら状態(ON/OFF)を切り替える
+  /* 押されていたら状態(ON/OFF)を切り替える */
   onClick(mouseX: number, mouseY: number) {
     if (this.posX <= mouseX && mouseX <= this.posX + 26 && this.posY <= mouseY && mouseY <= this.posY + 26) {
       // 反転

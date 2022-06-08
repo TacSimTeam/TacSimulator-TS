@@ -45,25 +45,26 @@ export class Cpu {
     this.pc = 0;
   }
 
+  /* 命令実行サイクル */
   run() {
-    // fetch
+    // 命令フェッチ
     const data = this.memory.read16(this.pc);
     this.nextPC();
 
-    // decode
+    // 命令デコード
     const inst = this.decode(data);
 
-    // effective address calculation
+    // 実効アドレス計算
     inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
 
-    // loading operand
+    // オペランド読出し
     inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
 
     if (this.isTwoWordInstruction(inst.addrMode)) {
       this.nextPC();
     }
 
-    // execute
+    // 命令実行
     this.execInstruction(inst);
   }
 
@@ -146,7 +147,7 @@ export class Cpu {
       case ADDRMODE_BYTE_REG_INDIRECT:
         return this.memory.read8(dsp);
       default:
-        return 0;
+        throw new Error('不正なアドレッシングモードエラー');
     }
   }
 
@@ -217,7 +218,7 @@ export class Cpu {
         console.log('CALL');
         break;
       case operation.IN:
-        console.log('OUT');
+        console.log('IN');
         break;
       case operation.OUT:
         console.log('OUT');
@@ -247,7 +248,7 @@ export class Cpu {
 
   /* 2ワード命令ならTrue */
   private isTwoWordInstruction(addrMode: number) {
-    return addrMode === ADDRMODE_DIRECT || addrMode === ADDRMODE_INDEXED || addrMode === ADDRMODE_IMMEDIATE;
+    return ADDRMODE_DIRECT <= addrMode && addrMode <= ADDRMODE_IMMEDIATE;
   }
 
   private instrLD(inst: Instruction) {
@@ -259,26 +260,28 @@ export class Cpu {
   }
 
   private instrST(inst: Instruction) {
+    // ST命令ではrdがディスティネーションではなくソースとなる
     const data = this.register.readReg(inst.rd);
     if (inst.addrMode == ADDRMODE_BYTE_REG_INDIRECT) {
-      this.memory.write8(inst.dsp, 0x0f & data);
+      this.memory.write8(inst.dsp, 0x00ff & data);
     } else {
       this.memory.write16(inst.dsp, data);
     }
   }
 
-  /* テスト用関数 */
   private setRegister(num: number, val: number) {
     this.register.writeReg(num, val);
   }
 
-  /* テスト用関数 */
   private getRegister(num: number) {
     return this.register.readReg(num);
   }
 
-  /* テスト用関数 */
   private setPC(pc: number) {
     this.pc = pc;
+  }
+
+  private getPC() {
+    return this.pc;
   }
 }
