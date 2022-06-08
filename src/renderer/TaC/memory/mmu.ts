@@ -1,7 +1,7 @@
 import { IDataBus, IDmaSignal, IIplLoader } from '../interface';
 import { ipl } from '../ipl';
 
-export class Mmu implements IDataBus, IIplLoader {
+export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
   private memory: IDmaSignal;
 
   // IPLロード中ならtrue
@@ -32,6 +32,14 @@ export class Mmu implements IDataBus, IIplLoader {
       console.log('奇数アドレス参照');
     }
     return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
+  }
+
+  write8(addr: number, val: number): void {
+    this.memory.write8(addr, val);
+  }
+
+  read8(addr: number): number {
+    return this.memory.read8(addr);
   }
 
   loadIpl() {

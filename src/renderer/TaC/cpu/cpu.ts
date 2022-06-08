@@ -33,12 +33,15 @@ export class Cpu {
   private pc: number;
   private memory: IDataBus;
 
+  private haltFlag: boolean;
+
   private register: Register;
 
   constructor(memory: IDataBus) {
     this.register = new Register();
     this.flag = FLAG_P;
     this.memory = memory;
+    this.haltFlag = false;
     this.pc = 0;
   }
 
@@ -56,7 +59,6 @@ export class Cpu {
     // loading operand
     inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
 
-    // 2ワード命令なのでPC += 2する
     if (this.isTwoWordInstruction(inst.addrMode)) {
       this.nextPC();
     }
@@ -108,6 +110,10 @@ export class Cpu {
         return data + this.register.readReg(rx);
       case ADDRMODE_FP_RELATIVE:
         return this.register.readReg(REGISTER_FP) + this.convSignedInt4(rx) * 2;
+      case ADDRMODE_REG_INDIRECT:
+        return this.register.readReg(rx);
+      case ADDRMODE_BYTE_REG_INDIRECT:
+        return this.register.readReg(rx);
       default:
         return 0;
     }
@@ -136,9 +142,9 @@ export class Cpu {
       case ADDRMODE_SHORT_IMMEDIATE:
         return this.convSignedInt4(rx);
       case ADDRMODE_REG_INDIRECT:
-        return this.memory.read16(this.register.readReg(rx));
+        return this.memory.read16(dsp);
       case ADDRMODE_BYTE_REG_INDIRECT:
-        return this.memory.read16(this.register.readReg(rx));
+        return this.memory.read8(dsp);
       default:
         return 0;
     }
@@ -151,13 +157,15 @@ export class Cpu {
    */
   private execInstruction(inst: Instruction) {
     switch (inst.op) {
-      case operation.NOP:
+      case operation.NOP: // OK
         console.log('NOP');
         break;
-      case operation.LD:
+      case operation.LD: // OK
+        this.instrLD(inst);
         console.log('LD');
         break;
-      case operation.ST:
+      case operation.ST: // OK
+        this.instrST(inst);
         console.log('ST');
         break;
       case operation.ADD:
@@ -224,6 +232,7 @@ export class Cpu {
         console.log('SVC');
         break;
       case operation.HALT:
+        this.haltFlag = true;
         console.log('HALT');
         break;
       default:
@@ -241,9 +250,31 @@ export class Cpu {
     return addrMode === ADDRMODE_DIRECT || addrMode === ADDRMODE_INDEXED || addrMode === ADDRMODE_IMMEDIATE;
   }
 
+  private instrLD(inst: Instruction) {
+    if (inst.rd === 15) {
+      this.flag = 0xff & inst.operand;
+    } else {
+      this.register.writeReg(inst.rd, inst.operand);
+    }
+  }
+
+  private instrST(inst: Instruction) {
+    const data = this.register.readReg(inst.rd);
+    if (inst.addrMode == ADDRMODE_BYTE_REG_INDIRECT) {
+      this.memory.write8(inst.dsp, 0x0f & data);
+    } else {
+      this.memory.write16(inst.dsp, data);
+    }
+  }
+
   /* テスト用関数 */
   private setRegister(num: number, val: number) {
     this.register.writeReg(num, val);
+  }
+
+  /* テスト用関数 */
+  private getRegister(num: number) {
+    return this.register.readReg(num);
   }
 
   /* テスト用関数 */

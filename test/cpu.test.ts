@@ -1,7 +1,6 @@
 import { Cpu } from '../src/renderer/TaC/cpu/cpu';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
 import { Memory } from '../src/renderer/TaC/memory/memory';
-import * as operation from '../src/renderer/TaC/cpu/operation';
 import { REGISTER_FP, REGISTER_G10, REGISTER_G11, REGISTER_G2, REGISTER_G3 } from '../src/renderer/TaC/cpu/register';
 
 test('CPU decode Test', () => {
@@ -104,32 +103,4 @@ test('CPU loading operand Test', () => {
   mmu.write16(0xaaaa, 0x00aa);
   cpu['setRegister'](REGISTER_G11, 0xaaaa);
   expect(cpu['loadOperand'](7, REGISTER_G11, 0)).toBe(0x00aa);
-});
-
-test('CPU instruction execute Test', () => {
-  const cpu = new Cpu(new Mmu(new Memory()));
-
-  const inst = {
-    op: 0,
-    addrMode: 0,
-    rd: 0,
-    rx: 0,
-    dsp: 0,
-    operand: 0,
-  };
-
-  inst.op = operation.LD;
-  expect(() => {
-    cpu['execInstruction'](inst);
-  }).not.toThrowError('未定義命令');
-
-  inst.op = operation.HALT;
-  expect(() => {
-    cpu['execInstruction'](inst);
-  }).not.toThrowError('未定義命令');
-
-  inst.op = 99;
-  expect(() => {
-    cpu['execInstruction'](inst);
-  }).toThrowError('未定義命令');
 });
