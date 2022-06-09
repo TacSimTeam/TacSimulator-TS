@@ -190,7 +190,7 @@ export class Cpu {
         this.instrPushPop(inst);
         break;
       case operation.RET_RETI:
-        console.log('RET_RETI');
+        this.instrReturn(inst);
         break;
       case operation.SVC:
         console.log('SVC');
@@ -351,6 +351,22 @@ export class Cpu {
       this.pushVal(this.getRegister(inst.rd));
     } else if (inst.addrMode === 0x04) {
       this.setRegister(inst.rd, this.popVal());
+    }
+  }
+
+  private instrReturn(inst: Instruction) {
+    if (inst.addrMode === 0x00) {
+      this.pc = this.popVal();
+    } else if (inst.addrMode === 0x04) {
+      if (this.evalFlag(FLAG_P)) {
+        // 特権モード
+        this.flag = this.popVal();
+      } else {
+        // I/O特権モード or ユーザモード
+        this.flag = (0xf0 & this.flag) | (0x0f & this.popVal());
+      }
+      this.pc = this.popVal();
+      this.register.setPrivMode(this.evalFlag(FLAG_P));
     }
   }
 
