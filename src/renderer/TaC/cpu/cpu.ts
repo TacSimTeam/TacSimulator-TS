@@ -87,14 +87,6 @@ export class Cpu {
     return inst;
   }
 
-  /* valを符号付4bit整数に変換する */
-  private convSignedInt4(val: number) {
-    if ((val & 0x08) !== 0) {
-      val = (val & 0x07) - 8;
-    }
-    return val;
-  }
-
   /**
    * 実効アドレス計算
    *
@@ -170,46 +162,20 @@ export class Cpu {
         console.log('ST');
         break;
       case operation.ADD:
-        console.log('ADD');
-        break;
       case operation.SUB:
-        console.log('SUB');
-        break;
       case operation.CMP:
-        console.log('CMP');
-        break;
       case operation.AND:
-        console.log('AND');
-        break;
       case operation.OR:
-        console.log('OR');
-        break;
       case operation.XOR:
-        console.log('XOR');
-        break;
       case operation.ADDS:
-        console.log('ADDS');
-        break;
       case operation.MUL:
-        console.log('MUL');
-        break;
       case operation.DIV:
-        console.log('DIV');
-        break;
       case operation.MOD:
-        console.log('MOD');
-        break;
       case operation.SHLA:
-        console.log('SHLA');
-        break;
       case operation.SHLL:
-        console.log('SHLL');
-        break;
       case operation.SHRA:
-        console.log('SHRA');
-        break;
       case operation.SHRL:
-        console.log('SHRL');
+        this.instrCalculation(inst);
         break;
       case operation.JMP:
         console.log('JMP');
@@ -241,16 +207,6 @@ export class Cpu {
     }
   }
 
-  /* PCを1ワード分(2バイト)進める */
-  private nextPC() {
-    this.pc += 2;
-  }
-
-  /* 2ワード命令ならTrue */
-  private isTwoWordInstruction(addrMode: number) {
-    return ADDRMODE_DIRECT <= addrMode && addrMode <= ADDRMODE_IMMEDIATE;
-  }
-
   private instrLD(inst: Instruction) {
     if (inst.rd === 15) {
       this.flag = 0xff & inst.operand;
@@ -269,6 +225,123 @@ export class Cpu {
     }
   }
 
+  private instrCalculation(inst: Instruction) {
+    let ans = 0;
+    const rd = this.getRegister(inst.rd);
+    switch (inst.op) {
+      case operation.ADD:
+        ans = rd + inst.operand;
+        break;
+      case operation.SUB:
+      case operation.CMP:
+        ans = rd - inst.operand;
+        break;
+      case operation.AND:
+        ans = rd & inst.operand;
+        break;
+      case operation.OR:
+        ans = rd | inst.operand;
+        break;
+      case operation.XOR:
+        ans = rd ^ inst.operand;
+        break;
+      case operation.ADDS:
+        ans = rd + inst.operand * 2;
+        break;
+      case operation.MUL:
+        ans = rd * inst.operand;
+        break;
+      case operation.DIV:
+        if (inst.operand === 0) {
+          console.log('ゼロ除算');
+        } else {
+          ans = rd / inst.operand;
+        }
+        break;
+      case operation.MOD:
+        if (inst.operand === 0) {
+          console.log('ゼロ除算');
+        } else {
+          ans = rd % inst.operand;
+        }
+        break;
+      case operation.SHLA:
+      case operation.SHLL:
+        // SHLA命令とSHLL命令は同じ動作
+        ans = rd << inst.operand;
+        break;
+      case operation.SHRA:
+        if ((rd & 0x8000) != 0) {
+          ans = (rd | ~0xffff) >> inst.operand;
+        } else {
+          ans = rd >> inst.operand;
+        }
+        break;
+      case operation.SHRL:
+        ans = rd >>> inst.operand;
+        break;
+    }
+
+    this.changeFlag(inst.op, ans, rd, inst.operand);
+    ans = ans & 0xffff;
+    if (inst.op !== operation.CMP) {
+      this.setRegister(inst.rd, ans);
+    }
+  }
+
+  /* 演算の種類と式を読み取りフラグを変化させる */
+  private changeFlag(op: number, ans: number, v1: number, v2: number) {
+    const ansMsb = ans & 0x8000;
+    const v1Msb = v1 & 0x8000;
+    const v2Msb = v2 & 0x8000;
+
+    this.flag = this.flag & 0xf0;
+
+    // TeC7/VHDL/TaC/tac_cpu_alu.vhdを参考にした
+    if (op === operation.ADD) {
+      if (v1Msb === v2Msb && ansMsb !== v1Msb) {
+        this.flag |= FLAG_V;
+      }
+    } else if (op === operation.SUB || op === operation.CMP) {
+      if (v1Msb !== v2Msb && ansMsb !== v1Msb) {
+        this.flag |= FLAG_V;
+      }
+    }
+
+    if ((ans & 0x10000) !== 0) {
+      if (op !== operation.MUL && op !== operation.DIV) {
+        // MUL命令, DIV命令ではVフラグ, Cフラグは0
+        this.flag |= FLAG_C;
+      }
+    }
+
+    if (ansMsb !== 0) {
+      this.flag |= FLAG_S;
+    }
+
+    if ((ans & 0xffff) == 0) {
+      this.flag |= FLAG_Z;
+    }
+  }
+
+  /* PCを1ワード分(2バイト)進める */
+  private nextPC() {
+    this.pc += 2;
+  }
+
+  /* valを符号付4bit整数に変換する */
+  private convSignedInt4(val: number) {
+    if ((val & 0x08) !== 0) {
+      val = (val & 0x07) - 8;
+    }
+    return val;
+  }
+
+  /* 2ワード命令ならTrue */
+  private isTwoWordInstruction(addrMode: number) {
+    return ADDRMODE_DIRECT <= addrMode && addrMode <= ADDRMODE_IMMEDIATE;
+  }
+
   private setRegister(num: number, val: number) {
     this.register.writeReg(num, val);
   }
@@ -283,5 +356,9 @@ export class Cpu {
 
   private getPC() {
     return this.pc;
+  }
+
+  private getFlag() {
+    return this.flag;
   }
 }
