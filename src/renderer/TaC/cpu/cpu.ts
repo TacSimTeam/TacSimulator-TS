@@ -308,9 +308,13 @@ export class Cpu {
       }
     }
 
-    if ((ans & 0x10000) !== 0) {
-      if (op !== operation.MUL && op !== operation.DIV) {
-        // MUL命令, DIV命令ではVフラグ, Cフラグは0
+    if (operation.ADD <= op && op <= operation.CMP) {
+      if ((ans & 0x10000) !== 0) {
+        this.flag |= FLAG_C;
+      }
+    } else if (operation.SHLA <= op && op <= operation.SHRL && v2 === 1) {
+      // シフト命令は1ビットシフトのときだけCフラグを変化させる
+      if ((ans & 0x10000) !== 0) {
         this.flag |= FLAG_C;
       }
     }

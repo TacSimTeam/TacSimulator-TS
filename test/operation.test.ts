@@ -44,22 +44,28 @@ test('Change flag test (without overflow flag)', () => {
   const mmu = new Mmu(new Memory());
   const cpu = new Cpu(mmu);
 
-  cpu['changeFlag'](operation.NOP, 0x10001, 0, 0);
+  cpu['changeFlag'](operation.ADD, 0x10001, 0, 0);
   expect(cpu['getFlag']() & FLAG_C).not.toBe(0); // Cフラグが1
 
-  cpu['changeFlag'](operation.NOP, 0x8000, 0, 0);
+  cpu['changeFlag'](operation.ADD, 0x8000, 0, 0);
   expect(cpu['getFlag']() & FLAG_S).not.toBe(0); // Sフラグが1
 
-  cpu['changeFlag'](operation.NOP, 0x0000, 0, 0);
+  cpu['changeFlag'](operation.ADD, 0x0000, 0, 0);
   expect(cpu['getFlag']() & FLAG_Z).not.toBe(0); // Zフラグが1
 
-  cpu['changeFlag'](operation.NOP, 0x18000, 0, 0);
+  cpu['changeFlag'](operation.ADD, 0x18000, 0, 0);
   expect(cpu['getFlag']() & FLAG_C).not.toBe(0);
   expect(cpu['getFlag']() & FLAG_S).not.toBe(0);
 
-  cpu['changeFlag'](operation.NOP, 0x10000, 0, 0);
+  cpu['changeFlag'](operation.ADD, 0x10000, 0, 0);
   expect(cpu['getFlag']() & FLAG_C).not.toBe(0);
   expect(cpu['getFlag']() & FLAG_Z).not.toBe(0);
+
+  // シフト命令のときのCフラグ変化テスト
+  cpu['changeFlag'](operation.SHLA, 0x10000, 0, 1);
+  expect(cpu['getFlag']() & FLAG_C).not.toBe(0);
+  cpu['changeFlag'](operation.SHRL, 0x10000, 0, 2);
+  expect(cpu['getFlag']() & FLAG_C).toBe(0);
 });
 
 test('Operation LD test', () => {
