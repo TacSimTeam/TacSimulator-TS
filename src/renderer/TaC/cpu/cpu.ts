@@ -1,4 +1,4 @@
-import { Register, REGISTER_FP } from './register';
+import { Register, REGISTER_FP, REGISTER_SP } from './register';
 import { IDataBus } from '../interface/dataBus';
 import * as operation from './operation';
 
@@ -150,12 +150,12 @@ export class Cpu {
    */
   private execInstruction(inst: Instruction) {
     switch (inst.op) {
-      case operation.NOP: // OK
+      case operation.NOP:
         break;
-      case operation.LD: // OK
+      case operation.LD:
         this.instrLD(inst);
         break;
-      case operation.ST: // OK
+      case operation.ST:
         this.instrST(inst);
         break;
       case operation.ADD:
@@ -178,7 +178,7 @@ export class Cpu {
         this.instrJump(inst);
         break;
       case operation.CALL:
-        console.log('CALL');
+        this.instrCall(inst);
         break;
       case operation.IN:
         console.log('IN');
@@ -187,7 +187,7 @@ export class Cpu {
         console.log('OUT');
         break;
       case operation.PUSH_POP:
-        console.log('PUSH_POP');
+        this.instrPushPop(inst);
         break;
       case operation.RET_RETI:
         console.log('RET_RETI');
@@ -339,6 +339,30 @@ export class Cpu {
         this.setPC(inst.dsp);
         break;
     }
+  }
+
+  private instrCall(inst: Instruction) {
+    this.pushVal(this.pc);
+    this.pc = inst.dsp;
+  }
+
+  private instrPushPop(inst: Instruction) {
+    if (inst.addrMode === 0x00) {
+      this.pushVal(this.getRegister(inst.rd));
+    } else if (inst.addrMode === 0x04) {
+      this.setRegister(inst.rd, this.popVal());
+    }
+  }
+
+  private pushVal(val: number) {
+    this.setRegister(REGISTER_SP, this.getRegister(REGISTER_SP) - 2);
+    this.memory.write16(this.getRegister(REGISTER_SP), val);
+  }
+
+  private popVal() {
+    const val = this.memory.read16(this.getRegister(REGISTER_SP));
+    this.setRegister(REGISTER_SP, this.getRegister(REGISTER_SP) + 2);
+    return val;
   }
 
   /* 引数に指定したフラグが立っているかを確認する */
