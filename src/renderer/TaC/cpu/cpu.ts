@@ -151,15 +151,12 @@ export class Cpu {
   private execInstruction(inst: Instruction) {
     switch (inst.op) {
       case operation.NOP: // OK
-        console.log('NOP');
         break;
       case operation.LD: // OK
         this.instrLD(inst);
-        console.log('LD');
         break;
       case operation.ST: // OK
         this.instrST(inst);
-        console.log('ST');
         break;
       case operation.ADD:
       case operation.SUB:
@@ -178,7 +175,7 @@ export class Cpu {
         this.instrCalculation(inst);
         break;
       case operation.JMP:
-        console.log('JMP');
+        this.instrJump(inst);
         break;
       case operation.CALL:
         console.log('CALL');
@@ -289,6 +286,66 @@ export class Cpu {
     }
   }
 
+  private instrJump(inst: Instruction) {
+    const zFlag = this.evalFlag(FLAG_Z);
+    const cFlag = this.evalFlag(FLAG_C);
+    const sFlag = this.evalFlag(FLAG_S);
+    const vFlag = this.evalFlag(FLAG_V);
+
+    switch (inst.rd) {
+      case operation.JMP_JZ:
+        if (zFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JC:
+        if (cFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JM:
+        if (sFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JO:
+        if (vFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JGT:
+        if (!(zFlag || (!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JGE:
+        if (!((!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JLE:
+        if (zFlag || (!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JLT:
+        if ((!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JNZ:
+        if (!zFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JNC:
+        if (!cFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JNM:
+        if (!sFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JNO:
+        if (!vFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JHI:
+        if (!(zFlag || cFlag)) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JLS:
+        if (zFlag || cFlag) this.setPC(inst.dsp);
+        break;
+      case operation.JMP_JMP:
+        this.setPC(inst.dsp);
+        break;
+    }
+  }
+
+  /* 引数に指定したフラグが立っているかを確認する */
+  private evalFlag(f: number) {
+    return (this.flag & f) !== 0;
+  }
+
   /* 演算の種類と式を読み取りフラグを変化させる */
   private changeFlag(op: number, ans: number, v1: number, v2: number) {
     const ansMsb = ans & 0x8000;
@@ -346,23 +403,28 @@ export class Cpu {
     return ADDRMODE_DIRECT <= addrMode && addrMode <= ADDRMODE_IMMEDIATE;
   }
 
-  private setRegister(num: number, val: number) {
-    this.register.writeReg(num, val);
+  setRegister(num: number, val: number) {
+    this.register.writeReg(num, val & 0xffff);
   }
 
-  private getRegister(num: number) {
+  getRegister(num: number) {
     return this.register.readReg(num);
   }
 
-  private setPC(pc: number) {
+  setPC(pc: number) {
+    if (!(0x0000 <= pc && pc <= 0xffff)) {
+      throw new Error('不正プログラムカウンタエラー');
+    } else if ((pc & 1) !== 0) {
+      throw new Error('不正プログラムカウンタエラー');
+    }
     this.pc = pc;
   }
 
-  private getPC() {
+  getPC() {
     return this.pc;
   }
 
-  private getFlag() {
+  getFlag() {
     return this.flag;
   }
 }

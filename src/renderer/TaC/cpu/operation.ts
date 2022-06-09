@@ -31,3 +31,19 @@ export const RET_RETI = 0x1a;
 
 export const SVC = 0x1e;
 export const HALT = 0x1f; // 特権命令
+
+export const JMP_JZ = 0;
+export const JMP_JC = 1;
+export const JMP_JM = 2;
+export const JMP_JO = 3;
+export const JMP_JGT = 4;
+export const JMP_JGE = 5;
+export const JMP_JLE = 6;
+export const JMP_JLT = 7;
+export const JMP_JNZ = 8;
+export const JMP_JNC = 9;
+export const JMP_JNM = 10;
+export const JMP_JNO = 11;
+export const JMP_JHI = 12;
+export const JMP_JLS = 14;
+export const JMP_JMP = 15;
