@@ -39,33 +39,87 @@ function makeInstruction(
   };
 }
 
-test('Change flag test (without overflow flag)', () => {
-  // オーバーフローフラグのテストはADD, SUB, CMPのテストで記述している
+test('Change flag test', () => {
   const mmu = new Mmu(new Memory());
   const cpu = new Cpu(mmu);
 
   cpu['changeFlag'](operation.ADD, 0x10001, 0, 0);
-  expect(cpu['getFlag']() & FLAG_C).not.toBe(0); // Cフラグが1
+  expect(cpu['evalFlag'](FLAG_C)).toBe(true);
 
   cpu['changeFlag'](operation.ADD, 0x8000, 0, 0);
-  expect(cpu['getFlag']() & FLAG_S).not.toBe(0); // Sフラグが1
+  expect(cpu['evalFlag'](FLAG_S)).toBe(true);
 
   cpu['changeFlag'](operation.ADD, 0x0000, 0, 0);
-  expect(cpu['getFlag']() & FLAG_Z).not.toBe(0); // Zフラグが1
+  expect(cpu['evalFlag'](FLAG_Z)).toBe(true);
 
   cpu['changeFlag'](operation.ADD, 0x18000, 0, 0);
-  expect(cpu['getFlag']() & FLAG_C).not.toBe(0);
-  expect(cpu['getFlag']() & FLAG_S).not.toBe(0);
+  expect(cpu['evalFlag'](FLAG_C)).toBe(true);
+  expect(cpu['evalFlag'](FLAG_S)).toBe(true);
 
   cpu['changeFlag'](operation.ADD, 0x10000, 0, 0);
-  expect(cpu['getFlag']() & FLAG_C).not.toBe(0);
-  expect(cpu['getFlag']() & FLAG_Z).not.toBe(0);
+  expect(cpu['evalFlag'](FLAG_C)).toBe(true);
+  expect(cpu['evalFlag'](FLAG_Z)).toBe(true);
 
   // シフト命令のときのCフラグ変化テスト
+  // 1ビットシフト以外はCフラグが変化しない
   cpu['changeFlag'](operation.SHLA, 0x10000, 0, 1);
-  expect(cpu['getFlag']() & FLAG_C).not.toBe(0);
+  expect(cpu['evalFlag'](FLAG_C)).toBe(true);
   cpu['changeFlag'](operation.SHRL, 0x10000, 0, 2);
-  expect(cpu['getFlag']() & FLAG_C).toBe(0);
+  expect(cpu['evalFlag'](FLAG_C)).toBe(false);
+
+  // ADD命令のオーバーフローテスト
+  // 0x7fff(正) + 0x0001(正) = 0x8000(負)
+  cpu['changeFlag'](operation.ADD, 0x8000, 0x7fff, 0x0001);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(true);
+
+  // 0x7000(正) + 0x0001(正) = 0x7001(正)
+  cpu['changeFlag'](operation.ADD, 0x7001, 0x7000, 0x0001);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
+
+  // 0x8000(負) + 0x0001(正) = 0x8001(負)
+  cpu['changeFlag'](operation.ADD, 0x8001, 0x8000, 0x0001);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
+
+  // 0x8000(負) + 0x8001(負) = 0x0001(正)
+  cpu['changeFlag'](operation.ADD, 0x0001, 0x8000, 0x8001);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(true);
+
+  // 0xffff(負) + 0xffff(負) = 0xfffe(負)
+  cpu['changeFlag'](operation.ADD, 0xfffe, 0xffff, 0xffff);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
+
+  // SUB命令のオーバーフローテスト
+  // 0x7fff(正) - 0x0001(正) = 0x7ffe(正)
+  cpu['changeFlag'](operation.SUB, 0x7ffe, 0x7fff, 0x0001);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
+
+  // 0x0001(正) - 0x7fff(正) = 0x8000(負)
+  cpu['changeFlag'](operation.SUB, 0x8000, 0x0001, 0x7fff);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
+
+  // 0x8000(負) - 0x0001(正) = 0x7fff(正)
+  cpu['changeFlag'](operation.SUB, 0x7fff, 0x8000, 0x0001);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(true);
+
+  // 0xffff(負) - 0x0001(正) = 0xfffe(負)
+  cpu['changeFlag'](operation.SUB, 0xfffe, 0xffff, 0x0001);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
+
+  // 0x0001(正) - 0xffff(負) = 0x0002(正)
+  cpu['changeFlag'](operation.SUB, 0x0002, 0x0001, 0xffff);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
+
+  // 0x7fff(正) - 0xffff(負) = 0x8000(負)
+  cpu['changeFlag'](operation.SUB, 0x8000, 0x7fff, 0xffff);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(true);
+
+  // 0xffff(負) - 0xfffe(負) = 0x0001(正)
+  cpu['changeFlag'](operation.SUB, 0x0001, 0xffff, 0xfffe);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
+
+  // 0xfffe(負) - 0xffff(負) = 0xffff(負)
+  cpu['changeFlag'](operation.SUB, 0xffff, 0xfffe, 0xffff);
+  expect(cpu['evalFlag'](FLAG_V)).toBe(false);
 });
 
 test('Operation LD test', () => {
@@ -116,13 +170,6 @@ test('Operation ADD test', () => {
   cpu['setRegister'](REGISTER_G0, 0x4321);
   cpu['execInstruction'](inst);
   expect(cpu['getRegister'](REGISTER_G0)).toBe(0x5555);
-
-  // オーバーフローテスト
-  // ADD G0(0x8000), #0xffff
-  // inst = makeInstruction(operation.ADD, 0, REGISTER_G0, 0, 0, 0xffff);
-  // cpu['setRegister'](REGISTER_G0, 0x8000);
-  // cpu['execInstruction'](inst);
-  // expect(cpu['getRegister'](REGISTER_G0)).toBe(0x5555);
 });
 
 test('Operation SUB test', () => {
@@ -146,8 +193,6 @@ test('Operation SUB test', () => {
   cpu['setRegister'](REGISTER_G0, 0xaaaa);
   cpu['execInstruction'](inst);
   expect(cpu['getRegister'](REGISTER_G0)).toBe(0x0000);
-
-  // オーバーフローテスト
 });
 
 test('Operation CMP test', () => {
@@ -165,8 +210,6 @@ test('Operation CMP test', () => {
   cpu['setRegister'](REGISTER_G0, 0xaaaa);
   cpu['execInstruction'](inst);
   expect(cpu['getFlag']() & FLAG_Z).not.toBe(0); // Zフラグが1
-
-  // オーバーフローテスト
 });
 
 test('Operation AND test', () => {
