@@ -2,7 +2,7 @@ import { Cpu } from '../src/renderer/TaC/cpu/cpu';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
 import { Memory } from '../src/renderer/TaC/memory/memory';
 import * as operation from '../src/renderer/TaC/cpu/operation';
-import { REGISTER_FLAG, REGISTER_G0, REGISTER_G1 } from '../src/renderer/TaC/cpu/register';
+import { REGISTER_FLAG, REGISTER_G0, REGISTER_G1, REGISTER_SP } from '../src/renderer/TaC/cpu/register';
 
 const FLAG_E = 0x80;
 const FLAG_P = 0x40;
@@ -142,7 +142,6 @@ test('Operation ST test', () => {
 
   const inst = makeInstruction(operation.ST, 0, REGISTER_G0, 0, 0x1000, 0);
   cpu['setRegister'](REGISTER_G0, 0x1234);
-
   cpu['execInstruction'](inst);
   expect(mmu.read16(0x1000)).toBe(0x1234);
 
@@ -811,4 +810,114 @@ test('Operation JMP test', () => {
   const inst = makeInstruction(operation.JMP, 0, operation.JMP_JMP, 0, 0x1000, 0);
   cpu['execInstruction'](inst);
   expect(cpu.getPC()).toBe(0x1000);
+});
+
+test('Operation CALL test', () => {
+  const mmu = new Mmu(new Memory());
+  const cpu = new Cpu(mmu);
+
+  // SPの初期値は0xfffeとする
+  cpu.setRegister(REGISTER_SP, 0xfffe);
+
+  // CALL 0x5678
+  cpu.setPC(0x1234);
+  const inst = makeInstruction(operation.CALL, 0, 0, 0, 0x5678, 0);
+  cpu['execInstruction'](inst);
+  expect(cpu.getPC()).toBe(0x5678);
+  expect(mmu.read16(cpu.getRegister(REGISTER_SP))).toBe(0x1234);
+});
+
+test('Operation PUSH, POP test', () => {
+  const mmu = new Mmu(new Memory());
+  const cpu = new Cpu(mmu);
+  let inst: Instruction;
+
+  // SPの初期値は0xfffeとする
+  cpu.setRegister(REGISTER_SP, 0xfffe);
+
+  // PUSH G0(0x5555)
+  cpu['setRegister'](REGISTER_G0, 0x5555);
+  inst = makeInstruction(operation.PUSH_POP, 0, REGISTER_G0, 0, 0, 0);
+  cpu['execInstruction'](inst);
+  expect(cpu.getRegister(REGISTER_SP)).toBe(0xfffe - 2);
+  expect(mmu.read16(cpu.getRegister(REGISTER_SP))).toBe(0x5555);
+
+  // PUSH G1(0x7777)
+  cpu['setRegister'](REGISTER_G1, 0x7777);
+  inst = makeInstruction(operation.PUSH_POP, 0, REGISTER_G1, 0, 0, 0);
+  cpu['execInstruction'](inst);
+  expect(cpu.getRegister(REGISTER_SP)).toBe(0xfffe - 4);
+  expect(mmu.read16(cpu.getRegister(REGISTER_SP))).toBe(0x7777);
+
+  // POP G0
+  inst = makeInstruction(operation.PUSH_POP, 4, REGISTER_G0, 0, 0, 0);
+  cpu['execInstruction'](inst);
+  expect(cpu.getRegister(REGISTER_SP)).toBe(0xfffe - 2);
+  expect(cpu.getRegister(REGISTER_G0)).toBe(0x7777);
+
+  // POP G1
+  inst = makeInstruction(operation.PUSH_POP, 4, REGISTER_G1, 0, 0, 0);
+  cpu['execInstruction'](inst);
+  expect(cpu.getRegister(REGISTER_SP)).toBe(0xfffe);
+  expect(cpu.getRegister(REGISTER_G1)).toBe(0x5555);
+});
+
+test('Operation RET test', () => {
+  const mmu = new Mmu(new Memory());
+  const cpu = new Cpu(mmu);
+
+  // SPの初期値は0xfffeとする
+  cpu.setRegister(REGISTER_SP, 0xfffe);
+
+  // スタックに予め0x5678をPUSHする
+  cpu['pushVal'](0x5678);
+
+  // RET
+  cpu.setPC(0x1234);
+  const inst = makeInstruction(operation.RET_RETI, 0, 0, 0, 0, 0);
+  cpu['execInstruction'](inst);
+  expect(cpu.getPC()).toBe(0x5678);
+});
+
+test('Operation RETI test', () => {
+  const mmu = new Mmu(new Memory());
+  const cpu = new Cpu(mmu);
+  let inst: Instruction;
+
+  // SPの初期値は0xfffeとする
+  cpu.setRegister(REGISTER_SP, 0xfffe);
+
+  // I/O特権モード or ユーザモードのときのテスト
+
+  // CPUをI/O特権モードにする
+  cpu['flag'] = FLAG_I;
+
+  // スタックに予め0x007f, 0x5678をPUSHする
+  cpu['pushVal'](0x5678);
+  cpu['pushVal'](FLAG_E | FLAG_P | FLAG_V | FLAG_C | FLAG_S | FLAG_Z);
+
+  // RETI
+  cpu.setPC(0x1234);
+  inst = makeInstruction(operation.RET_RETI, 4, 0, 0, 0, 0);
+  cpu['execInstruction'](inst);
+  expect(cpu.getFlag()).toBe(FLAG_I | FLAG_V | FLAG_C | FLAG_S | FLAG_Z);
+  expect(cpu.getPC()).toBe(0x5678);
+  expect(cpu['register']['privMode']).toBe(false);
+
+  //特権モードのときのテスト
+
+  // CPUを特権モードにする
+  cpu['flag'] = FLAG_P;
+
+  // スタックに予め0x007f, 0x5678をPUSHする
+  cpu['pushVal'](0x5678);
+  cpu['pushVal'](FLAG_E | FLAG_P | FLAG_V | FLAG_C | FLAG_S | FLAG_Z);
+
+  // RETI
+  cpu.setPC(0x1234);
+  inst = makeInstruction(operation.RET_RETI, 4, 0, 0, 0, 0);
+  cpu['execInstruction'](inst);
+  expect(cpu.getFlag()).toBe(FLAG_E | FLAG_P | FLAG_V | FLAG_C | FLAG_S | FLAG_Z);
+  expect(cpu.getPC()).toBe(0x5678);
+  expect(cpu['register']['privMode']).toBe(true);
 });
