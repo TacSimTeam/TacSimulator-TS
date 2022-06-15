@@ -1,0 +1,16 @@
+export const INTRRUPT_TIMER0 = 0;
+export const INTRRUPT_TIMER1 = 1;
+export const INTRRUPT_RN4020_SENT = 2;
+export const INTRRUPT_RN4020_RECEIVED = 3;
+export const INTRRUPT_FT232RL_SENT = 4;
+export const INTRRUPT_FT232RL_RECEIVED = 5;
+export const INTRRUPT_TEC_SENT = 6;
+export const INTRRUPT_TEC_RECEIVED = 7;
+export const INTRRUPT_MICROSD = 8;
+export const INTRRUPT_PIO = 9;
+export const EXCEPTION_TLB_MISS = 10;
+export const EXCEPTION_MEMORY_ERROR = 11;
+export const EXCEPTION_ZERO_DIV = 12;
+export const EXCEPTION_PRIV_ERROR = 13;
+export const EXCEPTION_OP_UNDEFINED = 14;
+export const EXCEPTION_SVC = 15;
