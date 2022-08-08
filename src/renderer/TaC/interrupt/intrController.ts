@@ -1,21 +1,39 @@
-import { IIntrHandler, IIntrController } from '../interface/';
+import { IIntrController } from '../interface/';
+import * as intr from './interruptNum';
 
 export class IntrController implements IIntrController {
-  private handler: IIntrHandler;
-  private intrFlag: boolean[];
+  private intrFlags: boolean[];
 
-  constructor(handler: IIntrHandler) {
-    this.handler = handler;
-    this.intrFlag = new Array(16);
-  }
-
-  resetFlag() {
-    this.intrFlag.fill(false);
+  constructor() {
+    this.intrFlags = new Array(16);
   }
 
   interrupt(intrNum: number): void {
-    this.intrFlag[intrNum] = true;
-    this.handler.handleInterrupt(intrNum);
-    this.intrFlag[intrNum] = false;
+    this.intrFlags[intrNum] = true;
+  }
+
+  checkIntrNum(): number {
+    for (let i = intr.EXCP_TLB_MISS; i <= intr.EXCP_SVC; i++) {
+      if (this.intrFlags[i]) {
+        this.intrFlags[i] = false;
+        return i;
+      }
+    }
+    for (let i = intr.TIMER0; i <= intr.PIO; i++) {
+      if (this.intrFlags[i]) {
+        this.intrFlags[i] = false;
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  isOccurredException(): boolean {
+    for (let i = intr.EXCP_TLB_MISS; i <= intr.EXCP_SVC; i++) {
+      if (this.intrFlags[i]) {
+        return true;
+      }
+    }
+    return false;
   }
 }

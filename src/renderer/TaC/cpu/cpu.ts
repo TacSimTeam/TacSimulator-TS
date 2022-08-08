@@ -1,6 +1,7 @@
 import { Register, REGISTER_FP, REGISTER_SP } from './register';
-import { IDataBus } from '../interface/dataBus';
+import { IDataBus, IIntrController } from '../interface/';
 import * as operation from './operation';
+import * as intr from '../interrupt/interruptNum';
 
 type Instruction = {
   op: number; // 命令
@@ -28,25 +29,37 @@ const ADDRMODE_SHORT_IMMEDIATE = 5;
 const ADDRMODE_REG_INDIRECT = 6;
 const ADDRMODE_BYTE_REG_INDIRECT = 7;
 
+const INTERRUPT_VECTOR = 0xffe0;
+
 export class Cpu {
   private flag: number;
   private pc: number;
+
+  private haltFlag: boolean; // HALTが実行されたかどうか
+
   private memory: IDataBus;
-
-  private haltFlag: boolean;
-
   private register: Register;
+  private intrController: IIntrController;
 
-  constructor(memory: IDataBus) {
+  constructor(memory: IDataBus, intrController: IIntrController) {
     this.register = new Register();
-    this.flag = FLAG_P;
     this.memory = memory;
+    this.intrController = intrController;
+    this.flag = FLAG_P;
     this.haltFlag = false;
     this.pc = 0;
   }
 
   /* 命令実行サイクル */
   run() {
+    // 割り込み判定
+    if (this.evalFlag(FLAG_E) || this.intrController.isOccurredException()) {
+      const intrNum = this.intrController.checkIntrNum();
+      if (intrNum !== -1) {
+        this.handleInterrupt(intrNum);
+      }
+    }
+
     // 命令フェッチ
     const data = this.memory.read16(this.pc);
     this.nextPC();
@@ -193,14 +206,13 @@ export class Cpu {
         this.instrReturn(inst);
         break;
       case operation.SVC:
-        console.log('SVC');
+        this.intrController.interrupt(intr.EXCP_SVC);
         break;
       case operation.HALT:
-        this.haltFlag = true;
-        console.log('HALT');
+        this.instrHalt();
         break;
       default:
-        throw new Error('未定義命令');
+        this.intrController.interrupt(intr.EXCP_OP_UNDEFINED);
     }
   }
 
@@ -250,14 +262,14 @@ export class Cpu {
         break;
       case operation.DIV:
         if (inst.operand === 0) {
-          console.log('ゼロ除算');
+          this.intrController.interrupt(intr.EXCP_ZERO_DIV);
         } else {
           ans = rd / inst.operand;
         }
         break;
       case operation.MOD:
         if (inst.operand === 0) {
-          console.log('ゼロ除算');
+          this.intrController.interrupt(intr.EXCP_ZERO_DIV);
         } else {
           ans = rd % inst.operand;
         }
@@ -370,6 +382,14 @@ export class Cpu {
     }
   }
 
+  private instrHalt() {
+    if (this.evalFlag(FLAG_P)) {
+      this.haltFlag = true;
+    } else {
+      this.intrController.interrupt(intr.EXCP_PRIV_ERROR);
+    }
+  }
+
   private pushVal(val: number) {
     this.setRegister(REGISTER_SP, this.getRegister(REGISTER_SP) - 2);
     this.memory.write16(this.getRegister(REGISTER_SP), val);
@@ -441,6 +461,15 @@ export class Cpu {
   /* 2ワード命令ならTrue */
   private isTwoWordInstruction(addrMode: number) {
     return ADDRMODE_DIRECT <= addrMode && addrMode <= ADDRMODE_IMMEDIATE;
+  }
+
+  private handleInterrupt(intrNum: number): void {
+    const tmp = this.flag;
+    this.flag = (this.flag & ~FLAG_E) | FLAG_P; // E=0, P=1
+    this.register.setPrivMode(true);
+    this.pushVal(this.pc);
+    this.pushVal(tmp);
+    this.pc = this.memory.read16(INTERRUPT_VECTOR + intrNum * 2);
   }
 
   setRegister(num: number, val: number) {

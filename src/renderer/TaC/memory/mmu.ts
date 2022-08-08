@@ -1,20 +1,24 @@
-import { IDataBus, IDmaSignal, IIplLoader } from '../interface';
+import { IDataBus, IDmaSignal, IIplLoader, IIntrController } from '../interface';
 import { ipl } from '../ipl';
+import * as intr from '../interrupt/interruptNum';
 
 export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
   private memory: IDmaSignal;
+  private intrController: IIntrController;
 
   // IPLロード中ならtrue
   private iplMode: boolean;
 
-  constructor(memory: IDmaSignal) {
+  constructor(memory: IDmaSignal, intrController: IIntrController) {
     this.memory = memory;
+    this.intrController = intrController;
     this.iplMode = false;
   }
 
   write16(addr: number, val: number) {
     if (addr % 2 == 1) {
-      console.log('奇数アドレス参照');
+      this.intrController.interrupt(intr.EXCP_MEMORY_ERROR);
+      return;
     }
     if (this.iplMode) {
       if (addr >= 0xe000) {
@@ -29,7 +33,8 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
 
   read16(addr: number) {
     if (addr % 2 == 1) {
-      console.log('奇数アドレス参照');
+      this.intrController.interrupt(intr.EXCP_MEMORY_ERROR);
+      return 0; // ???
     }
     return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
   }
