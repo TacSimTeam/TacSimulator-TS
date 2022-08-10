@@ -14,7 +14,7 @@ export const REGISTER_FP = 12;
 export const REGISTER_SP = 13;
 export const REGISTER_USP = 14;
 
-// フラグ(15番のレジスタ)はCPU側が保持する
+/* フラグ(15番のレジスタ)はCPU側が保持する */
 export const REGISTER_FLAG = 15;
 
 export class Register {
@@ -23,7 +23,7 @@ export class Register {
   private ssp: number;
   private usp: number;
 
-  // privMode = trueなら特権モード
+  /* privMode = trueなら特権モード */
   private privMode: boolean;
 
   constructor() {

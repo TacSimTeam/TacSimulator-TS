@@ -14,6 +14,7 @@ export class IntrController implements IIntrController {
 
   checkIntrNum(): number {
     for (let i = intr.EXCP_TLB_MISS; i <= intr.EXCP_SVC; i++) {
+      /* 例外の方が優先度高いので先に見る */
       if (this.intrFlags[i]) {
         this.intrFlags[i] = false;
         return i;

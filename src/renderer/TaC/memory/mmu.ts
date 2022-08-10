@@ -6,7 +6,7 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
   private memory: IDmaSignal;
   private intrController: IIntrController;
 
-  // IPLロード中ならtrue
+  /* IPLロード中ならtrue */
   private iplMode: boolean;
 
   constructor(memory: IDmaSignal, intrController: IIntrController) {
@@ -15,12 +15,19 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
     this.iplMode = false;
   }
 
+  write8(addr: number, val: number) {
+    this.memory.write8(addr, val);
+  }
+
+  read8(addr: number) {
+    return this.memory.read8(addr);
+  }
+
   write16(addr: number, val: number) {
     if (addr % 2 == 1) {
       this.intrController.interrupt(intr.EXCP_MEMORY_ERROR);
       return;
-    }
-    if (this.iplMode) {
+    } else if (this.iplMode) {
       if (addr >= 0xe000) {
         console.log('IPLロード中は0xe000~0xffffがReadonlyです');
         return;
@@ -34,17 +41,10 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
   read16(addr: number) {
     if (addr % 2 == 1) {
       this.intrController.interrupt(intr.EXCP_MEMORY_ERROR);
-      return 0; // ???
+      return 0;
     }
+
     return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
-  }
-
-  write8(addr: number, val: number): void {
-    this.memory.write8(addr, val);
-  }
-
-  read8(addr: number): number {
-    return this.memory.read8(addr);
   }
 
   loadIpl() {

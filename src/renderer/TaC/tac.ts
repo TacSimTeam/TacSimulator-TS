@@ -20,6 +20,12 @@ export class Tac {
     this.console.drawAll();
   }
 
+  /**
+   * クリックされたキャンバス内の座標を受け取り、その座標のボタン・スイッチの処理を行う
+   *
+   * @param x x座標
+   * @param y y座標
+   */
   onClick(x: number, y: number) {
     this.console.onClick(x, y);
   }

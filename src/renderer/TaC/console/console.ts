@@ -22,17 +22,17 @@ export class Console {
   private registerLeds: [...Led[]];
   private flagLeds: [...Led[]];
 
-  // RUN LEDは1つしかないけど, 他のLEDと同じように扱いたかった
+  /* RUN LEDは1つしかないけど, 他のLEDと同じように扱いたかった */
   private runLeds: [...Led[]];
 
   private ctx: CanvasRenderingContext2D;
 
-  // コンソールはDMA方式でメモリとアクセスできる
+  /* コンソールはDMA方式でメモリとアクセスできる */
   private memory: IDmaSignal;
 
   private rotSwitchCursor: number;
 
-  // TaCが動いている(true)ならコンソールは操作できない
+  /* TaCが動いている(true)ならコンソールは操作できない */
   private isRunning: boolean;
 
   constructor(ctx: CanvasRenderingContext2D, memory: IDmaSignal) {
@@ -54,7 +54,7 @@ export class Console {
   }
 
   private initLeds() {
-    // アドレスLED
+    /* アドレスLED */
     for (let i = 0; i < 8; i++) {
       let x = 370 - i * 40;
       if (i > 3) {
@@ -63,7 +63,7 @@ export class Console {
       this.addrLeds.push(new Led(x, 30, 'A' + i, COLOR_RED_LIGHT, COLOR_RED_DARK));
     }
 
-    // データLED
+    /* データLED */
     this.dataLeds.push(new Led(370, 90, 'D0', COLOR_GREEN_LIGHT, COLOR_GREEN_DARK));
     this.dataLeds.push(new Led(330, 90, 'D1', COLOR_GREEN_LIGHT, COLOR_GREEN_DARK));
     this.dataLeds.push(new Led(290, 90, 'D2', COLOR_GREEN_LIGHT, COLOR_GREEN_DARK));
@@ -73,7 +73,7 @@ export class Console {
     this.dataLeds.push(new Led(110, 90, 'D6', COLOR_GREEN_LIGHT, COLOR_GREEN_DARK));
     this.dataLeds.push(new Led(70, 90, 'D7', COLOR_GREEN_LIGHT, COLOR_GREEN_DARK));
 
-    // ロータリースイッチのLED
+    /* ロータリースイッチのLED */
     this.registerLeds.push(new Led(105, 160, 'G0', COLOR_YELLOW_LIGHT, COLOR_YELLOW_DARK));
     this.registerLeds.push(new Led(139, 160, 'G0', COLOR_YELLOW_LIGHT, COLOR_YELLOW_DARK));
     this.registerLeds.push(new Led(173, 160, 'G0', COLOR_YELLOW_LIGHT, COLOR_YELLOW_DARK));
@@ -81,7 +81,7 @@ export class Console {
     this.registerLeds.push(new Led(241, 160, 'G0', COLOR_YELLOW_LIGHT, COLOR_YELLOW_DARK));
     this.registerLeds.push(new Led(275, 160, 'G0', COLOR_YELLOW_LIGHT, COLOR_YELLOW_DARK));
 
-    // フラグのLED
+    /* フラグのLED */
     this.flagLeds.push(new Led(350, 160, 'C', COLOR_YELLOW_LIGHT, COLOR_YELLOW_DARK));
     this.flagLeds.push(new Led(380, 160, 'S', COLOR_YELLOW_LIGHT, COLOR_YELLOW_DARK));
     this.flagLeds.push(new Led(410, 160, 'Z', COLOR_YELLOW_LIGHT, COLOR_YELLOW_DARK));
@@ -213,7 +213,7 @@ export class Console {
     this.drawAll();
   }
 
-  // '<-'ボタン
+  /* '<-'ボタン */
   private onClickLArrowBtn() {
     if (this.isRunning) return;
 
@@ -222,7 +222,7 @@ export class Console {
     }
   }
 
-  // '->'ボタン
+  /* '->'ボタン */
   private onClickRArrowBtn() {
     if (this.isRunning) return;
 

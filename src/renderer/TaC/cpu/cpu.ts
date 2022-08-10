@@ -1,16 +1,8 @@
 import { Register, REGISTER_FP, REGISTER_SP } from './register';
-import { IDataBus, IIntrController } from '../interface/';
-import * as operation from './operation';
+import { IDataBus, IIntrController } from '../interface';
+import { Instruction } from './instruction/instruction';
+import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
-
-type Instruction = {
-  op: number; // 命令
-  addrMode: number; // アドレッシングモード
-  rd: number; // ディスティネーションレジスタ
-  rx: number; // インデクスレジスタ
-  dsp: number; // 実効アドレス
-  operand: number; // オペランド
-};
 
 const FLAG_E = 0x80;
 const FLAG_P = 0x40;
@@ -32,27 +24,29 @@ const ADDRMODE_BYTE_REG_INDIRECT = 7;
 const INTERRUPT_VECTOR = 0xffe0;
 
 export class Cpu {
-  private flag: number;
+  private cpuFlag: number;
   private pc: number;
 
-  private haltFlag: boolean; // HALTが実行されたかどうか
+  private isHalt: boolean;
+  private isException: boolean;
 
   private memory: IDataBus;
-  private register: Register;
   private intrController: IIntrController;
+  private register: Register;
 
   constructor(memory: IDataBus, intrController: IIntrController) {
     this.register = new Register();
     this.memory = memory;
     this.intrController = intrController;
-    this.flag = FLAG_P;
-    this.haltFlag = false;
+    this.cpuFlag = FLAG_P;
+    this.isHalt = false;
+    this.isException = false;
     this.pc = 0;
   }
 
   /* 命令実行サイクル */
   run() {
-    // 割り込み判定
+    /* 割り込み判定 */
     if (this.evalFlag(FLAG_E) || this.intrController.isOccurredException()) {
       const intrNum = this.intrController.checkIntrNum();
       if (intrNum !== -1) {
@@ -60,24 +54,24 @@ export class Cpu {
       }
     }
 
-    // 命令フェッチ
+    /* 命令フェッチ */
     const data = this.memory.read16(this.pc);
     this.nextPC();
 
-    // 命令デコード
+    /* 命令デコード */
     const inst = this.decode(data);
 
-    // 実効アドレス計算
+    /* 実効アドレス計算 */
     inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
 
-    // オペランド読出し
+    /* オペランド読出し */
     inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
 
     if (this.isTwoWordInstruction(inst.addrMode)) {
       this.nextPC();
     }
 
-    // 命令実行
+    /* 命令実行 */
     this.execInstruction(inst);
   }
 
@@ -89,7 +83,7 @@ export class Cpu {
    */
   private decode(data: number): Instruction {
     const inst: Instruction = {
-      op: data >>> 11,
+      opcode: data >>> 11,
       addrMode: (data >>> 8) & 0x07,
       rd: (data >>> 4) & 0x0f,
       rx: data & 0x0f,
@@ -162,53 +156,53 @@ export class Cpu {
    * @param inst 命令オブジェクト
    */
   private execInstruction(inst: Instruction) {
-    switch (inst.op) {
-      case operation.NOP:
+    switch (inst.opcode) {
+      case opcode.NOP:
         break;
-      case operation.LD:
+      case opcode.LD:
         this.instrLD(inst);
         break;
-      case operation.ST:
+      case opcode.ST:
         this.instrST(inst);
         break;
-      case operation.ADD:
-      case operation.SUB:
-      case operation.CMP:
-      case operation.AND:
-      case operation.OR:
-      case operation.XOR:
-      case operation.ADDS:
-      case operation.MUL:
-      case operation.DIV:
-      case operation.MOD:
-      case operation.SHLA:
-      case operation.SHLL:
-      case operation.SHRA:
-      case operation.SHRL:
+      case opcode.ADD:
+      case opcode.SUB:
+      case opcode.CMP:
+      case opcode.AND:
+      case opcode.OR:
+      case opcode.XOR:
+      case opcode.ADDS:
+      case opcode.MUL:
+      case opcode.DIV:
+      case opcode.MOD:
+      case opcode.SHLA:
+      case opcode.SHLL:
+      case opcode.SHRA:
+      case opcode.SHRL:
         this.instrCalculation(inst);
         break;
-      case operation.JMP:
+      case opcode.JMP:
         this.instrJump(inst);
         break;
-      case operation.CALL:
+      case opcode.CALL:
         this.instrCall(inst);
         break;
-      case operation.IN:
+      case opcode.IN:
         console.log('IN');
         break;
-      case operation.OUT:
+      case opcode.OUT:
         console.log('OUT');
         break;
-      case operation.PUSH_POP:
+      case opcode.PUSH_POP:
         this.instrPushPop(inst);
         break;
-      case operation.RET_RETI:
+      case opcode.RET_RETI:
         this.instrReturn(inst);
         break;
-      case operation.SVC:
+      case opcode.SVC:
         this.intrController.interrupt(intr.EXCP_SVC);
         break;
-      case operation.HALT:
+      case opcode.HALT:
         this.instrHalt();
         break;
       default:
@@ -218,14 +212,14 @@ export class Cpu {
 
   private instrLD(inst: Instruction) {
     if (inst.rd === 15) {
-      this.flag = 0xff & inst.operand;
+      this.cpuFlag = 0xff & inst.operand;
     } else {
       this.register.writeReg(inst.rd, inst.operand);
     }
   }
 
   private instrST(inst: Instruction) {
-    // ST命令ではrdがディスティネーションではなくソースとなる
+    /* ST命令ではrdがディスティネーションではなくソースとなる */
     const data = this.register.readReg(inst.rd);
     if (inst.addrMode == ADDRMODE_BYTE_REG_INDIRECT) {
       this.memory.write8(inst.dsp, 0x00ff & data);
@@ -237,63 +231,63 @@ export class Cpu {
   private instrCalculation(inst: Instruction) {
     let ans = 0;
     const rd = this.getRegister(inst.rd);
-    switch (inst.op) {
-      case operation.ADD:
+    switch (inst.opcode) {
+      case opcode.ADD:
         ans = rd + inst.operand;
         break;
-      case operation.SUB:
-      case operation.CMP:
+      case opcode.SUB:
+      case opcode.CMP:
         ans = rd - inst.operand;
         break;
-      case operation.AND:
+      case opcode.AND:
         ans = rd & inst.operand;
         break;
-      case operation.OR:
+      case opcode.OR:
         ans = rd | inst.operand;
         break;
-      case operation.XOR:
+      case opcode.XOR:
         ans = rd ^ inst.operand;
         break;
-      case operation.ADDS:
+      case opcode.ADDS:
         ans = rd + inst.operand * 2;
         break;
-      case operation.MUL:
+      case opcode.MUL:
         ans = rd * inst.operand;
         break;
-      case operation.DIV:
+      case opcode.DIV:
         if (inst.operand === 0) {
           this.intrController.interrupt(intr.EXCP_ZERO_DIV);
         } else {
           ans = rd / inst.operand;
         }
         break;
-      case operation.MOD:
+      case opcode.MOD:
         if (inst.operand === 0) {
           this.intrController.interrupt(intr.EXCP_ZERO_DIV);
         } else {
           ans = rd % inst.operand;
         }
         break;
-      case operation.SHLA:
-      case operation.SHLL:
-        // SHLA命令とSHLL命令は同じ動作
+      case opcode.SHLA:
+      case opcode.SHLL:
+        /* SHLA命令とSHLL命令は同じ動作 */
         ans = rd << inst.operand;
         break;
-      case operation.SHRA:
+      case opcode.SHRA:
         if ((rd & 0x8000) != 0) {
           ans = (rd | ~0xffff) >> inst.operand;
         } else {
           ans = rd >> inst.operand;
         }
         break;
-      case operation.SHRL:
+      case opcode.SHRL:
         ans = rd >>> inst.operand;
         break;
     }
 
-    this.changeFlag(inst.op, ans, rd, inst.operand);
+    this.changeFlag(inst.opcode, ans, rd, inst.operand);
     ans = ans & 0xffff;
-    if (inst.op !== operation.CMP) {
+    if (inst.opcode !== opcode.CMP) {
       this.setRegister(inst.rd, ans);
     }
   }
@@ -305,49 +299,49 @@ export class Cpu {
     const vFlag = this.evalFlag(FLAG_V);
 
     switch (inst.rd) {
-      case operation.JMP_JZ:
+      case opcode.JMP_JZ:
         if (zFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JC:
+      case opcode.JMP_JC:
         if (cFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JM:
+      case opcode.JMP_JM:
         if (sFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JO:
+      case opcode.JMP_JO:
         if (vFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JGT:
+      case opcode.JMP_JGT:
         if (!(zFlag || (!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JGE:
+      case opcode.JMP_JGE:
         if (!((!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JLE:
+      case opcode.JMP_JLE:
         if (zFlag || (!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JLT:
+      case opcode.JMP_JLT:
         if ((!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JNZ:
+      case opcode.JMP_JNZ:
         if (!zFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JNC:
+      case opcode.JMP_JNC:
         if (!cFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JNM:
+      case opcode.JMP_JNM:
         if (!sFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JNO:
+      case opcode.JMP_JNO:
         if (!vFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JHI:
+      case opcode.JMP_JHI:
         if (!(zFlag || cFlag)) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JLS:
+      case opcode.JMP_JLS:
         if (zFlag || cFlag) this.setPC(inst.dsp);
         break;
-      case operation.JMP_JMP:
+      case opcode.JMP_JMP:
         this.setPC(inst.dsp);
         break;
     }
@@ -371,11 +365,10 @@ export class Cpu {
       this.pc = this.popVal();
     } else if (inst.addrMode === 0x04) {
       if (this.evalFlag(FLAG_P)) {
-        // 特権モード
-        this.flag = this.popVal();
+        this.cpuFlag = this.popVal();
       } else {
-        // I/O特権モード or ユーザモード
-        this.flag = (0xf0 & this.flag) | (0x0f & this.popVal());
+        /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
+        this.cpuFlag = (0xf0 & this.cpuFlag) | (0x0f & this.popVal());
       }
       this.pc = this.popVal();
       this.register.setPrivMode(this.evalFlag(FLAG_P));
@@ -384,7 +377,7 @@ export class Cpu {
 
   private instrHalt() {
     if (this.evalFlag(FLAG_P)) {
-      this.haltFlag = true;
+      this.isHalt = true;
     } else {
       this.intrController.interrupt(intr.EXCP_PRIV_ERROR);
     }
@@ -403,45 +396,45 @@ export class Cpu {
 
   /* 引数に指定したフラグが立っているかを確認する */
   private evalFlag(f: number) {
-    return (this.flag & f) !== 0;
+    return (this.cpuFlag & f) !== 0;
   }
 
   /* 演算の種類と式を読み取りフラグを変化させる */
   private changeFlag(op: number, ans: number, v1: number, v2: number) {
+    /* TeC7/VHDL/TaC/tac_cpu_alu.vhdを参考にした */
     const ansMsb = ans & 0x8000;
     const v1Msb = v1 & 0x8000;
     const v2Msb = v2 & 0x8000;
 
-    this.flag = this.flag & 0xf0;
+    this.cpuFlag = this.cpuFlag & 0xf0;
 
-    // TeC7/VHDL/TaC/tac_cpu_alu.vhdを参考にした
-    if (op === operation.ADD) {
+    if (op === opcode.ADD) {
       if (v1Msb === v2Msb && ansMsb !== v1Msb) {
-        this.flag |= FLAG_V;
+        this.cpuFlag |= FLAG_V;
       }
-    } else if (op === operation.SUB || op === operation.CMP) {
+    } else if (op === opcode.SUB || op === opcode.CMP) {
       if (v1Msb !== v2Msb && ansMsb !== v1Msb) {
-        this.flag |= FLAG_V;
+        this.cpuFlag |= FLAG_V;
       }
     }
 
-    if (operation.ADD <= op && op <= operation.CMP) {
+    if (opcode.ADD <= op && op <= opcode.CMP) {
       if ((ans & 0x10000) !== 0) {
-        this.flag |= FLAG_C;
+        this.cpuFlag |= FLAG_C;
       }
-    } else if (operation.SHLA <= op && op <= operation.SHRL && v2 === 1) {
-      // シフト命令は1ビットシフトのときだけCフラグを変化させる
+    } else if (opcode.SHLA <= op && op <= opcode.SHRL && v2 === 1) {
+      /* シフト命令は1ビットシフトのときだけCフラグを変化させる */
       if ((ans & 0x10000) !== 0) {
-        this.flag |= FLAG_C;
+        this.cpuFlag |= FLAG_C;
       }
     }
 
     if (ansMsb !== 0) {
-      this.flag |= FLAG_S;
+      this.cpuFlag |= FLAG_S;
     }
 
     if ((ans & 0xffff) == 0) {
-      this.flag |= FLAG_Z;
+      this.cpuFlag |= FLAG_Z;
     }
   }
 
@@ -464,8 +457,11 @@ export class Cpu {
   }
 
   private handleInterrupt(intrNum: number): void {
-    const tmp = this.flag;
-    this.flag = (this.flag & ~FLAG_E) | FLAG_P; // E=0, P=1
+    const tmp = this.cpuFlag;
+
+    /* 割込み禁止、特権モードの状態にする */
+    this.cpuFlag = (this.cpuFlag & ~FLAG_E) | FLAG_P;
+
     this.register.setPrivMode(true);
     this.pushVal(this.pc);
     this.pushVal(tmp);
@@ -494,6 +490,6 @@ export class Cpu {
   }
 
   getFlag() {
-    return this.flag;
+    return this.cpuFlag;
   }
 }

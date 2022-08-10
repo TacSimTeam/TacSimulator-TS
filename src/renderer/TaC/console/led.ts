@@ -5,7 +5,7 @@ export class Led {
   readonly onColor: string;
   readonly offColor: string;
 
-  // trueなら点灯, falseなら消灯
+  /* trueなら点灯, falseなら消灯 */
   private state: boolean;
 
   constructor(posX: number, posY: number, name: string, onColor: string, offColor: string) {

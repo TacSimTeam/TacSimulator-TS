@@ -20,7 +20,7 @@ export interface IIntrController {
   checkIntrNum(): number;
 
   /**
-   * 例外が発生しているか検査す
+   * 例外が発生しているか検査する
    *
    * 割込みフラグは変化しない
    */

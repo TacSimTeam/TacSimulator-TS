@@ -1,3 +1,4 @@
+/* レンダラープロセスに公開するAPIの型定義 */
 export interface IElectronAPI {
   readSector: (sectorNum: number) => Uint8Array;
   writeSector: (sectorNum: number, data: Uint8Array) => void;
