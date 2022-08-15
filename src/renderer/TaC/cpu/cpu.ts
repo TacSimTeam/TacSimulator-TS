@@ -55,17 +55,17 @@ export class Cpu {
     }
 
     /* 命令フェッチ */
-    const data = this.memory.read16(this.pc);
+    const data = this.memory.read16(this.pc); /* TLBMissの可能性あり */
     this.nextPC();
 
     /* 命令デコード */
     const inst = this.decode(data);
 
     /* 実効アドレス計算 */
-    inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
+    inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx); /* TLBMissの可能性あり */
 
     /* オペランド読出し */
-    inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
+    inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp); /* TLBMissの可能性あり */
 
     if (this.isTwoWordInstruction(inst.addrMode)) {
       this.nextPC();
@@ -130,13 +130,13 @@ export class Cpu {
   private loadOperand(addrMode: number, rx: number, dsp: number) {
     switch (addrMode) {
       case ADDRMODE_DIRECT:
-        return this.memory.read16(dsp);
+        return this.memory.read16(dsp); /* TLBMissの可能性あり */
       case ADDRMODE_INDEXED:
-        return this.memory.read16(dsp + this.register.readReg(rx));
+        return this.memory.read16(dsp + this.register.readReg(rx)); /* TLBMissの可能性あり */
       case ADDRMODE_IMMEDIATE:
         return this.memory.read16(this.pc);
       case ADDRMODE_FP_RELATIVE:
-        return this.memory.read16(dsp);
+        return this.memory.read16(dsp); /* TLBMissの可能性あり */
       case ADDRMODE_REG_TO_REG:
         return this.register.readReg(rx);
       case ADDRMODE_SHORT_IMMEDIATE:
@@ -354,16 +354,20 @@ export class Cpu {
 
   private instrPushPop(inst: Instruction) {
     if (inst.addrMode === 0x00) {
+      /* PUSH命令 */
       this.pushVal(this.getRegister(inst.rd));
     } else if (inst.addrMode === 0x04) {
+      /* POP命令 */
       this.setRegister(inst.rd, this.popVal());
     }
   }
 
   private instrReturn(inst: Instruction) {
     if (inst.addrMode === 0x00) {
+      /* RET命令 */
       this.pc = this.popVal();
     } else if (inst.addrMode === 0x04) {
+      /* RETI命令*/
       if (this.evalFlag(FLAG_P)) {
         this.cpuFlag = this.popVal();
       } else {

@@ -1,16 +1,9 @@
+import { IIntrSignal } from '.';
+
 /**
  * 割込みコントローラを表現するインターフェース
- *
- * 割込みを発生させる機器はこのインターフェースを実装するコントローラを参照する
  */
-export interface IIntrController {
-  /**
-   * 割込み(例外)発生時に呼び出す
-   *
-   * @param intrNum 割込み番号
-   */
-  interrupt(intrNum: number): void;
-
+export interface IIntrController extends IIntrSignal {
   /**
    * 割込みが発生しているか確認する
    *
@@ -20,7 +13,7 @@ export interface IIntrController {
   checkIntrNum(): number;
 
   /**
-   * 例外が発生しているか検査する
+   * 例外が発生していればtrueを返す
    *
    * 割込みフラグは変化しない
    */
