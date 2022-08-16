@@ -1,17 +1,17 @@
-import { IDataBus, IDmaSignal, IIplLoader, IIntrController } from '../interface';
+import { IDataBus, IDmaSignal, IIplLoader, IIntrSignal } from '../interface';
 import { ipl } from '../ipl';
 import * as intr from '../interrupt/interruptNum';
 
 export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
   private memory: IDmaSignal;
-  private intrController: IIntrController;
+  private intrSignal: IIntrSignal;
 
   /* IPLロード中ならtrue */
   private iplMode: boolean;
 
-  constructor(memory: IDmaSignal, intrController: IIntrController) {
+  constructor(memory: IDmaSignal, intrController: IIntrSignal) {
     this.memory = memory;
-    this.intrController = intrController;
+    this.intrSignal = intrController;
     this.iplMode = false;
   }
 
@@ -25,7 +25,7 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
 
   write16(addr: number, val: number) {
     if (addr % 2 == 1) {
-      this.intrController.interrupt(intr.EXCP_MEMORY_ERROR);
+      this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
       return;
     } else if (this.iplMode) {
       if (addr >= 0xe000) {
@@ -40,7 +40,7 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
 
   read16(addr: number) {
     if (addr % 2 == 1) {
-      this.intrController.interrupt(intr.EXCP_MEMORY_ERROR);
+      this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
       return 0;
     }
 

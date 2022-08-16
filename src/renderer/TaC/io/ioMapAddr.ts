@@ -58,7 +58,7 @@ export const MMU_TLB7_LOW = 0x9e;
 export const MMU_00_IPLBANK = 0xa0;
 export const MMU_ERRORADDR_MMUON = 0xa2;
 export const MMU_ERRORCAUSE_00 = 0xa4;
-export const MMU_PAGE = 0xa6;
+export const MMU_PAGE_00 = 0xa6;
 
 export const CONSOLE_DATASW_DATAREG = 0xf8;
 export const CONSOLE_ADDRREG_00 = 0xfa;
