@@ -1,18 +1,62 @@
-import { IDataBus, IDmaSignal, IIplLoader, IIntrSignal } from '../interface';
+import { IDataBus, IDmaSignal, IIplLoader, IIntrSignal, IIOMmu, IPrivModeSignal } from '../interface';
+import { TlbEntry, tlbNumToObj, tlbObjToNum } from './tlb';
 import { ipl } from '../ipl';
 import * as intr from '../interrupt/interruptNum';
 
-export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
+const TLB_ENTRY_SIZE = 8;
+
+export class Mmu implements IDataBus, IIOMmu, IIplLoader {
   private memory: IDmaSignal;
   private intrSignal: IIntrSignal;
+
+  /* 特権モードであるかどうか */
+  private privModesignal: IPrivModeSignal;
+
+  /* TLBエントリ */
+  private tlbs: TlbEntry[];
 
   /* IPLロード中ならtrue */
   private iplMode: boolean;
 
-  constructor(memory: IDmaSignal, intrController: IIntrSignal) {
+  /* trueなら特権モード以外でp-f変換を行う */
+  private mmuMode: boolean;
+
+  /* メモリ保護違反が発生したときに原因となった論理アドレス */
+  private errorAddr: number;
+
+  /* メモリ保護違反の原因 */
+  private errorCause: number;
+
+  /* TLBミス例外の原因となったページ番号 */
+  private tlbMissPage: number;
+
+  constructor(memory: IDmaSignal, intrController: IIntrSignal, privModeSignal: IPrivModeSignal) {
     this.memory = memory;
     this.intrSignal = intrController;
+    this.privModesignal = privModeSignal;
+    this.tlbs = [];
+    this.initTlbs();
+
     this.iplMode = false;
+    this.mmuMode = false;
+    this.errorAddr = 0;
+    this.errorCause = 0;
+    this.tlbMissPage = 0;
+  }
+
+  private initTlbs() {
+    for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
+      this.tlbs.push({
+        page: 0,
+        frame: 0,
+        validFlag: false,
+        referenceFlag: false,
+        dirtyFlag: false,
+        readFlag: false,
+        writeFlag: false,
+        executeFlag: false,
+      });
+    }
   }
 
   write8(addr: number, val: number) {
@@ -24,6 +68,17 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
   }
 
   write16(addr: number, val: number) {
+    if (this.mmuMode) {
+      const page = (addr & 0xff00) >> 8;
+      const entry = this.searchTlbNum(page);
+      if (entry == -1) {
+        throw new Error('TLB Miss');
+      }
+
+      const frame = this.tlbs[entry].frame;
+      addr = (frame << 8) | (addr & 0x00ff);
+    }
+
     if (addr % 2 == 1) {
       this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
       return;
@@ -39,12 +94,32 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
   }
 
   read16(addr: number) {
+    if (this.mmuMode) {
+      const page = (addr & 0xff00) >> 8;
+      const entry = this.searchTlbNum(page);
+      if (entry == -1) {
+        throw new Error('TLB Miss');
+      }
+
+      const frame = this.tlbs[entry].frame;
+      addr = (frame << 8) | (addr & 0x00ff);
+    }
+
     if (addr % 2 == 1) {
       this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
       return 0;
     }
 
     return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
+  }
+
+  searchTlbNum(page: number) {
+    for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
+      if (this.tlbs[i].validFlag && this.tlbs[i].page == page) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   loadIpl() {
@@ -59,5 +134,46 @@ export class Mmu implements IDataBus, IDmaSignal, IIplLoader {
     for (let i = 0xe000; i <= 0xffff; i++) {
       this.memory.write8(i, 0);
     }
+  }
+
+  setTlbHigh8(idx: number, val: number): void {
+    /* TLBエントリの上位8ビットはページ番号なのでそのまま代入 */
+    this.tlbs[idx].page = val & 0xff;
+  }
+
+  setTlbLow16(idx: number, val: number): void {
+    /* tlbs[idx]の上位8ビット(ページ番号)だけ取り出す */
+    const page = this.tlbs[idx].page & 0xff;
+
+    /* ページ番号とvalを元にTlbEntry型に変換し代入 */
+    this.tlbs[idx] = tlbNumToObj((page << 16) | val);
+  }
+
+  getTlbHigh8(idx: number): number {
+    return this.tlbs[idx].page & 0xff;
+  }
+
+  getTlbLow16(idx: number): number {
+    return tlbObjToNum(this.tlbs[idx]) & 0x0000ffff;
+  }
+
+  getErrorAddr(): number {
+    return this.errorAddr;
+  }
+
+  getErrorCause(): number {
+    /* IN命令でエラー原因を読むと0にクリアされる */
+    const cause = this.errorCause;
+    this.errorCause = 0;
+
+    return cause;
+  }
+
+  getTlbMissPage(): number {
+    return this.tlbMissPage;
+  }
+
+  enableMmu(): void {
+    this.mmuMode = true;
   }
 }
