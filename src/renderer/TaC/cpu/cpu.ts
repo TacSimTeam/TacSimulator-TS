@@ -3,6 +3,8 @@ import { IDataBus, IIntrController } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
+import { IOHostController } from '../io/ioHostController';
+import { PrivModeSignal } from './privModeSignal';
 
 const FLAG_E = 0x80;
 const FLAG_P = 0x40;
@@ -31,13 +33,18 @@ export class Cpu {
   private isException: boolean;
 
   private memory: IDataBus;
-  private intrController: IIntrController;
+  private intrHost: IIntrController;
   private register: Register;
+  private ioHost: IOHostController;
+  private privSig: PrivModeSignal;
 
-  constructor(memory: IDataBus, intrController: IIntrController) {
-    this.register = new Register();
+  constructor(memory: IDataBus, intrHost: IIntrController, ioHost: IOHostController, privSig: PrivModeSignal) {
     this.memory = memory;
-    this.intrController = intrController;
+    this.register = new Register();
+    this.intrHost = intrHost;
+    this.ioHost = ioHost;
+    this.privSig = privSig;
+
     this.cpuFlag = FLAG_P;
     this.isHalt = false;
     this.isException = false;
@@ -46,9 +53,12 @@ export class Cpu {
 
   /* 命令実行サイクル */
   run() {
+    /* 特権フラグの確認用信号の更新 */
+    this.privSig.setPrivMode(this.evalFlag(FLAG_P));
+
     /* 割り込み判定 */
-    if (this.evalFlag(FLAG_E) || this.intrController.isOccurredException()) {
-      const intrNum = this.intrController.checkIntrNum();
+    if (this.evalFlag(FLAG_E) || this.intrHost.isOccurredException()) {
+      const intrNum = this.intrHost.checkIntrNum();
       if (intrNum !== -1) {
         this.handleInterrupt(intrNum);
       }
@@ -62,7 +72,7 @@ export class Cpu {
     const inst = this.decode(data);
 
     /* 実効アドレス計算 */
-    inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx); /* TLBMissの可能性あり */
+    inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
 
     /* オペランド読出し */
     inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp); /* TLBMissの可能性あり */
@@ -188,10 +198,10 @@ export class Cpu {
         this.instrCall(inst);
         break;
       case opcode.IN:
-        console.log('IN');
+        this.instrIn(inst);
         break;
       case opcode.OUT:
-        console.log('OUT');
+        this.instrOut(inst);
         break;
       case opcode.PUSH_POP:
         this.instrPushPop(inst);
@@ -200,13 +210,13 @@ export class Cpu {
         this.instrReturn(inst);
         break;
       case opcode.SVC:
-        this.intrController.interrupt(intr.EXCP_SVC);
+        this.intrHost.interrupt(intr.EXCP_SVC);
         break;
       case opcode.HALT:
         this.instrHalt();
         break;
       default:
-        this.intrController.interrupt(intr.EXCP_OP_UNDEFINED);
+        this.intrHost.interrupt(intr.EXCP_OP_UNDEFINED);
     }
   }
 
@@ -256,14 +266,14 @@ export class Cpu {
         break;
       case opcode.DIV:
         if (inst.operand === 0) {
-          this.intrController.interrupt(intr.EXCP_ZERO_DIV);
+          this.intrHost.interrupt(intr.EXCP_ZERO_DIV);
         } else {
           ans = rd / inst.operand;
         }
         break;
       case opcode.MOD:
         if (inst.operand === 0) {
-          this.intrController.interrupt(intr.EXCP_ZERO_DIV);
+          this.intrHost.interrupt(intr.EXCP_ZERO_DIV);
         } else {
           ans = rd % inst.operand;
         }
@@ -379,11 +389,27 @@ export class Cpu {
     }
   }
 
+  private instrIn(inst: Instruction) {
+    if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
+      this.setRegister(inst.rd, this.ioHost.input(inst.dsp));
+    } else {
+      this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
+    }
+  }
+
+  private instrOut(inst: Instruction) {
+    if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
+      this.setRegister(inst.rd, this.ioHost.input(inst.dsp));
+    } else {
+      this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
+    }
+  }
+
   private instrHalt() {
     if (this.evalFlag(FLAG_P)) {
       this.isHalt = true;
     } else {
-      this.intrController.interrupt(intr.EXCP_PRIV_ERROR);
+      this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }
   }
 
