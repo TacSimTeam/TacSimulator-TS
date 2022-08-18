@@ -13,12 +13,6 @@ export class TlbMissError extends BaseError {
   }
 }
 
-export class RegisterError extends BaseError {
-  constructor() {
-    super('Register reference error');
-  }
-}
-
 export class InvalidMemoryAccessError extends BaseError {
   constructor() {
     super('Invalid memory access error');

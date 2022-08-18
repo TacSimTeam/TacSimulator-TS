@@ -48,10 +48,6 @@ export class Register {
   }
 
   readReg(num: number) {
-    if (!(REGISTER_G0 <= num && num <= REGISTER_USP)) {
-      throw new Error('レジスタ参照エラー');
-    }
-
     switch (num) {
       case 12:
         return this.fp;
@@ -69,10 +65,6 @@ export class Register {
   }
 
   writeReg(num: number, val: number) {
-    if (!(REGISTER_G0 <= num && num <= REGISTER_USP)) {
-      throw new Error('レジスタ参照エラー');
-    }
-
     switch (num) {
       case 12:
         this.fp = val;

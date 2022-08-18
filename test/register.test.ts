@@ -3,19 +3,6 @@ import { Register, REGISTER_FP, REGISTER_G0, REGISTER_SP, REGISTER_USP } from '.
 test('Register Read/Write Test', () => {
   const register = new Register();
 
-  expect(() => {
-    register.readReg(-1);
-  }).toThrowError('レジスタ参照エラー');
-  expect(() => {
-    register.readReg(15);
-  }).toThrowError('レジスタ参照エラー');
-  expect(() => {
-    register.writeReg(-1, 10);
-  }).toThrowError('レジスタ参照エラー');
-  expect(() => {
-    register.writeReg(15, 10);
-  }).toThrowError('レジスタ参照エラー');
-
   register.writeReg(REGISTER_G0, 0x1234);
   expect(register.readReg(REGISTER_G0)).toBe(0x1234);
   register.writeReg(REGISTER_FP, 0x2345);
