@@ -4,5 +4,4 @@ export type Instruction = {
   rd: number /* ディスティネーションレジスタ */;
   rx: number /* インデクスレジスタ */;
   dsp: number /* 実効アドレス */;
-  operand: number /* オペランド */;
 };

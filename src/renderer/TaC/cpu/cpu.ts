@@ -74,9 +74,6 @@ export class Cpu {
     /* 実効アドレス計算 */
     inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
 
-    /* オペランド読出し */
-    inst.operand = this.loadOperand(inst.addrMode, inst.rx, inst.dsp); /* TLBMissの可能性あり */
-
     if (this.isTwoWordInstruction(inst.addrMode)) {
       this.nextPC();
     }
@@ -98,7 +95,6 @@ export class Cpu {
       rd: (data >>> 4) & 0x0f,
       rx: data & 0x0f,
       dsp: 0,
-      operand: 0,
     };
 
     return inst;
@@ -131,6 +127,7 @@ export class Cpu {
 
   /**
    * オペランド読み出し
+   * TLB Missの可能性アリ
    *
    * @param addrMode アドレッシングモード
    * @param rx インデクスレジスタ
@@ -221,10 +218,12 @@ export class Cpu {
   }
 
   private instrLD(inst: Instruction) {
+    const data = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
+
     if (inst.rd === 15) {
-      this.cpuFlag = 0xff & inst.operand;
+      this.cpuFlag = 0xff & data;
     } else {
-      this.register.writeReg(inst.rd, inst.operand);
+      this.register.writeReg(inst.rd, data);
     }
   }
 
@@ -240,62 +239,65 @@ export class Cpu {
 
   private instrCalculation(inst: Instruction) {
     let ans = 0;
-    const rd = this.getRegister(inst.rd);
+
+    const v1 = this.getRegister(inst.rd);
+    const v2 = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
+
     switch (inst.opcode) {
       case opcode.ADD:
-        ans = rd + inst.operand;
+        ans = v1 + v2;
         break;
       case opcode.SUB:
       case opcode.CMP:
-        ans = rd - inst.operand;
+        ans = v1 - v2;
         break;
       case opcode.AND:
-        ans = rd & inst.operand;
+        ans = v1 & v2;
         break;
       case opcode.OR:
-        ans = rd | inst.operand;
+        ans = v1 | v2;
         break;
       case opcode.XOR:
-        ans = rd ^ inst.operand;
+        ans = v1 ^ v2;
         break;
       case opcode.ADDS:
-        ans = rd + inst.operand * 2;
+        ans = v1 + v2 * 2;
         break;
       case opcode.MUL:
-        ans = rd * inst.operand;
+        ans = v1 * v2;
         break;
       case opcode.DIV:
-        if (inst.operand === 0) {
+        if (v2 === 0) {
           this.intrHost.interrupt(intr.EXCP_ZERO_DIV);
         } else {
-          ans = rd / inst.operand;
+          ans = v1 / v2;
         }
         break;
       case opcode.MOD:
-        if (inst.operand === 0) {
+        if (v2 === 0) {
           this.intrHost.interrupt(intr.EXCP_ZERO_DIV);
         } else {
-          ans = rd % inst.operand;
+          ans = v1 % v2;
         }
         break;
       case opcode.SHLA:
       case opcode.SHLL:
         /* SHLA命令とSHLL命令は同じ動作 */
-        ans = rd << inst.operand;
+        ans = v1 << v2;
         break;
       case opcode.SHRA:
-        if ((rd & 0x8000) != 0) {
-          ans = (rd | ~0xffff) >> inst.operand;
+        if ((v1 & 0x8000) != 0) {
+          ans = (v1 | ~0xffff) >> v2;
         } else {
-          ans = rd >> inst.operand;
+          ans = v1 >> v2;
         }
         break;
       case opcode.SHRL:
-        ans = rd >>> inst.operand;
+        ans = v1 >>> v2;
         break;
     }
 
-    this.changeFlag(inst.opcode, ans, rd, inst.operand);
+    this.changeFlag(inst.opcode, ans, v1, v2);
     ans = ans & 0xffff;
     if (inst.opcode !== opcode.CMP) {
       this.setRegister(inst.rd, ans);
