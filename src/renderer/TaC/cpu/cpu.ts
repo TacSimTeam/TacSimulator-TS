@@ -415,7 +415,7 @@ export class Cpu {
 
   private instrOut(inst: Instruction) {
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
-      this.setRegister(inst.rd, this.ioHost.input(inst.dsp));
+      this.ioHost.output(inst.dsp, this.getRegister(inst.rd));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }

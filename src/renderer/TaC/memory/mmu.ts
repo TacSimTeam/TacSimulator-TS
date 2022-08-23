@@ -118,7 +118,7 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
     return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
   }
 
-  searchTlbNum(page: number) {
+  private searchTlbNum(page: number) {
     for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
       if (this.tlbs[i].validFlag && this.tlbs[i].page == page) {
         return i;
