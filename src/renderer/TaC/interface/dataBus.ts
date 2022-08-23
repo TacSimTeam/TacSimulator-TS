@@ -9,7 +9,6 @@ export interface IDataBus {
    *
    * 以下の状況のときはErrorをthrowするので処理する必要がある
    * - TLBミスが発生したとき
-   * - メモリ保護違反が発生したとき
    *
    * @param addr 書き込み先のアドレス
    * @param val  書き込みたいデータ(16bit)
@@ -21,7 +20,6 @@ export interface IDataBus {
    *
    * 以下の状況のときはErrorをthrowするので処理する必要がある
    * - TLBミスが発生したとき
-   * - メモリ保護違反が発生したとき
    *
    * @param addr 読み込むデータのアドレス
    */

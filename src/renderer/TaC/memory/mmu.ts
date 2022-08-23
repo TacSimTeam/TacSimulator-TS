@@ -2,6 +2,7 @@ import { IDataBus, IDmaSignal, IIplLoader, IIntrSignal, IIOMmu, IPrivModeSignal 
 import { TlbEntry, tlbNumToObj, tlbObjToNum } from './tlb';
 import { ipl } from '../ipl';
 import * as intr from '../interrupt/interruptNum';
+import { TlbMissError } from '../error';
 
 const TLB_ENTRY_SIZE = 8;
 
@@ -68,11 +69,12 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
   }
 
   write16(addr: number, val: number) {
-    if (this.mmuMode) {
+    /* MMUが有効かつ特権モード以外ならp-f変換を行う */
+    if (this.mmuMode && !this.privModesignal.getPrivMode()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
-        throw new Error('TLB Miss');
+        throw new TlbMissError();
       }
 
       const frame = this.tlbs[entry].frame;
@@ -94,11 +96,12 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
   }
 
   read16(addr: number) {
-    if (this.mmuMode) {
+    /* MMUが有効かつ特権モード以外ならp-f変換を行う */
+    if (this.mmuMode && !this.privModesignal.getPrivMode()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
-        throw new Error('TLB Miss');
+        throw new TlbMissError();
       }
 
       const frame = this.tlbs[entry].frame;
