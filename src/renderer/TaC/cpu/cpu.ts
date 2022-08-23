@@ -5,6 +5,7 @@ import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
 import { IOHostController } from '../io/ioHostController';
 import { PrivModeSignal } from './privModeSignal';
+import { TlbMissError } from '../error';
 
 const FLAG_E = 0x80;
 const FLAG_P = 0x40;
@@ -30,7 +31,6 @@ export class Cpu {
   private pc: number;
 
   private isHalt: boolean;
-  private isException: boolean;
 
   private memory: IDataBus;
   private intrHost: IIntrController;
@@ -47,7 +47,6 @@ export class Cpu {
 
     this.cpuFlag = FLAG_P;
     this.isHalt = false;
-    this.isException = false;
     this.pc = 0;
   }
 
@@ -64,8 +63,17 @@ export class Cpu {
       }
     }
 
-    /* 命令フェッチ */
-    const data = this.memory.read16(this.pc); /* TLBMissの可能性あり */
+    /* 命令フェッチ(TLBミスが発生する可能性有り) */
+    let data = 0;
+    try {
+      data = this.memory.read16(this.pc);
+    } catch (e) {
+      if (e instanceof TlbMissError) {
+        /* TLBMissが発生したのでPCを進めずに一旦戻す */
+        return;
+      }
+    }
+
     this.nextPC();
 
     /* 命令デコード */
@@ -74,12 +82,18 @@ export class Cpu {
     /* 実効アドレス計算 */
     inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
 
+    /* 命令実行(TLBミスが発生する可能性有り) */
+    try {
+      this.execInstruction(inst);
+    } catch (e) {
+      if (e instanceof TlbMissError) {
+        return;
+      }
+    }
+
     if (this.isTwoWordInstruction(inst.addrMode)) {
       this.nextPC();
     }
-
-    /* 命令実行 */
-    this.execInstruction(inst);
   }
 
   /**

@@ -74,6 +74,7 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
+        this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
       }
 
@@ -101,6 +102,7 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
+        this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
       }
 
