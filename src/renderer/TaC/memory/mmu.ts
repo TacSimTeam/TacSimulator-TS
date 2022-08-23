@@ -77,9 +77,14 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
+        /* TLBミス */
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
+      } else if (!this.tlbs[entry].writeFlag) {
+        /* メモリ保護違反(Writeフラグが0) */
+        this.errorAddr = addr;
+        this.errorCause = ERROR_CAUSE_MEMORY_VIOLATION;
       }
 
       const frame = this.tlbs[entry].frame;
@@ -108,9 +113,14 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
+        /* TLBミス */
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
+      } else if (!this.tlbs[entry].readFlag) {
+        /* メモリ保護違反(Readフラグが0) */
+        this.errorAddr = addr;
+        this.errorCause = ERROR_CAUSE_MEMORY_VIOLATION;
       }
 
       const frame = this.tlbs[entry].frame;
