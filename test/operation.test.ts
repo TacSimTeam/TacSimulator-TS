@@ -14,21 +14,13 @@ const FLAG_C = 0x04;
 const FLAG_S = 0x02;
 const FLAG_Z = 0x01;
 
-function createInstruction(
-  op: number,
-  addrMode: number,
-  rd: number,
-  rx: number,
-  dsp: number,
-  operand: number
-): Instruction {
+function createInstruction(op: number, addrMode: number, rd: number, rx: number, ea: number): Instruction {
   return {
     opcode: op,
     addrMode: addrMode,
     rd: rd,
     rx: rx,
-    dsp: dsp,
-    operand: operand,
+    ea: ea,
   };
 }
 
@@ -146,12 +138,12 @@ test('Operation ST test', () => {
   inst.addrMode = 7;
   inst.rd = REGISTER_G1;
 
-  inst.dsp = 0x1000;
+  inst.ea = 0x1000;
   cpu['setRegister'](REGISTER_G1, 0x3456);
   cpu['execInstruction'](inst);
   expect(mmu.read8(0x1000)).toBe(0x0056);
 
-  inst.dsp = 0x1001;
+  inst.ea = 0x1001;
   cpu['setRegister'](REGISTER_G1, 0x5678);
   cpu['execInstruction'](inst);
   expect(mmu.read8(0x1001)).toBe(0x0078);

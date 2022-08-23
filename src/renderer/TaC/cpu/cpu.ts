@@ -80,7 +80,7 @@ export class Cpu {
     const inst = this.decode(data);
 
     /* 実効アドレス計算 */
-    inst.dsp = this.calcEffectiveAddress(inst.addrMode, inst.rx);
+    inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
 
     /* 命令実行(TLBミスが発生する可能性有り) */
     try {
@@ -108,7 +108,7 @@ export class Cpu {
       addrMode: (data >>> 8) & 0x07,
       rd: (data >>> 4) & 0x0f,
       rx: data & 0x0f,
-      dsp: 0,
+      ea: 0,
     };
 
     return inst;
@@ -232,7 +232,7 @@ export class Cpu {
   }
 
   private instrLD(inst: Instruction) {
-    const data = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
+    const data = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
 
     if (inst.rd === 15) {
       this.cpuFlag = 0xff & data;
@@ -245,9 +245,9 @@ export class Cpu {
     /* ST命令ではrdがディスティネーションではなくソースとなる */
     const data = this.register.readReg(inst.rd);
     if (inst.addrMode == ADDRMODE_BYTE_REG_INDIRECT) {
-      this.memory.write8(inst.dsp, 0x00ff & data);
+      this.memory.write8(inst.ea, 0x00ff & data);
     } else {
-      this.memory.write16(inst.dsp, data);
+      this.memory.write16(inst.ea, data);
     }
   }
 
@@ -255,7 +255,7 @@ export class Cpu {
     let ans = 0;
 
     const v1 = this.getRegister(inst.rd);
-    const v2 = this.loadOperand(inst.addrMode, inst.rx, inst.dsp);
+    const v2 = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
 
     switch (inst.opcode) {
       case opcode.ADD:
@@ -326,56 +326,56 @@ export class Cpu {
 
     switch (inst.rd) {
       case opcode.JMP_JZ:
-        if (zFlag) this.setPC(inst.dsp);
+        if (zFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JC:
-        if (cFlag) this.setPC(inst.dsp);
+        if (cFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JM:
-        if (sFlag) this.setPC(inst.dsp);
+        if (sFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JO:
-        if (vFlag) this.setPC(inst.dsp);
+        if (vFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JGT:
-        if (!(zFlag || (!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.dsp);
+        if (!(zFlag || (!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.ea);
         break;
       case opcode.JMP_JGE:
-        if (!((!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.dsp);
+        if (!((!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.ea);
         break;
       case opcode.JMP_JLE:
-        if (zFlag || (!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.dsp);
+        if (zFlag || (!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.ea);
         break;
       case opcode.JMP_JLT:
-        if ((!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.dsp);
+        if ((!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.ea);
         break;
       case opcode.JMP_JNZ:
-        if (!zFlag) this.setPC(inst.dsp);
+        if (!zFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JNC:
-        if (!cFlag) this.setPC(inst.dsp);
+        if (!cFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JNM:
-        if (!sFlag) this.setPC(inst.dsp);
+        if (!sFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JNO:
-        if (!vFlag) this.setPC(inst.dsp);
+        if (!vFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JHI:
-        if (!(zFlag || cFlag)) this.setPC(inst.dsp);
+        if (!(zFlag || cFlag)) this.setPC(inst.ea);
         break;
       case opcode.JMP_JLS:
-        if (zFlag || cFlag) this.setPC(inst.dsp);
+        if (zFlag || cFlag) this.setPC(inst.ea);
         break;
       case opcode.JMP_JMP:
-        this.setPC(inst.dsp);
+        this.setPC(inst.ea);
         break;
     }
   }
 
   private instrCall(inst: Instruction) {
     this.pushVal(this.pc);
-    this.pc = inst.dsp;
+    this.pc = inst.ea;
   }
 
   private instrPushPop(inst: Instruction) {
@@ -407,7 +407,7 @@ export class Cpu {
 
   private instrIn(inst: Instruction) {
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
-      this.setRegister(inst.rd, this.ioHost.input(inst.dsp));
+      this.setRegister(inst.rd, this.ioHost.input(inst.ea));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }
@@ -415,7 +415,7 @@ export class Cpu {
 
   private instrOut(inst: Instruction) {
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
-      this.ioHost.output(inst.dsp, this.getRegister(inst.rd));
+      this.ioHost.output(inst.ea, this.getRegister(inst.rd));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }

@@ -6,6 +6,9 @@ import { TlbMissError } from '../error';
 
 const TLB_ENTRY_SIZE = 8;
 
+const ERROR_CAUSE_BAD_ADDRESS = 0x02;
+const ERROR_CAUSE_MEMORY_VIOLATION = 0x01;
+
 export class Mmu implements IDataBus, IIOMmu, IIplLoader {
   private memory: IDmaSignal;
   private intrSignal: IIntrSignal;
@@ -74,6 +77,7 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
+        this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
       }
@@ -83,6 +87,8 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
     }
 
     if (addr % 2 == 1) {
+      this.errorAddr = addr;
+      this.errorCause = ERROR_CAUSE_BAD_ADDRESS;
       this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
       return;
     } else if (this.iplMode) {
@@ -102,6 +108,7 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
+        this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
       }
@@ -111,6 +118,8 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
     }
 
     if (addr % 2 == 1) {
+      this.errorAddr = addr;
+      this.errorCause = ERROR_CAUSE_BAD_ADDRESS;
       this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
       return 0;
     }
