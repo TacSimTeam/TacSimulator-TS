@@ -8,9 +8,12 @@ export interface IIOTimer {
   getCounter(): number;
 
   /**
-   * タイマーのフラグを取得する
+   * カウンタの値と周期レジスタの値が一致すると
+   * 1になるフラグの値を取得する
+   *
+   * 読み出されるとリセットされる
    */
-  getFlag(): number;
+  getFlag(): boolean;
 
   /**
    * タイマーの周期を設定する
@@ -20,7 +23,16 @@ export interface IIOTimer {
   setCycle(cycle: number): void;
 
   /**
-   * タイマーの制御用の値を設定する
+   * タイマー割り込みを許可するかどうかのフラグを設定する
+   *
+   * @param flag
    */
-  setCtrl(): number;
+  setInterruptFlag(flag: boolean): void;
+
+  /**
+   * カウンタのスタート/ストップ(True/False)を設定する
+   *
+   * @param flag
+   */
+  setStartFlag(flag: boolean): void;
 }

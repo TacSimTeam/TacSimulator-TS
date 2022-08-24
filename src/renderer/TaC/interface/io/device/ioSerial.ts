@@ -15,12 +15,28 @@ export interface IIOSerial {
   receive(): number;
 
   /**
-   * シリアル入出力装置の状態を取得する
+   * 送信データが書き込み可能であるかどうか
    */
-  getStat(): number;
+  getWriteableFlag(): boolean;
 
   /**
-   * シリアル入出力装置の制御用の値を設定する
+   * 受信データが読み込み可能であるかどうか
    */
-  setCtrl(): number;
+  getReadableFlag(): boolean;
+
+  /**
+   * 次の受信データが書き込み可能になるときに
+   * 割込み可能とするフラグを設定する
+   *
+   * @param flag
+   */
+  setWriteableIntrFlag(flag: boolean): void;
+
+  /**
+   * 次の受信データが読み込み可能になるときに
+   * 割込み可能とするフラグを設定する
+   *
+   * @param flag
+   */
+  setReadableIntrFlag(flag: boolean): void;
 }
