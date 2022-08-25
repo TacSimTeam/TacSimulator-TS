@@ -31,14 +31,14 @@ export class IOHostController implements IIOHostController {
       case io.TIMER0_COUNTER_CYCLE:
         return this.timer0.getCounter();
       case io.TIMER0_FLAG_CTRL:
-        if (this.timer0.getFlag()) {
+        if (this.timer0.getMatchFlag()) {
           val |= 0x8000;
         }
         return val;
       case io.TIMER1_COUNTER_CYCLE:
         return this.timer1.getCounter();
       case io.TIMER1_FLAG_CTRL:
-        if (this.timer1.getFlag()) {
+        if (this.timer1.getMatchFlag()) {
           val |= 0x8000;
         }
         return val;
@@ -124,14 +124,23 @@ export class IOHostController implements IIOHostController {
         break;
       case io.TIMER0_FLAG_CTRL:
         this.timer0.setInterruptFlag(!!(val & 0x8000));
-        this.timer0.setStartFlag(!!(val & 0x0001));
+        if ((val & 0x0001) != 0) {
+          this.timer0.start();
+        } else {
+          this.timer0.stop();
+        }
         break;
       case io.TIMER1_COUNTER_CYCLE:
         this.timer1.setCycle(val);
         break;
       case io.TIMER1_FLAG_CTRL:
         this.timer1.setInterruptFlag(!!(val & 0x8000));
-        this.timer1.setStartFlag(!!(val & 0x0001));
+        this.timer1.setInterruptFlag(!!(val & 0x8000));
+        if ((val & 0x0001) != 0) {
+          this.timer1.start();
+        } else {
+          this.timer1.stop();
+        }
         break;
       case io.FT232RL_RECEIVE_SERVE:
         this.ft232rl.send(val);

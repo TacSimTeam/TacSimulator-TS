@@ -13,7 +13,7 @@ export interface IIOTimer {
    *
    * 読み出されるとリセットされる
    */
-  getFlag(): boolean;
+  getMatchFlag(): boolean;
 
   /**
    * タイマーの周期を設定する
@@ -30,9 +30,12 @@ export interface IIOTimer {
   setInterruptFlag(flag: boolean): void;
 
   /**
-   * カウンタのスタート/ストップ(True/False)を設定する
-   *
-   * @param flag
+   * カウンタをリセットしてからタイマーをスタートする
    */
-  setStartFlag(flag: boolean): void;
+  start(): void;
+
+  /**
+   * カウンタをリセットしてからタイマーをストップする
+   */
+  stop(): void;
 }
