@@ -197,7 +197,7 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
     return this.tlbMissPage;
   }
 
-  enableMmu(): void {
+  enable(): void {
     this.mmuMode = true;
   }
 }

@@ -54,7 +54,7 @@ export interface IIOMmu {
   /**
    * MMUを有効にする
    */
-  enableMmu(): void;
+  enable(): void;
 
   /**
    * IPLをメモリから切り離す
