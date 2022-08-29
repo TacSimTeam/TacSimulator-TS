@@ -21,20 +21,23 @@ const tac = new Tac(ctx);
 
 /* 「Open a File」ボタンが押された時の動作 */
 openBtn.addEventListener('click', async () => {
-  let text: string;
   const filePath = await window.electronAPI.getSDImagePath();
 
   if (filePath === undefined) {
-    text = 'ファイルが選択されていません';
+    filePathElement.innerText = 'ファイルが選択されていません';
   } else {
     /* ファイルの読み込みが完了するまで「しばらくお待ちください」を表示する */
     loadingMsg.style.display = 'block';
-    window.electronAPI.openFile(filePath);
-    text = filePath;
-    loadingMsg.style.display = 'none';
+    window.electronAPI
+      .openFile(filePath)
+      .then(() => {
+        loadingMsg.style.display = 'none';
+        filePathElement.innerText = filePath;
+      })
+      .catch(() => {
+        console.log('ファイルが正常に読み込まれませんでした');
+      });
   }
-
-  filePathElement.innerText = text;
 });
 
 /* TaCコンソールがクリックされた時の動作 */

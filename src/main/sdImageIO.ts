@@ -3,7 +3,7 @@ import * as fs from 'fs';
 const SECTOR_SIZE = 512;
 
 /* バックグラウンドで保持するSDカードイメージファイルを管理するクラス */
-export class SDCardImageIO {
+export class SDImageIO {
   private fd: number;
   private buf: Buffer;
 
@@ -13,14 +13,10 @@ export class SDCardImageIO {
   }
 
   isLoaded() {
-    if (this.fd === -1) {
-      return false;
-    } else {
-      return true;
-    }
+    return this.fd !== -1;
   }
 
-  readSectorSync(sectorAddr: number) {
+  readSector(sectorAddr: number) {
     try {
       fs.readSync(this.fd, this.buf, 0, SECTOR_SIZE, sectorAddr * SECTOR_SIZE);
     } catch (e) {
@@ -29,7 +25,7 @@ export class SDCardImageIO {
     return Uint8Array.from(this.buf);
   }
 
-  writeSectorSync(sectorAddr: number, data: Uint8Array) {
+  writeSector(sectorAddr: number, data: Uint8Array) {
     try {
       fs.writeSync(this.fd, data, sectorAddr * SECTOR_SIZE);
     } catch (e) {

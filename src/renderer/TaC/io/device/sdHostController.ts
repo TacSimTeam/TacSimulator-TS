@@ -39,7 +39,7 @@ export class SdHostController implements IIOSdHostController {
   }
 
   init(): void {
-    this.idleFlag = false;
+    this.idleFlag = true;
     this.errorFlag = false;
     this.intrFlag = false;
     this.sectorAddr = 0;
@@ -49,32 +49,43 @@ export class SdHostController implements IIOSdHostController {
   startReading(): void {
     this.idleFlag = false;
 
-    window.electronAPI.readSector(this.sectorAddr);
-
-    if (this.intrFlag) {
-      this.intrSignal.interrupt(intr.MICRO_SD);
-    }
-
-    this.idleFlag = true;
+    window.electronAPI.readSector(this.sectorAddr).then((data) => {
+      /* SDからのデータ読み込み終了後に行う処理 */
+      new Promise<void>(() => {
+        /* 読み込んだ値をメモリにコピーする */
+        for (let i = 0; i < 256; i++) {
+          this.memory.write8(this.bufferAddr + i, data[i]);
+        }
+      }).then(() => {
+        /* メモリへの書き込み終了後に行う処理 */
+        if (this.intrFlag) {
+          this.intrSignal.interrupt(intr.MICRO_SD);
+        }
+        this.idleFlag = true;
+      });
+    });
   }
 
   startWriting(): void {
     this.idleFlag = false;
 
-    const buf = new Uint8Array(256);
+    new Promise<void>(() => {
+      const data = new Uint8Array(256);
 
-    /* 書き込む値をメモリからコピーしてくる */
-    for (let i = 0; i < 256; i++) {
-      buf[i] = this.memory.read8(this.bufferAddr + i);
-    }
+      /* 書き込む値をメモリからコピーしてくる */
+      for (let i = 0; i < 256; i++) {
+        data[i] = this.memory.read8(this.bufferAddr + i);
+      }
 
-    window.electronAPI.writeSector(this.sectorAddr, buf);
+      window.electronAPI.writeSector(this.sectorAddr, data).then(() => {
+        /* SDへの書き込み終了後に行う処理 */
+        if (this.intrFlag) {
+          this.intrSignal.interrupt(intr.MICRO_SD);
+        }
 
-    if (this.intrFlag) {
-      this.intrSignal.interrupt(intr.MICRO_SD);
-    }
-
-    this.idleFlag = true;
+        this.idleFlag = true;
+      });
+    });
   }
 
   getMemAddr(): number {

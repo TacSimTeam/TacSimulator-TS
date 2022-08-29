@@ -7,9 +7,9 @@
  * (コード補完を効かせるためにはsrc/renderer/types/renderer.d.tsに型定義を追記する)
  */
 import { contextBridge, ipcRenderer } from 'electron';
-import { SDCardImageIO } from './sdCardImageIO';
+import { SDCardImageIOAsync } from './sdImageIOAsync';
 
-const sdImgIO = new SDCardImageIO();
+const sdImgIO = new SDCardImageIOAsync();
 
 /* ファイル選択ウィンドウを表示し、選択されたdmgファイルのパスを返す */
 function getSDImagePath() {
@@ -18,8 +18,8 @@ function getSDImagePath() {
 
 /* レンダラープロセスに公開するAPI */
 contextBridge.exposeInMainWorld('electronAPI', {
-  readSector: sdImgIO.readSectorSync,
-  writeSector: sdImgIO.writeSectorSync,
+  readSector: sdImgIO.readSector,
+  writeSector: sdImgIO.writeSector,
   openFile: sdImgIO.open,
   isSDImageLoaded: sdImgIO.isLoaded,
   getSDImagePath: getSDImagePath,
