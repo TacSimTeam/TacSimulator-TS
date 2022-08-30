@@ -3,6 +3,7 @@ import { Switch } from './switch';
 import { Led } from './led';
 
 import { IDmaSignal } from '../interface/dmaSignal';
+import { IIOConsole } from '../interface';
 
 const COLOR_RED_LIGHT = '#ff0000';
 const COLOR_RED_DARK = '#400000';
@@ -14,7 +15,7 @@ const COLOR_YELLOW_DARK = '#DAA520';
 const CONSOLE_WIDTH = 430;
 const CONSOLE_HEIGHT = 390;
 
-export class Console {
+export class Console implements IIOConsole {
   private buttons: [...Button[]];
   private switches: [...Switch[]];
   private addrLeds: [...Led[]];
@@ -257,5 +258,29 @@ export class Console {
 
   private onClickResetBtn() {
     if (this.isRunning) return;
+  }
+
+  setRunBtnFunc(f: () => void) {
+    this.buttons[7].event = f;
+  }
+
+  getDataSwitchValue(): number {
+    return 0;
+  }
+
+  getMemAddrLEDValue(): number {
+    return 0;
+  }
+
+  getRotSwitchValue(): number {
+    return 0;
+  }
+
+  getFuncSwitchValue(): number {
+    return 0;
+  }
+
+  setLEDValue(val: number): void {
+    return;
   }
 }

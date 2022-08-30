@@ -1,10 +1,9 @@
 import { Register, REGISTER_FP, REGISTER_SP } from './register';
-import { IDataBus, IIntrController } from '../interface';
+import { IDataBus, IIntrController, IPrivModeSignal } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
 import { IOHostController } from '../io/ioHostController';
-import { PrivModeSignal } from './privModeSignal';
 import { TlbMissError } from '../error';
 
 const FLAG_E = 0x80;
@@ -36,9 +35,9 @@ export class Cpu {
   private intrHost: IIntrController;
   private register: Register;
   private ioHost: IOHostController;
-  private privSig: PrivModeSignal;
+  private privSig: IPrivModeSignal;
 
-  constructor(memory: IDataBus, intrHost: IIntrController, ioHost: IOHostController, privSig: PrivModeSignal) {
+  constructor(memory: IDataBus, intrHost: IIntrController, ioHost: IOHostController, privSig: IPrivModeSignal) {
     this.memory = memory;
     this.register = new Register();
     this.intrHost = intrHost;
@@ -81,6 +80,8 @@ export class Cpu {
 
     /* 実効アドレス計算 */
     inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
+
+    console.log(inst);
 
     /* 命令実行(TLBミスが発生する可能性有り) */
     try {

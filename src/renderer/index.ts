@@ -2,8 +2,10 @@ import { assertIsDefined } from './utils';
 import { Tac } from './TaC/tac';
 
 assertIsDefined(document.getElementById('console'));
-
 const canvas = document.getElementById('console') as HTMLCanvasElement;
+
+assertIsDefined(document.getElementById('terminal'));
+const terminal = document.getElementById('terminal') as HTMLTextAreaElement;
 
 const ctx = canvas.getContext('2d');
 assertIsDefined(ctx);
@@ -17,7 +19,7 @@ assertIsDefined(filePathElement);
 const loadingMsg = document.getElementById('loading');
 assertIsDefined(loadingMsg);
 
-const tac = new Tac(ctx);
+const tac = new Tac(ctx, terminal);
 
 /* 「Open a File」ボタンが押された時の動作 */
 openBtn.addEventListener('click', async () => {

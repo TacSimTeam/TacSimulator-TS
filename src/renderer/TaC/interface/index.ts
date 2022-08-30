@@ -4,7 +4,6 @@ export * from './iplLoader';
 export * from './intrController';
 export * from './intrSignal';
 export * from './privModeSignal';
-export * from './io/ioMap';
 export * from './io/ioHostController';
 export * from './io/device/ioConsole';
 export * from './io/device/ioSdHostController';

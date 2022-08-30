@@ -2,7 +2,7 @@ export class Button {
   readonly posX: number;
   readonly posY: number;
   readonly name: string;
-  readonly event: () => void;
+  event: () => void;
 
   constructor(posX: number, posY: number, name: string, event: () => void) {
     this.posX = posX;
