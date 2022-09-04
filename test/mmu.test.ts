@@ -4,7 +4,7 @@ import { Mmu } from '../src/renderer/TaC/memory/mmu';
 import { PrivModeSignal } from '../src/renderer/TaC/cpu/privModeSignal';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
 
-test('Memory Read/Write Test', () => {
+test('Memory read/write test', () => {
   const memory = new Memory();
 
   memory.write16(0x1000, 10);
@@ -24,7 +24,7 @@ test('Memory Read/Write Test', () => {
   expect(memory.getMemorySize()).toBe(64 * 1024);
 });
 
-test('MMU Read/Write Test', () => {
+test('MMU read/write test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
   const privSig = new PrivModeSignal();
@@ -45,7 +45,7 @@ test('MMU Read/Write Test', () => {
   expect(mmu.read16(0x4000)).toBe(0x5600);
 });
 
-test('MMU IPL loading Test', () => {
+test('IPL loading Test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
   const privSig = new PrivModeSignal();
