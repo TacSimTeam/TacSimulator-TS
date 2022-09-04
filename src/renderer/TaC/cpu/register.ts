@@ -1,3 +1,5 @@
+import { IPrivModeSignal } from '../interface';
+
 export const REGISTER_G0 = 0;
 export const REGISTER_G1 = 1;
 export const REGISTER_G2 = 2;
@@ -23,15 +25,14 @@ export class Register {
   private ssp: number;
   private usp: number;
 
-  /* privMode = trueなら特権モード */
-  private privMode: boolean;
+  private privSig: IPrivModeSignal;
 
-  constructor() {
+  constructor(privSig: IPrivModeSignal) {
     this.generals = new Uint16Array(12);
     this.fp = 0;
     this.ssp = 0;
     this.usp = 0;
-    this.privMode = false;
+    this.privSig = privSig;
 
     this.reset();
   }
@@ -43,16 +44,12 @@ export class Register {
     this.usp = 0;
   }
 
-  setPrivMode(flag: boolean) {
-    this.privMode = flag;
-  }
-
   readReg(num: number) {
     switch (num) {
       case 12:
         return this.fp;
       case 13:
-        if (this.privMode) {
+        if (this.privSig.getPrivMode()) {
           return this.ssp;
         } else {
           return this.usp;
@@ -70,7 +67,7 @@ export class Register {
         this.fp = val;
         break;
       case 13:
-        if (this.privMode) {
+        if (this.privSig.getPrivMode()) {
           this.ssp = val;
         } else {
           this.usp = val;

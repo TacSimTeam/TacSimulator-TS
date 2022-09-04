@@ -1,4 +1,4 @@
-import { Register, REGISTER_FP, REGISTER_SP } from './register';
+import { Register, REGISTER_FLAG, REGISTER_FP, REGISTER_SP } from './register';
 import { IDataBus, IIntrController, IPrivModeSignal, IIOHostController } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
@@ -39,7 +39,7 @@ export class Cpu {
 
   constructor(memory: IDataBus, intrHost: IIntrController, ioHost: IIOHostController, privSig: IPrivModeSignal) {
     this.memory = memory;
-    this.register = new Register();
+    this.register = new Register(privSig);
     this.intrHost = intrHost;
     this.ioHost = ioHost;
     this.privSig = privSig;
@@ -445,7 +445,6 @@ export class Cpu {
         this.cpuFlag = (0xf0 & this.cpuFlag) | (0x0f & this.popVal());
       }
       this.pc = this.popVal();
-      this.register.setPrivMode(this.evalFlag(FLAG_P));
     }
   }
 
@@ -566,18 +565,20 @@ export class Cpu {
     /* 割込み禁止、特権モードの状態にする */
     this.cpuFlag = (this.cpuFlag & ~FLAG_E) | FLAG_P;
 
-    this.register.setPrivMode(true);
     this.pushVal(this.pc);
     this.pushVal(tmp);
     this.pc = this.memory.read16(INTERRUPT_VECTOR + intrNum * 2);
   }
 
   setRegister(num: number, val: number) {
-    this.register.writeReg(num, val);
+    if (num == REGISTER_FLAG) {
+      this.cpuFlag = val & 0xff;
+    } else {
+      this.register.writeReg(num, val);
+    }
   }
 
   getRegister(num: number) {
-    console.log('0x' + this.register.readReg(num).toString(16));
     return this.register.readReg(num);
   }
 
