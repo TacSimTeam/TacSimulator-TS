@@ -18,3 +18,9 @@ export class InvalidMemoryAccessError extends BaseError {
     super('Invalid memory access error');
   }
 }
+
+export class ReadonlyError extends BaseError {
+  constructor() {
+    super('Read-only memory error');
+  }
+}

@@ -2,7 +2,7 @@ import { IDataBus, IDmaSignal, IIplLoader, IIntrSignal, IIOMmu, IPrivModeSignal 
 import { TlbEntry, tlbNumToObj, tlbObjToNum } from './tlb';
 import { ipl } from '../ipl';
 import * as intr from '../interrupt/interruptNum';
-import { TlbMissError } from '../error';
+import { TlbMissError, ReadonlyError } from '../error';
 
 const TLB_ENTRY_SIZE = 8;
 
@@ -98,8 +98,7 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
       return;
     } else if (this.iplMode) {
       if (addr >= 0xe000) {
-        console.log('IPLロード中は0xe000~0xffffがReadonlyです');
-        return;
+        throw new ReadonlyError();
       }
     }
 

@@ -43,7 +43,7 @@ export class Tac {
     this.console.setRunBtnFunc(() => {
       setInterval(() => {
         this.cpu.run();
-      }, 500);
+      }, 10);
     });
 
     this.console.drawAll();

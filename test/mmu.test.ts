@@ -63,16 +63,18 @@ test('MMU IPL loading Test', () => {
 
   expect(f1(mmu)).toBe(true);
 
-  // 0xe000~0xffffがROMになっているかのテスト
-  mmu.write16(0xe000, 0x1234);
-  expect(mmu.read16(0xe000)).toBe(ipl[0]);
-  mmu.write16(0xfffe, 0x4321);
-  expect(mmu.read16(0xfffe)).toBe(0);
+  /* 0xe000~0xffffがROMになっているかのテスト */
+  expect(() => {
+    mmu.write16(0xe000, 0x1234);
+  }).toThrowError();
+  expect(() => {
+    mmu.write16(0xfffe, 0x4321);
+  }).toThrowError();
 
   mmu.detachIpl();
   expect(mmu.read16(0xe000)).toBe(0);
 
-  // 0xe000~0xffffがRAMになっているかのテスト
+  /* 0xe000~0xffffがRAMになっているかのテスト */
   mmu.write16(0xe000, 0x1234);
   expect(mmu.read16(0xe000)).toBe(0x1234);
   mmu.write16(0xfffe, 0x4321);
@@ -84,19 +86,25 @@ test('MMU p-f conversion test', () => {
   const intrController = new IntrController();
   const privSig = new PrivModeSignal();
   const mmu = new Mmu(memory, intrController, privSig);
+  mmu.enable();
 
-  privSig.setPrivMode(true);
-  mmu.enableMmu();
+  privSig.setPrivMode(false);
 
-  mmu.setTlbHigh8(0, 0x10); /* Page : 0x10 */
-  mmu.setTlbLow16(0, 0x8755); /* Frame : 0x55, Valid, RWX = 1 */
+  mmu.setTlbHigh8(0, 0x10); // Page : 0x10
+  mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
 
-  mmu.setTlbHigh8(1, 0x20); /* Page : 0x20 */
-  mmu.setTlbLow16(1, 0x87aa); /* Frame : 0xaa, Valid, RWX = 1 */
+  mmu.setTlbHigh8(1, 0x20); // Page : 0x20
+  mmu.setTlbLow16(1, 0x87aa); // Frame : 0xaa, Valid, RWX = 1
 
   memory.write16(0x5522, 0x1234);
   memory.write16(0xaa44, 0x4321);
 
-  expect(mmu.read16(0x1022)).toBe(0x1234);
-  expect(mmu.read16(0x2044)).toBe(0x4321);
+  expect(mmu.read16(0x1022)).toBe(0x1234); // p : 0x10 -> f : 0x55
+  expect(mmu.read16(0x2044)).toBe(0x4321); // p : 0x20 -> f : 0xaa
+
+  /* 特権モードのときp-f変換は行わない */
+  privSig.setPrivMode(true);
+
+  expect(mmu.read16(0x1022)).not.toBe(0x1234);
+  expect(mmu.read16(0x2044)).not.toBe(0x4321);
 });

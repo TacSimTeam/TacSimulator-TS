@@ -1,10 +1,10 @@
 import { Register, REGISTER_FP, REGISTER_SP } from './register';
-import { IDataBus, IIntrController, IPrivModeSignal } from '../interface';
+import { IDataBus, IIntrController, IPrivModeSignal, IIOHostController } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
-import { IOHostController } from '../io/ioHostController';
 import { TlbMissError } from '../error';
+import { opcodeToString, regNumToString } from '../debug/instruction';
 
 const FLAG_E = 0x80;
 const FLAG_P = 0x40;
@@ -34,10 +34,10 @@ export class Cpu {
   private memory: IDataBus;
   private intrHost: IIntrController;
   private register: Register;
-  private ioHost: IOHostController;
+  private ioHost: IIOHostController;
   private privSig: IPrivModeSignal;
 
-  constructor(memory: IDataBus, intrHost: IIntrController, ioHost: IOHostController, privSig: IPrivModeSignal) {
+  constructor(memory: IDataBus, intrHost: IIntrController, ioHost: IIOHostController, privSig: IPrivModeSignal) {
     this.memory = memory;
     this.register = new Register();
     this.intrHost = intrHost;
@@ -51,6 +51,10 @@ export class Cpu {
 
   /* 命令実行サイクル */
   run() {
+    if (this.isHalt) {
+      return;
+    }
+
     /* 特権フラグの確認用信号の更新 */
     this.privSig.setPrivMode(this.evalFlag(FLAG_P));
 
@@ -73,15 +77,11 @@ export class Cpu {
       }
     }
 
-    this.nextPC();
-
     /* 命令デコード */
     const inst = this.decode(data);
 
     /* 実効アドレス計算 */
     inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
-
-    console.log(inst);
 
     /* 命令実行(TLBミスが発生する可能性有り) */
     try {
@@ -90,10 +90,6 @@ export class Cpu {
       if (e instanceof TlbMissError) {
         return;
       }
-    }
-
-    if (this.isTwoWordInstruction(inst.addrMode)) {
-      this.nextPC();
     }
   }
 
@@ -123,18 +119,18 @@ export class Cpu {
    * @returns 対象となるアドレス. 1ワード命令の時は0を返す
    */
   private calcEffectiveAddress(addrMode: number, rx: number) {
-    const data = this.memory.read16(this.pc);
+    const data = this.memory.read16(this.pc + 2);
     switch (addrMode) {
       case ADDRMODE_DIRECT:
         return data;
       case ADDRMODE_INDEXED:
-        return data + this.register.readReg(rx);
+        return data + this.getRegister(rx);
       case ADDRMODE_FP_RELATIVE:
-        return this.register.readReg(REGISTER_FP) + this.convSignedInt4(rx) * 2;
+        return this.getRegister(REGISTER_FP) + this.convSignedInt4(rx) * 2;
       case ADDRMODE_REG_INDIRECT:
-        return this.register.readReg(rx);
+        return this.getRegister(rx);
       case ADDRMODE_BYTE_REG_INDIRECT:
-        return this.register.readReg(rx);
+        return this.getRegister(rx);
       default:
         return 0;
     }
@@ -156,7 +152,7 @@ export class Cpu {
       case ADDRMODE_INDEXED:
         return this.memory.read16(dsp + this.register.readReg(rx)); /* TLBMissの可能性あり */
       case ADDRMODE_IMMEDIATE:
-        return this.memory.read16(this.pc);
+        return this.memory.read16(this.pc + 2);
       case ADDRMODE_FP_RELATIVE:
         return this.memory.read16(dsp); /* TLBMissの可能性あり */
       case ADDRMODE_REG_TO_REG:
@@ -222,9 +218,12 @@ export class Cpu {
         this.instrReturn(inst);
         break;
       case opcode.SVC:
+        this.debugPrint(inst);
         this.intrHost.interrupt(intr.EXCP_SVC);
+        this.pc += 2;
         break;
       case opcode.HALT:
+        this.debugPrint(inst);
         this.instrHalt();
         break;
       default:
@@ -234,21 +233,34 @@ export class Cpu {
 
   private instrLD(inst: Instruction) {
     const data = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
+    this.debugPrint(inst);
 
     if (inst.rd === 15) {
       this.cpuFlag = 0xff & data;
     } else {
       this.register.writeReg(inst.rd, data);
     }
+
+    this.nextPC();
+    if (this.isTwoWordInstruction(inst.addrMode)) {
+      this.nextPC();
+    }
   }
 
   private instrST(inst: Instruction) {
     /* ST命令ではrdがディスティネーションではなくソースとなる */
     const data = this.register.readReg(inst.rd);
+    this.debugPrint(inst);
+
     if (inst.addrMode == ADDRMODE_BYTE_REG_INDIRECT) {
       this.memory.write8(inst.ea, 0x00ff & data);
     } else {
       this.memory.write16(inst.ea, data);
+    }
+
+    this.nextPC();
+    if (this.isTwoWordInstruction(inst.addrMode)) {
+      this.nextPC();
     }
   }
 
@@ -257,6 +269,8 @@ export class Cpu {
 
     const v1 = this.getRegister(inst.rd);
     const v2 = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
+
+    this.debugPrint(inst);
 
     switch (inst.opcode) {
       case opcode.ADD:
@@ -317,6 +331,11 @@ export class Cpu {
     if (inst.opcode !== opcode.CMP) {
       this.setRegister(inst.rd, ans);
     }
+
+    this.nextPC();
+    if (this.isTwoWordInstruction(inst.addrMode)) {
+      this.nextPC();
+    }
   }
 
   private instrJump(inst: Instruction) {
@@ -325,48 +344,64 @@ export class Cpu {
     const sFlag = this.evalFlag(FLAG_S);
     const vFlag = this.evalFlag(FLAG_V);
 
+    this.debugPrint(inst);
+
     switch (inst.rd) {
       case opcode.JMP_JZ:
         if (zFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JC:
         if (cFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JM:
         if (sFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JO:
         if (vFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JGT:
         if (!(zFlag || (!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JGE:
         if (!((!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JLE:
         if (zFlag || (!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JLT:
         if ((!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JNZ:
         if (!zFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JNC:
         if (!cFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JNM:
         if (!sFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JNO:
         if (!vFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JHI:
         if (!(zFlag || cFlag)) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JLS:
         if (zFlag || cFlag) this.setPC(inst.ea);
+        else this.pc += 4;
         break;
       case opcode.JMP_JMP:
         this.setPC(inst.ea);
@@ -375,11 +410,15 @@ export class Cpu {
   }
 
   private instrCall(inst: Instruction) {
-    this.pushVal(this.pc);
+    this.debugPrint(inst);
+
+    this.pushVal(this.pc + 4);
     this.pc = inst.ea;
   }
 
   private instrPushPop(inst: Instruction) {
+    this.debugPrint(inst);
+
     if (inst.addrMode === 0x00) {
       /* PUSH命令 */
       this.pushVal(this.getRegister(inst.rd));
@@ -387,9 +426,13 @@ export class Cpu {
       /* POP命令 */
       this.setRegister(inst.rd, this.popVal());
     }
+
+    this.nextPC();
   }
 
   private instrReturn(inst: Instruction) {
+    this.debugPrint(inst);
+
     if (inst.addrMode === 0x00) {
       /* RET命令 */
       this.pc = this.popVal();
@@ -407,18 +450,32 @@ export class Cpu {
   }
 
   private instrIn(inst: Instruction) {
+    this.debugPrint(inst);
+
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
       this.setRegister(inst.rd, this.ioHost.input(inst.ea));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }
+
+    this.nextPC();
+    if (this.isTwoWordInstruction(inst.addrMode)) {
+      this.nextPC();
+    }
   }
 
   private instrOut(inst: Instruction) {
+    this.debugPrint(inst);
+
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
       this.ioHost.output(inst.ea, this.getRegister(inst.rd));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
+    }
+
+    this.nextPC();
+    if (this.isTwoWordInstruction(inst.addrMode)) {
+      this.nextPC();
     }
   }
 
@@ -516,10 +573,11 @@ export class Cpu {
   }
 
   setRegister(num: number, val: number) {
-    this.register.writeReg(num, val & 0xffff);
+    this.register.writeReg(num, val);
   }
 
   getRegister(num: number) {
+    console.log('0x' + this.register.readReg(num).toString(16));
     return this.register.readReg(num);
   }
 
@@ -538,5 +596,13 @@ export class Cpu {
 
   getFlag() {
     return this.cpuFlag;
+  }
+
+  private debugPrint(inst: Instruction) {
+    console.log(
+      `0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
+        inst.rd
+      )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
+    );
   }
 }

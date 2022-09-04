@@ -66,6 +66,9 @@ export class IOHostController implements IIOHostController {
         return this.sd.getSectorAddrHigh();
       case io.MICROSD_SECTOR_LOW:
         return this.sd.getSectorAddrLow();
+      case io.PIO_MODE_00:
+        /* 本当はジャンパから取得するが強制的にTaCモードで実行する */
+        return 0x01;
       case io.MMU_TLB0_HIGH:
         return this.mmu.getTlbHigh8(0);
       case io.MMU_TLB0_LOW:
