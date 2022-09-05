@@ -59,10 +59,6 @@ export class Cpu {
 
   /* 命令実行サイクル */
   run() {
-    if (this.isHalt) {
-      return;
-    }
-
     /* 特権フラグの確認用信号の更新 */
     this.privSig.setPrivMode(this.evalFlag(FLAG_P));
 

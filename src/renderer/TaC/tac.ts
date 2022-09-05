@@ -24,6 +24,8 @@ export class Tac {
   private sd: SdHostController;
   private privModeSignal: PrivModeSignal;
 
+  private cpuEventId: NodeJS.Timeout | null;
+
   constructor(ctx: CanvasRenderingContext2D, terminal: HTMLTextAreaElement) {
     this.memory = new Memory();
     this.intrController = new IntrController();
@@ -41,17 +43,14 @@ export class Tac {
     this.register = new Register(this.privModeSignal);
     this.cpu = new Cpu(this.register, this.mmu, this.intrController, this.io, this.privModeSignal);
 
+    this.cpuEventId = null;
+
     this.mmu.loadIpl();
     this.cpu.setPC(0xe000);
 
-    this.console.setRunBtnFunc(async () => {
+    this.console.setRunBtnFunc(() => {
       console.log('Run');
-
-      const sleep = () => new Promise((resolve) => setTimeout(resolve, 1));
-      for (;;) {
-        this.cpu.run();
-        await sleep();
-      }
+      this.run();
     });
 
     this.console.drawAll();
@@ -65,5 +64,19 @@ export class Tac {
    */
   onClick(x: number, y: number) {
     this.console.onClick(x, y);
+  }
+
+  run() {
+    const start = new Date();
+    for (;;) {
+      this.cpu.run();
+      const stop = new Date();
+      if (stop.getTime() - start.getTime() > 10) {
+        this.cpuEventId = setTimeout(() => {
+          this.run();
+        }, 0);
+        return;
+      }
+    }
   }
 }
