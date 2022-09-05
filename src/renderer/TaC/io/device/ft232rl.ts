@@ -20,8 +20,8 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   private intrSignal: IIntrSignal;
 
   constructor(terminal: HTMLTextAreaElement, intrSignal: IIntrSignal) {
-    this.isWriteable = false;
-    this.isReadable = false;
+    this.isWriteable = true;
+    this.isReadable = true;
     this.readableIntrFlag = false;
     this.writeableIntrFlag = false;
 

@@ -8,11 +8,13 @@ import { IOHostController } from './io/ioHostController';
 import { Timer } from './io/device/timer';
 import { Ft232rl } from './io/device/ft232rl';
 import { SdHostController } from './io/device/sdHostController';
+import { Register } from './cpu/register';
 
 export class Tac {
   private console: Console;
   private mmu: Mmu;
   private memory: Memory;
+  private register: Register;
   private cpu: Cpu;
   private intrController: IntrController;
   private io: IOHostController;
@@ -36,14 +38,20 @@ export class Tac {
 
     this.io = new IOHostController(this.timer0, this.timer1, this.serialIO, this.sd, this.mmu, this.console);
 
-    this.cpu = new Cpu(this.mmu, this.intrController, this.io, this.privModeSignal);
+    this.register = new Register(this.privModeSignal);
+    this.cpu = new Cpu(this.register, this.mmu, this.intrController, this.io, this.privModeSignal);
 
     this.mmu.loadIpl();
     this.cpu.setPC(0xe000);
-    this.console.setRunBtnFunc(() => {
-      setInterval(() => {
+
+    this.console.setRunBtnFunc(async () => {
+      console.log('Run');
+
+      const sleep = () => new Promise((resolve) => setTimeout(resolve, 1));
+      for (;;) {
         this.cpu.run();
-      }, 10);
+        await sleep();
+      }
     });
 
     this.console.drawAll();

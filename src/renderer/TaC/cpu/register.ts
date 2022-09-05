@@ -1,4 +1,5 @@
 import { IPrivModeSignal } from '../interface';
+import { IRegister } from '../interface/register';
 
 export const REGISTER_G0 = 0;
 export const REGISTER_G1 = 1;
@@ -19,7 +20,7 @@ export const REGISTER_USP = 14;
 /* フラグ(15番のレジスタ)はCPU側が保持する */
 export const REGISTER_FLAG = 15;
 
-export class Register {
+export class Register implements IRegister {
   private generals: Uint16Array;
   private fp: number;
   private ssp: number;
@@ -44,7 +45,7 @@ export class Register {
     this.usp = 0;
   }
 
-  readReg(num: number) {
+  read(num: number) {
     switch (num) {
       case 12:
         return this.fp;
@@ -61,7 +62,9 @@ export class Register {
     }
   }
 
-  writeReg(num: number, val: number) {
+  write(num: number, val: number) {
+    // console.log(JSON.stringify(this));
+    // console.log(`num : ${num}, val : 0x${val.toString(16)}(${val})`);
     switch (num) {
       case 12:
         this.fp = val;
@@ -79,5 +82,6 @@ export class Register {
       default:
         this.generals[num] = val;
     }
+    // console.log(JSON.stringify(this));
   }
 }

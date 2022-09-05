@@ -1,10 +1,11 @@
-import { Register, REGISTER_FLAG, REGISTER_FP, REGISTER_SP } from './register';
+import { REGISTER_FLAG, REGISTER_FP, REGISTER_SP } from './register';
 import { IDataBus, IIntrController, IPrivModeSignal, IIOHostController } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
 import { TlbMissError } from '../error';
 import { opcodeToString, regNumToString } from '../debug/instruction';
+import { IRegister } from '../interface/register';
 
 const FLAG_E = 0x80;
 const FLAG_P = 0x40;
@@ -33,13 +34,20 @@ export class Cpu {
 
   private memory: IDataBus;
   private intrHost: IIntrController;
-  private register: Register;
+  private register: IRegister;
   private ioHost: IIOHostController;
   private privSig: IPrivModeSignal;
 
-  constructor(memory: IDataBus, intrHost: IIntrController, ioHost: IIOHostController, privSig: IPrivModeSignal) {
+  constructor(
+    register: IRegister,
+    memory: IDataBus,
+    intrHost: IIntrController,
+    ioHost: IIOHostController,
+    privSig: IPrivModeSignal
+  ) {
     this.memory = memory;
-    this.register = new Register(privSig);
+    this.register = register;
+
     this.intrHost = intrHost;
     this.ioHost = ioHost;
     this.privSig = privSig;
@@ -91,6 +99,8 @@ export class Cpu {
         return;
       }
     }
+
+    // console.log('-----------------');
   }
 
   /**
@@ -99,7 +109,7 @@ export class Cpu {
    * @param data Mem[PC]から取得したデータ
    * @returns 命令オブジェクト
    */
-  private decode(data: number): Instruction {
+  private decode(data: number) {
     const inst: Instruction = {
       opcode: data >>> 11,
       addrMode: (data >>> 8) & 0x07,
@@ -124,13 +134,12 @@ export class Cpu {
       case ADDRMODE_DIRECT:
         return data;
       case ADDRMODE_INDEXED:
-        return data + this.getRegister(rx);
+        return data + this.readReg(rx);
       case ADDRMODE_FP_RELATIVE:
-        return this.getRegister(REGISTER_FP) + this.convSignedInt4(rx) * 2;
+        return this.readReg(REGISTER_FP) + this.convSignedInt4(rx) * 2;
       case ADDRMODE_REG_INDIRECT:
-        return this.getRegister(rx);
       case ADDRMODE_BYTE_REG_INDIRECT:
-        return this.getRegister(rx);
+        return this.readReg(rx);
       default:
         return 0;
     }
@@ -150,13 +159,13 @@ export class Cpu {
       case ADDRMODE_DIRECT:
         return this.memory.read16(dsp);
       case ADDRMODE_INDEXED:
-        return this.memory.read16(dsp + this.register.readReg(rx));
+        return this.memory.read16(dsp);
       case ADDRMODE_IMMEDIATE:
         return this.memory.read16(this.pc + 2);
       case ADDRMODE_FP_RELATIVE:
         return this.memory.read16(dsp);
       case ADDRMODE_REG_TO_REG:
-        return this.register.readReg(rx);
+        return this.readReg(rx);
       case ADDRMODE_SHORT_IMMEDIATE:
         return this.convSignedInt4(rx);
       case ADDRMODE_REG_INDIRECT:
@@ -235,11 +244,7 @@ export class Cpu {
     const data = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
     this.debugPrint(inst);
 
-    if (inst.rd === 15) {
-      this.cpuFlag = 0xff & data;
-    } else {
-      this.register.writeReg(inst.rd, data);
-    }
+    this.writeReg(inst.rd, data);
 
     this.nextPC();
     if (this.isTwoWordInstruction(inst.addrMode)) {
@@ -249,7 +254,7 @@ export class Cpu {
 
   private instrST(inst: Instruction) {
     /* ST命令ではrdがディスティネーションではなくソースとなる */
-    const data = this.register.readReg(inst.rd);
+    const data = this.readReg(inst.rd);
     this.debugPrint(inst);
 
     if (inst.addrMode == ADDRMODE_BYTE_REG_INDIRECT) {
@@ -267,7 +272,7 @@ export class Cpu {
   private instrCalculation(inst: Instruction) {
     let ans = 0;
 
-    const v1 = this.getRegister(inst.rd);
+    const v1 = this.readReg(inst.rd);
     const v2 = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
 
     this.debugPrint(inst);
@@ -329,7 +334,7 @@ export class Cpu {
     this.changeFlag(inst.opcode, ans, v1, v2);
     ans = ans & 0xffff;
     if (inst.opcode !== opcode.CMP) {
-      this.setRegister(inst.rd, ans);
+      this.writeReg(inst.rd, ans);
     }
 
     this.nextPC();
@@ -421,10 +426,10 @@ export class Cpu {
 
     if (inst.addrMode === 0x00) {
       /* PUSH命令 */
-      this.pushVal(this.getRegister(inst.rd));
+      this.pushVal(this.readReg(inst.rd));
     } else if (inst.addrMode === 0x04) {
       /* POP命令 */
-      this.setRegister(inst.rd, this.popVal());
+      this.writeReg(inst.rd, this.popVal());
     }
 
     this.nextPC();
@@ -452,7 +457,7 @@ export class Cpu {
     this.debugPrint(inst);
 
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
-      this.setRegister(inst.rd, this.ioHost.input(inst.ea));
+      this.writeReg(inst.rd, this.ioHost.input(inst.ea));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }
@@ -467,7 +472,7 @@ export class Cpu {
     this.debugPrint(inst);
 
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
-      this.ioHost.output(inst.ea, this.getRegister(inst.rd));
+      this.ioHost.output(inst.ea, this.readReg(inst.rd));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }
@@ -487,13 +492,13 @@ export class Cpu {
   }
 
   private pushVal(val: number) {
-    this.setRegister(REGISTER_SP, this.getRegister(REGISTER_SP) - 2);
-    this.memory.write16(this.getRegister(REGISTER_SP), val);
+    this.writeReg(REGISTER_SP, this.readReg(REGISTER_SP) - 2);
+    this.memory.write16(this.readReg(REGISTER_SP), val);
   }
 
   private popVal() {
-    const val = this.memory.read16(this.getRegister(REGISTER_SP));
-    this.setRegister(REGISTER_SP, this.getRegister(REGISTER_SP) + 2);
+    const val = this.memory.read16(this.readReg(REGISTER_SP));
+    this.writeReg(REGISTER_SP, this.readReg(REGISTER_SP) + 2);
     return val;
   }
 
@@ -570,17 +575,17 @@ export class Cpu {
     this.pc = this.memory.read16(INTERRUPT_VECTOR + intrNum * 2);
   }
 
-  setRegister(num: number, val: number) {
+  writeReg(num: number, val: number) {
     if (num == REGISTER_FLAG) {
       /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
       this.cpuFlag = (0b1110 & this.cpuFlag) | (0x1f & val);
     } else {
-      this.register.writeReg(num, val);
+      this.register.write(num, val);
     }
   }
 
-  getRegister(num: number) {
-    return this.register.readReg(num);
+  readReg(num: number) {
+    return this.register.read(num);
   }
 
   setPC(pc: number) {
@@ -596,10 +601,10 @@ export class Cpu {
   }
 
   private debugPrint(inst: Instruction) {
-    console.log(
-      `0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
-        inst.rd
-      )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
-    );
+    // console.log(
+    //   `0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
+    //     inst.rd
+    //   )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
+    // );
   }
 }

@@ -5,7 +5,7 @@ import { Cpu } from '../src/renderer/TaC/cpu/cpu';
 import { Instruction } from '../src/renderer/TaC/cpu/instruction/instruction';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
 import { IIOHostController } from '../src/renderer/TaC/interface';
-import { REGISTER_G0, REGISTER_G1, REGISTER_G2, REGISTER_FP } from '../src/renderer/TaC/cpu/register';
+import { REGISTER_G0, REGISTER_G1, REGISTER_G2, REGISTER_FP, Register } from '../src/renderer/TaC/cpu/register';
 
 const io: IIOHostController = {
   input: (addr: number) => {
@@ -19,7 +19,8 @@ const io: IIOHostController = {
 const intrController = new IntrController();
 const privSig = new PrivModeSignal();
 const mmu = new Mmu(new Memory(), intrController, privSig);
-const cpu = new Cpu(mmu, intrController, io, privSig);
+const register = new Register(privSig);
+const cpu = new Cpu(register, mmu, intrController, io, privSig);
 
 test('CPU instruction decode test', () => {
   /* LD G0, Addr */
@@ -65,28 +66,28 @@ test('CPU effective address calclation test', () => {
 
   /* インデクスドモード */
   mmu.write16(0x0002, 0x2345);
-  cpu['setRegister'](REGISTER_G1, 0x6543);
+  cpu.writeReg(REGISTER_G1, 0x6543);
   expect(cpu['calcEffectiveAddress'](1, REGISTER_G1)).toBe(0x8888);
 
   /* FP相対モード */
-  cpu['setRegister'](REGISTER_FP, 0x1000);
+  cpu.writeReg(REGISTER_FP, 0x1000);
   expect(cpu['calcEffectiveAddress'](3, 0b0111)).toBe(0x1000 + 7 * 2);
   expect(cpu['calcEffectiveAddress'](3, 0b1000)).toBe(0x1000 - 8 * 2);
 
   /* レジスタ・インダイレクトモード */
-  cpu['setRegister'](REGISTER_G1, 0x2222);
+  cpu.writeReg(REGISTER_G1, 0x2222);
   expect(cpu['calcEffectiveAddress'](6, REGISTER_G1)).toBe(0x2222);
 
   /* バイトレジスタ・インダイレクトモード */
-  cpu['setRegister'](REGISTER_G1, 0xaaaa);
+  cpu.writeReg(REGISTER_G1, 0xaaaa);
   expect(cpu['calcEffectiveAddress'](7, REGISTER_G1)).toBe(0xaaaa);
 
   /* それ以外 */
   expect(cpu['calcEffectiveAddress'](2, 0)).toBe(0);
 
   mmu.write16(0x0002, 0);
-  cpu['setRegister'](REGISTER_G1, 0);
-  cpu['setRegister'](REGISTER_FP, 0);
+  cpu.writeReg(REGISTER_G1, 0);
+  cpu.writeReg(REGISTER_FP, 0);
 });
 
 test('CPU loading operand test', () => {
@@ -96,19 +97,13 @@ test('CPU loading operand test', () => {
   mmu.write16(0x1000, 0x1234);
   expect(cpu['loadOperand'](0, 0, 0x1000)).toBe(0x1234);
 
-  /* インデクスドモード */
-  mmu.write16(0x2000, 0x1234);
-  mmu.write16(0x2000 + 2, 0x4321);
-  cpu['setRegister'](REGISTER_G1, 0x0002);
-  expect(cpu['loadOperand'](1, REGISTER_G1, 0x2000)).toBe(0x4321);
-
   /* イミディエイトモード */
   cpu['setPC'](0x2000);
   mmu.write16(0x2000 + 2, 0x5555);
   expect(cpu['loadOperand'](2, 0, 0)).toBe(0x5555);
 
   /* レジスタレジスタモード */
-  cpu['setRegister'](REGISTER_G2, 0xaaaa);
+  cpu.writeReg(REGISTER_G2, 0xaaaa);
   expect(cpu['loadOperand'](4, REGISTER_G2, 0)).toBe(0xaaaa);
 
   /* ショートイミディエイトモード */
@@ -122,5 +117,5 @@ test('CPU loading operand test', () => {
   mmu.write16(0x1000, 0);
   mmu.write16(0x2000, 0);
   mmu.write16(0x2000 + 2, 0);
-  cpu['setRegister'](REGISTER_G2, 0);
+  cpu.writeReg(REGISTER_G2, 0);
 });
