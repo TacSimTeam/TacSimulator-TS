@@ -148,13 +148,13 @@ export class Cpu {
   private loadOperand(addrMode: number, rx: number, dsp: number) {
     switch (addrMode) {
       case ADDRMODE_DIRECT:
-        return this.memory.read16(dsp); /* TLBMissの可能性あり */
+        return this.memory.read16(dsp);
       case ADDRMODE_INDEXED:
-        return this.memory.read16(dsp + this.register.readReg(rx)); /* TLBMissの可能性あり */
+        return this.memory.read16(dsp + this.register.readReg(rx));
       case ADDRMODE_IMMEDIATE:
         return this.memory.read16(this.pc + 2);
       case ADDRMODE_FP_RELATIVE:
-        return this.memory.read16(dsp); /* TLBMissの可能性あり */
+        return this.memory.read16(dsp);
       case ADDRMODE_REG_TO_REG:
         return this.register.readReg(rx);
       case ADDRMODE_SHORT_IMMEDIATE:
@@ -572,7 +572,8 @@ export class Cpu {
 
   setRegister(num: number, val: number) {
     if (num == REGISTER_FLAG) {
-      this.cpuFlag = val & 0xff;
+      /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
+      this.cpuFlag = (0b1110 & this.cpuFlag) | (0x1f & val);
     } else {
       this.register.writeReg(num, val);
     }
@@ -583,11 +584,6 @@ export class Cpu {
   }
 
   setPC(pc: number) {
-    if (!(0x0000 <= pc && pc <= 0xffff)) {
-      throw new Error('不正プログラムカウンタエラー');
-    } else if ((pc & 1) !== 0) {
-      throw new Error('不正プログラムカウンタエラー');
-    }
     this.pc = pc;
   }
 
