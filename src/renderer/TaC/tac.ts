@@ -47,7 +47,6 @@ export class Tac {
 
     this.mmu.loadIpl();
     this.cpu.setPC(0xe000);
-
     this.console.setRunBtnFunc(() => {
       console.log('Run');
       this.run();
@@ -71,12 +70,27 @@ export class Tac {
     for (;;) {
       this.cpu.run();
       const stop = new Date();
+      /* CPUが10ms動作したら一旦アプリ側に制御を渡す */
       if (stop.getTime() - start.getTime() > 10) {
+        /* setTimeout()でアプリ側の制御が終わったらすぐにCPUを再度動作させるように予約する */
         this.cpuEventId = setTimeout(() => {
           this.run();
         }, 0);
         return;
       }
     }
+  }
+
+  test() {
+    this.mmu.loadIpl();
+    this.cpu.setPC(0xe000);
+
+    const start = new Date();
+    for (let i = 0; i < 10000; i++) {
+      this.cpu.run();
+    }
+    const stop = new Date();
+
+    console.log(`${stop.getTime() - start.getTime()}ms`);
   }
 }

@@ -51,7 +51,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
 
   send(val: number): void {
     new Promise<void>((resolve) => {
-      this.isWriteable = false;
+      // this.isWriteable = false;
 
       /* 数値を文字列に変換する */
       const str = String.fromCodePoint(val);
