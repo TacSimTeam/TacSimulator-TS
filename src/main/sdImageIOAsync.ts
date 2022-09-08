@@ -17,7 +17,7 @@ export class SDCardImageIOAsync {
 
   async readSector(sectorAddr: number) {
     if (this.fHandle === null) {
-      throw new Error('ERROR');
+      throw new Error('dmgファイルをオープンしていません');
     }
 
     await this.fHandle.read(this.buf, 0, SECTOR_SIZE, sectorAddr * SECTOR_SIZE);
@@ -27,7 +27,7 @@ export class SDCardImageIOAsync {
 
   async writeSector(sectorAddr: number, data: Uint8Array) {
     if (this.fHandle === null) {
-      throw new Error('ERROR');
+      throw new Error('dmgファイルをオープンしていません');
     }
 
     await this.fHandle.write(data, 0, SECTOR_SIZE, sectorAddr * SECTOR_SIZE);

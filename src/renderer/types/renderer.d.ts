@@ -1,10 +1,10 @@
 /* レンダラープロセスに公開するAPIの型定義 */
 export interface IElectronAPI {
-  readSector: (sectorNum: number) => Promise<Uint8Array>;
+  readSector: (sectorNum: number) => Promise<Buffer>;
   writeSector: (sectorNum: number, data: Uint8Array) => Promise<void>;
-  getSDImagePath: () => Promise<string | undefined>;
-  openFile: (filePath: string) => Promise<void>;
+  openFile: (filepath: string) => Promise<void>;
   isSDImageLoaded: () => boolean;
+  getSDImagePath: () => Promise<string | undefined>;
 }
 
 declare global {

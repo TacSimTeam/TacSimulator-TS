@@ -55,10 +55,16 @@ export class Cpu {
     this.cpuFlag = FLAG_P;
     this.isHalt = false;
     this.pc = 0;
+
+    this.cnt = 0;
   }
 
   /* 命令実行サイクル */
   run() {
+    if (this.isHalt) {
+      return;
+    }
+
     /* 特権フラグの確認用信号の更新 */
     this.privSig.setPrivMode(this.evalFlag(FLAG_P));
 
@@ -328,9 +334,9 @@ export class Cpu {
     }
 
     this.changeFlag(inst.opcode, ans, v1, v2);
-    ans = ans & 0xffff;
+
     if (inst.opcode !== opcode.CMP) {
-      this.writeReg(inst.rd, ans);
+      this.writeReg(inst.rd, ans & 0xffff);
     }
 
     this.nextPC();
@@ -510,7 +516,7 @@ export class Cpu {
     const v1Msb = v1 & 0x8000;
     const v2Msb = v2 & 0x8000;
 
-    this.cpuFlag = this.cpuFlag & 0xf0;
+    this.cpuFlag = this.cpuFlag & 0xfff0;
 
     if (op === opcode.ADD) {
       if (v1Msb === v2Msb && ansMsb !== v1Msb) {
@@ -573,8 +579,12 @@ export class Cpu {
 
   writeReg(num: number, val: number) {
     if (num == REGISTER_FLAG) {
-      /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
-      this.cpuFlag = (0b1110 & this.cpuFlag) | (0x1f & val);
+      if (this.privSig.getPrivMode()) {
+        this.cpuFlag = (0xff00 & this.cpuFlag) | (0x00ff & val);
+      } else {
+        /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
+        this.cpuFlag = (0xffe0 & this.cpuFlag) | (0x001f & val);
+      }
     } else {
       this.register.write(num, val);
     }
@@ -596,11 +606,14 @@ export class Cpu {
     return this.cpuFlag;
   }
 
+  private cnt: number;
+
   private debugPrint(inst: Instruction) {
-    // console.log(
-    //   `0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
-    //     inst.rd
-    //   )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
-    // );
+    this.cnt++;
+    console.log(
+      `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
+        inst.rd
+      )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
+    );
   }
 }

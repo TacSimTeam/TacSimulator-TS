@@ -27,6 +27,8 @@ export class IOHostController implements IIOHostController {
 
   input(addr: number): number {
     let val = 0;
+    console.log(`MEMORY <- IO[0x${addr.toString(16)}]`);
+
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
         return this.timer0.getCounter();
@@ -121,6 +123,7 @@ export class IOHostController implements IIOHostController {
   }
 
   output(addr: number, val: number): void {
+    console.log(`IO[0x${addr.toString(16)}] <- 0x${val.toString(16)}`);
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
         this.timer0.setCycle(val);
@@ -153,15 +156,15 @@ export class IOHostController implements IIOHostController {
         this.ft232rl.setReadableIntrFlag(!!(val & 0x0040));
         break;
       case io.MICROSD_STAT_CTRL:
-        this.sd.setInterruptFlag(!!(val & 0x0080));
-        if ((val & 0x0040) != 0) {
+        this.sd.setInterruptFlag(!!(val & 0x80));
+        if ((val & 0x04) != 0) {
           this.sd.init();
         }
-        if ((val & 0x0040) != 0) {
-          this.sd.startWriting();
-        }
-        if ((val & 0x0040) != 0) {
+        if ((val & 0x02) != 0) {
           this.sd.startReading();
+        }
+        if ((val & 0x01) != 0) {
+          this.sd.startWriting();
         }
         break;
       case io.MICROSD_MEMADDR:

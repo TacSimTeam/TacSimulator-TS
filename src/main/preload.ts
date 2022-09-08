@@ -11,16 +11,21 @@ import { SDCardImageIOAsync } from './sdImageIOAsync';
 
 const sdImgIO = new SDCardImageIOAsync();
 
-/* ファイル選択ウィンドウを表示し、選択されたdmgファイルのパスを返す */
-function getSDImagePath() {
-  return ipcRenderer.invoke('dialog:getSDImagePath');
-}
-
 /* レンダラープロセスに公開するAPI */
 contextBridge.exposeInMainWorld('electronAPI', {
-  readSector: sdImgIO.readSector,
-  writeSector: sdImgIO.writeSector,
-  openFile: sdImgIO.open,
-  isSDImageLoaded: sdImgIO.isLoaded,
-  getSDImagePath: getSDImagePath,
+  readSector: (sectorNum: number) => {
+    return sdImgIO.readSector(sectorNum);
+  },
+  writeSector: async (sectorNum: number, data: Uint8Array) => {
+    await sdImgIO.writeSector(sectorNum, data);
+  },
+  openFile: async (filepath: string) => {
+    await sdImgIO.open(filepath);
+  },
+  isSDImageLoaded: () => {
+    return sdImgIO.isLoaded();
+  },
+  getSDImagePath: () => {
+    return ipcRenderer.invoke('dialog:getSDImagePath');
+  },
 });

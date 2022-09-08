@@ -1,6 +1,8 @@
 import { IDmaSignal, IIOSdHostController, IIntrSignal } from '../../interface';
 import * as intr from '../../interrupt/interruptNum';
 
+const SECTOR_SIZE = 512;
+
 export class SdHostController implements IIOSdHostController {
   private idleFlag: boolean;
   private errorFlag: boolean;
@@ -9,7 +11,8 @@ export class SdHostController implements IIOSdHostController {
 
   private bufferAddr: number;
 
-  private sectorAddr: number;
+  private secAddrH: number;
+  private secAddrL: number;
 
   private memory: IDmaSignal;
 
@@ -17,10 +20,11 @@ export class SdHostController implements IIOSdHostController {
   private intrSignal: IIntrSignal;
 
   constructor(memory: IDmaSignal, intrSignal: IIntrSignal) {
-    this.idleFlag = true;
+    this.idleFlag = false;
     this.errorFlag = false;
     this.intrFlag = false;
-    this.sectorAddr = 0;
+    this.secAddrH = 0;
+    this.secAddrL = 0;
     this.bufferAddr = 0;
     this.memory = memory;
     this.intrSignal = intrSignal;
@@ -39,52 +43,80 @@ export class SdHostController implements IIOSdHostController {
   }
 
   init(): void {
-    this.idleFlag = true;
+    /* dmgファイルが読み込まれていれば準備完了(-> Idle = 1) */
+    this.idleFlag = window.electronAPI.isSDImageLoaded();
     this.errorFlag = false;
     this.intrFlag = false;
-    this.sectorAddr = 0;
-    this.bufferAddr = 0;
+    this.secAddrH = 0;
+    this.secAddrL = 0;
+  }
+
+  private sectorAddr() {
+    return (this.secAddrH << 16) + this.secAddrL;
   }
 
   startReading(): void {
+    if (!this.idleFlag) {
+      return;
+    }
     this.idleFlag = false;
 
-    window.electronAPI.readSector(this.sectorAddr).then((data) => {
-      /* SDからのデータ読み込み終了後に行う処理 */
-      new Promise<void>(() => {
+    console.log('Start reading (' + this.sectorAddr() + ')');
+
+    window.electronAPI
+      .readSector(this.sectorAddr())
+      .then((data) => {
+        console.log(data);
+        /* SDからのデータ読み込み終了後に行う処理 */
         /* 読み込んだ値をメモリにコピーする */
-        for (let i = 0; i < 256; i++) {
+        for (let i = 0; i < SECTOR_SIZE; i++) {
           this.memory.write8(this.bufferAddr + i, data[i]);
         }
-      }).then(() => {
+      })
+      .then(() => {
         /* メモリへの書き込み終了後に行う処理 */
+        this.idleFlag = true;
         if (this.intrFlag) {
           this.intrSignal.interrupt(intr.MICRO_SD);
         }
-        this.idleFlag = true;
+        console.log('Finish reading');
+      })
+      .catch(() => {
+        this.errorFlag = true;
+        this.idleFlag = false;
       });
-    });
   }
 
   startWriting(): void {
+    if (!this.idleFlag) {
+      return;
+    }
     this.idleFlag = false;
 
+    console.log('Start writing');
+
     new Promise<void>(() => {
-      const data = new Uint8Array(256);
+      const data = new Uint8Array(SECTOR_SIZE);
 
       /* 書き込む値をメモリからコピーしてくる */
-      for (let i = 0; i < 256; i++) {
+      for (let i = 0; i < SECTOR_SIZE; i++) {
         data[i] = this.memory.read8(this.bufferAddr + i);
       }
 
-      window.electronAPI.writeSector(this.sectorAddr, data).then(() => {
-        /* SDへの書き込み終了後に行う処理 */
-        if (this.intrFlag) {
-          this.intrSignal.interrupt(intr.MICRO_SD);
-        }
-
-        this.idleFlag = true;
-      });
+      window.electronAPI
+        .writeSector(this.sectorAddr(), data)
+        .then(() => {
+          /* SDへの書き込み終了後に行う処理 */
+          this.idleFlag = true;
+          if (this.intrFlag) {
+            this.intrSignal.interrupt(intr.MICRO_SD);
+          }
+          console.log('Finish writing');
+        })
+        .catch(() => {
+          this.errorFlag = true;
+          this.idleFlag = false;
+        });
     });
   }
 
@@ -97,18 +129,18 @@ export class SdHostController implements IIOSdHostController {
   }
 
   setSectorAddrHigh(addrHigh: number): void {
-    this.sectorAddr = (addrHigh << 16) | (this.sectorAddr & 0x0000ffff);
+    this.secAddrH = addrHigh;
   }
 
   setSectorAddrLow(addrLow: number): void {
-    this.sectorAddr = (this.sectorAddr & 0xffff0000) | addrLow;
+    this.secAddrL = addrLow;
   }
 
   getSectorAddrHigh(): number {
-    return (this.sectorAddr & 0xffff0000) >> 16;
+    return this.secAddrH;
   }
 
   getSectorAddrLow(): number {
-    return this.sectorAddr & 0x0000ffff;
+    return this.secAddrL;
   }
 }

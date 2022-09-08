@@ -26,6 +26,9 @@ openBtn.addEventListener('click', async () => {
   const filePath = await window.electronAPI.getSDImagePath();
 
   if (filePath === undefined) {
+    if (window.electronAPI.isSDImageLoaded()) {
+      return;
+    }
     filePathElement.innerText = 'ファイルが選択されていません';
   } else {
     /* ファイルの読み込みが完了するまで「しばらくお待ちください」を表示する */
