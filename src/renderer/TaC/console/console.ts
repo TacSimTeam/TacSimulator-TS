@@ -276,6 +276,10 @@ export class Console implements IIOConsole {
     return this.switches[8].getState();
   }
 
+  getBreakSwitchValue(): boolean {
+    return this.switches[9].getState();
+  }
+
   getDataSwitchValue(): number {
     return 0;
   }

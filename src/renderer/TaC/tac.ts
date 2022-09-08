@@ -28,6 +28,8 @@ export class Tac {
 
   private terminal: HTMLTextAreaElement;
 
+  private breakAddr: number;
+
   constructor(ctx: CanvasRenderingContext2D, terminal: HTMLTextAreaElement) {
     this.memory = new Memory();
     this.intrController = new IntrController();
@@ -47,11 +49,13 @@ export class Tac {
 
     this.cpuEventId = null;
     this.terminal = terminal;
+    this.breakAddr = 0;
 
     this.mmu.loadIpl();
     this.cpu.setPC(0xe000);
 
     this.console.setRunBtnFunc(() => {
+      this.breakAddr = parseInt((document.getElementById('break-address') as HTMLInputElement).value, 16);
       this.run();
     });
     this.console.setResetBtnFunc(() => {
@@ -77,11 +81,18 @@ export class Tac {
   run() {
     const start = new Date();
     for (;;) {
+      if (this.console.getBreakSwitchValue() && this.cpu.getPC() === this.breakAddr) {
+        /* BREAKスイッチがONなので1命令実行後一時停止 */
+        this.cpu.run();
+        return;
+      }
+
       this.cpu.run();
       if (this.console.getStepSwitchValue()) {
         /* STEPスイッチがONなので1命令ずつ実行 */
         return;
       }
+
       const stop = new Date();
 
       /* CPUが10ms動作したら一旦アプリ側に制御を渡す */
