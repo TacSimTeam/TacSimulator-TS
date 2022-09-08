@@ -616,4 +616,12 @@ export class Cpu {
       )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
     );
   }
+
+  reset() {
+    this.cpuFlag = FLAG_P;
+    this.isHalt = false;
+    this.pc = 0;
+
+    this.cnt = 0;
+  }
 }

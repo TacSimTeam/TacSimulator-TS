@@ -26,6 +26,8 @@ export class Tac {
 
   private cpuEventId: NodeJS.Timeout | null;
 
+  private terminal: HTMLTextAreaElement;
+
   constructor(ctx: CanvasRenderingContext2D, terminal: HTMLTextAreaElement) {
     this.memory = new Memory();
     this.intrController = new IntrController();
@@ -44,12 +46,19 @@ export class Tac {
     this.cpu = new Cpu(this.register, this.mmu, this.intrController, this.io, this.privModeSignal);
 
     this.cpuEventId = null;
+    this.terminal = terminal;
 
     this.mmu.loadIpl();
     this.cpu.setPC(0xe000);
+
     this.console.setRunBtnFunc(() => {
-      console.log('Run');
       this.run();
+    });
+    this.console.setResetBtnFunc(() => {
+      this.reset();
+    });
+    this.console.setStopBtnFunc(() => {
+      this.stop();
     });
 
     this.console.drawAll();
@@ -78,6 +87,31 @@ export class Tac {
         }, 0);
         return;
       }
+    }
+  }
+
+  reset() {
+    this.stop();
+
+    /* ターミナルの文字消去 */
+    this.terminal.value = '';
+
+    this.cpu.reset();
+    this.register.reset();
+    this.mmu.reset();
+    this.intrController.reset();
+    this.timer0.reset();
+    this.timer1.reset();
+    this.serialIO.reset();
+    this.sd.reset();
+
+    this.mmu.loadIpl();
+    this.cpu.setPC(0xe000);
+  }
+
+  stop() {
+    if (this.cpuEventId !== null) {
+      clearTimeout(this.cpuEventId);
     }
   }
 

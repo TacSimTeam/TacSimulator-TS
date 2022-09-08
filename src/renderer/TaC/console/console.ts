@@ -97,9 +97,21 @@ export class Console implements IIOConsole {
     this.buttons.push(new Button(320, 330, 'DECA', this.onClickDecaBtn));
     this.buttons.push(new Button(280, 330, 'INCA', this.onClickIncaBtn));
     this.buttons.push(new Button(240, 330, 'SETA', this.onClickSetaBtn));
-    this.buttons.push(new Button(180, 330, 'STOP', this.onClickStopBtn));
-    this.buttons.push(new Button(140, 330, 'RUN', this.onClickRunBtn));
-    this.buttons.push(new Button(20, 330, 'RESET', this.onClickResetBtn));
+    this.buttons.push(
+      new Button(180, 330, 'STOP', () => {
+        return;
+      })
+    );
+    this.buttons.push(
+      new Button(140, 330, 'RUN', () => {
+        return;
+      })
+    );
+    this.buttons.push(
+      new Button(20, 330, 'RESET', () => {
+        return;
+      })
+    );
   }
 
   private initSwitches() {
@@ -248,20 +260,16 @@ export class Console implements IIOConsole {
     if (this.isRunning) return;
   }
 
-  private onClickStopBtn() {
-    if (this.isRunning) return;
-  }
-
-  private onClickRunBtn() {
-    if (this.isRunning) return;
-  }
-
-  private onClickResetBtn() {
-    if (this.isRunning) return;
+  setStopBtnFunc(f: () => void) {
+    this.buttons[6].event = f;
   }
 
   setRunBtnFunc(f: () => void) {
     this.buttons[7].event = f;
+  }
+
+  setResetBtnFunc(f: () => void) {
+    this.buttons[8].event = f;
   }
 
   getDataSwitchValue(): number {

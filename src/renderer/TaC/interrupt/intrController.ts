@@ -6,6 +6,7 @@ export class IntrController implements IIntrController {
 
   constructor() {
     this.intrFlags = new Array(16);
+    this.reset();
   }
 
   interrupt(intrNum: number): void {
@@ -36,5 +37,9 @@ export class IntrController implements IIntrController {
       }
     }
     return false;
+  }
+
+  reset() {
+    this.intrFlags.fill(false);
   }
 }

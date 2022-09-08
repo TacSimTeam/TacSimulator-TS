@@ -146,6 +146,10 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
   }
 
   loadIpl() {
+    if (this.iplMode) {
+      return;
+    }
+
     for (let i = 0; i < ipl.length; i++) {
       this.write16(0xe000 + i * 2, ipl[i]);
     }
@@ -198,5 +202,23 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
 
   enable(): void {
     this.mmuMode = true;
+  }
+
+  reset() {
+    this.clearMemory();
+    this.tlbs.splice(0);
+    this.initTlbs();
+
+    this.iplMode = false;
+    this.mmuMode = false;
+    this.errorAddr = 0;
+    this.errorCause = 0;
+    this.tlbMissPage = 0;
+  }
+
+  private clearMemory() {
+    for (let i = 0; i <= 0xffff; i++) {
+      this.memory.write8(i, 0);
+    }
   }
 }

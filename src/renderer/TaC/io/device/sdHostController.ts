@@ -143,4 +143,13 @@ export class SdHostController implements IIOSdHostController {
   getSectorAddrLow(): number {
     return this.secAddrL;
   }
+
+  reset() {
+    this.idleFlag = false;
+    this.errorFlag = false;
+    this.intrFlag = false;
+    this.secAddrH = 0;
+    this.secAddrL = 0;
+    this.bufferAddr = 0;
+  }
 }

@@ -46,12 +46,12 @@ export class Timer implements IIOTimer {
   }
 
   setInterruptFlag(flag: boolean): void {
-    this.reset();
+    this.clear();
     this.intrFlag = flag;
   }
 
   start(): void {
-    this.reset();
+    this.clear();
 
     /* 1ms毎にroutine()関数を呼ぶ */
     this.intervalId = setInterval(() => {
@@ -60,10 +60,10 @@ export class Timer implements IIOTimer {
   }
 
   stop(): void {
-    this.reset();
+    this.clear();
   }
 
-  reset(): void {
+  clear(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
@@ -90,5 +90,13 @@ export class Timer implements IIOTimer {
     } else {
       this.count++;
     }
+  }
+
+  reset() {
+    this.count = 0;
+    this.cycle = 0;
+    this.matchFlag = false;
+    this.intrFlag = false;
+    this.clear();
   }
 }

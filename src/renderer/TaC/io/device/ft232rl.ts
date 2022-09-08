@@ -24,7 +24,6 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     this.isReadable = true;
     this.readableIntrFlag = false;
     this.writeableIntrFlag = false;
-
     this.isClickedCtrl = false;
     this.isClickedShift = false;
     this.buf = 0;
@@ -140,5 +139,15 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
 
   private isMetaChar(e: KeyboardEvent): boolean {
     return e.key.length !== 1;
+  }
+
+  reset() {
+    this.isWriteable = true;
+    this.isReadable = true;
+    this.readableIntrFlag = false;
+    this.writeableIntrFlag = false;
+    this.isClickedCtrl = false;
+    this.isClickedShift = false;
+    this.buf = 0;
   }
 }
