@@ -272,6 +272,10 @@ export class Console implements IIOConsole {
     this.buttons[8].event = f;
   }
 
+  getStepSwitchValue(): boolean {
+    return this.switches[8].getState();
+  }
+
   getDataSwitchValue(): number {
     return 0;
   }

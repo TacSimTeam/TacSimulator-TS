@@ -78,7 +78,12 @@ export class Tac {
     const start = new Date();
     for (;;) {
       this.cpu.run();
+      if (this.console.getStepSwitchValue()) {
+        /* STEPスイッチがONなので1命令ずつ実行 */
+        return;
+      }
       const stop = new Date();
+
       /* CPUが10ms動作したら一旦アプリ側に制御を渡す */
       if (stop.getTime() - start.getTime() > 10) {
         /* setTimeout()でアプリ側の制御が終わったらすぐにCPUを再度動作させるように予約する */
