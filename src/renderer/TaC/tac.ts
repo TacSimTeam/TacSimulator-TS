@@ -9,6 +9,8 @@ import { Timer } from './io/device/timer';
 import { Ft232rl } from './io/device/ft232rl';
 import { SdHostController } from './io/device/sdHostController';
 import { Register } from './cpu/register';
+import { regNumToString } from './debug/instruction';
+import { assertIsDefined } from '../utils';
 
 export class Tac {
   private console: Console;
@@ -63,6 +65,7 @@ export class Tac {
     });
     this.console.setStopBtnFunc(() => {
       this.stop();
+      this.update();
     });
 
     this.console.drawAll();
@@ -84,12 +87,14 @@ export class Tac {
       if (this.console.getBreakSwitchValue() && this.cpu.getPC() === this.breakAddr) {
         /* BREAKスイッチがONなので1命令実行後一時停止 */
         this.cpu.run();
+        this.update();
         return;
       }
 
       this.cpu.run();
       if (this.console.getStepSwitchValue()) {
         /* STEPスイッチがONなので1命令ずつ実行 */
+        this.update();
         return;
       }
 
@@ -102,6 +107,22 @@ export class Tac {
           this.run();
         }, 0);
         return;
+      }
+    }
+  }
+
+  update() {
+    assertIsDefined(document.getElementById('reg-list'));
+    const reg_list = document.getElementById('reg-list') as HTMLUListElement;
+
+    for (let i = 0; i <= 15; i++) {
+      const reg_text = reg_list.children[i];
+      if (reg_text !== null) {
+        const decimal = this.cpu.readReg(i).toString(10);
+        const hex = this.cpu.readReg(i).toString(16);
+        const text = `${regNumToString(i)} : 0x${hex} (${decimal})`;
+
+        reg_text.textContent = text;
       }
     }
   }
@@ -123,6 +144,8 @@ export class Tac {
 
     this.mmu.loadIpl();
     this.cpu.setPC(0xe000);
+
+    this.update();
   }
 
   stop() {

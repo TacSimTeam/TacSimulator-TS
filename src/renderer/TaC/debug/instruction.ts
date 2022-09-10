@@ -1,5 +1,6 @@
 import { Instruction } from '../cpu/instruction/instruction';
 import * as inst from '../cpu/instruction/opcode';
+import { REGISTER_FLAG } from '../cpu/register';
 
 export function printInstruction(inst: Instruction, pc: number) {
   const op = opcodeToString(inst.opcode, inst.addrMode, inst.rd);
@@ -142,9 +143,11 @@ export function regNumToString(regNum: number) {
     case REGISTER_FP:
       return 'FP';
     case REGISTER_SP:
-      return 'SP';
+      return 'SSP';
     case REGISTER_USP:
       return 'USP';
+    case REGISTER_FLAG:
+      return 'FLAG';
     default:
       return '???(' + regNum.toString() + ')';
   }

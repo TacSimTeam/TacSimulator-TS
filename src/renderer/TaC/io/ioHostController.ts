@@ -27,7 +27,7 @@ export class IOHostController implements IIOHostController {
 
   input(addr: number): number {
     let val = 0;
-    console.log(`MEMORY <- IO[0x${addr.toString(16)}]`);
+    // console.log(`MEMORY <- IO[0x${addr.toString(16)}]`);
 
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
@@ -123,7 +123,7 @@ export class IOHostController implements IIOHostController {
   }
 
   output(addr: number, val: number): void {
-    console.log(`IO[0x${addr.toString(16)}] <- 0x${val.toString(16)}`);
+    // console.log(`IO[0x${addr.toString(16)}] <- 0x${val.toString(16)}`);
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
         this.timer0.setCycle(val);

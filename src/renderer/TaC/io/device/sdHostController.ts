@@ -61,12 +61,12 @@ export class SdHostController implements IIOSdHostController {
     }
     this.idleFlag = false;
 
-    console.log('Start reading (' + this.sectorAddr() + ')');
+    // console.log('Start reading (' + this.sectorAddr() + ')');
 
     window.electronAPI
       .readSector(this.sectorAddr())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         /* SDからのデータ読み込み終了後に行う処理 */
         /* 読み込んだ値をメモリにコピーする */
         for (let i = 0; i < SECTOR_SIZE; i++) {
@@ -79,7 +79,7 @@ export class SdHostController implements IIOSdHostController {
         if (this.intrFlag) {
           this.intrSignal.interrupt(intr.MICRO_SD);
         }
-        console.log('Finish reading');
+        // console.log('Finish reading');
       })
       .catch(() => {
         this.errorFlag = true;
@@ -93,7 +93,7 @@ export class SdHostController implements IIOSdHostController {
     }
     this.idleFlag = false;
 
-    console.log('Start writing');
+    // console.log('Start writing');
 
     new Promise<void>(() => {
       const data = new Uint8Array(SECTOR_SIZE);
@@ -111,7 +111,7 @@ export class SdHostController implements IIOSdHostController {
           if (this.intrFlag) {
             this.intrSignal.interrupt(intr.MICRO_SD);
           }
-          console.log('Finish writing');
+          // console.log('Finish writing');
         })
         .catch(() => {
           this.errorFlag = true;

@@ -18,16 +18,34 @@
       <p class="load-message">しばらくお待ちください</p>
     </div>
 
-    <canvas height="390px" width="430px" id="console"> TeC7コンソール </canvas>
-    <textarea id="terminal" rows="18" cols="64"></textarea><br><br>
+    <canvas height="393px" width="430px" id="console"> TeC7コンソール </canvas>
+    <textarea id="terminal" rows="30" cols="64"></textarea><br>
+
+    <button type="button" id="btn-openFile">Open a File</button>
+    File path: <strong id="filePath">ファイルが選択されていません</strong>
+    
+    <br><br>
 
     BREAKPOINT : <input type="text" name="break-address" id="break-address"><br>
 
-    <input type="button" name="WRITEP" id="writep" value="WRITEP">
-    
-    <br>
-    <button type="button" id="btn-openFile">Open a File</button>
-    File path: <strong id="filePath">ファイルが選択されていません</strong>
+    <ul id="reg-list">
+      <li id="reg-value-G0">G0:</li>
+      <li id="reg-value-G1">G1:</li>
+      <li id="reg-value-G2">G2:</li>
+      <li id="reg-value-G3">G3:</li>
+      <li id="reg-value-G4">G4:</li>
+      <li id="reg-value-G5">G5:</li>
+      <li id="reg-value-G6">G6:</li>
+      <li id="reg-value-G7">G7:</li>
+      <li id="reg-value-G8">G8:</li>
+      <li id="reg-value-G9">G9:</li>
+      <li id="reg-value-G10">G10:</li>
+      <li id="reg-value-G11">G11:</li>
+      <li id="reg-value-FP">FP:</li>
+      <li id="reg-value-SSP">SSP:</li>
+      <li id="reg-value-USP">USP:</li>
+      <li id="reg-value-FLAG">FLAG:</li>
+    </ul>
 
     <script src="../dist/tac.js"></script>
   </body>

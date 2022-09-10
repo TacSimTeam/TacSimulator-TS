@@ -319,7 +319,9 @@ export class Cpu {
       case opcode.SHLA:
       case opcode.SHLL:
         /* SHLA命令とSHLL命令は同じ動作 */
-        ans = v1 << v2;
+        // シフト命令をImm4モードで実行したとき, rxは符号なし4bit整数として扱う...
+        // 正しい仕様かどうかは不明
+        ans = v1 << inst.rx;
         break;
       case opcode.SHRA:
         if ((v1 & 0x8000) != 0) {
@@ -591,6 +593,9 @@ export class Cpu {
   }
 
   readReg(num: number) {
+    if (num == REGISTER_FLAG) {
+      return this.cpuFlag;
+    }
     return this.register.read(num);
   }
 
@@ -610,11 +615,11 @@ export class Cpu {
 
   private debugPrint(inst: Instruction) {
     this.cnt++;
-    console.log(
-      `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
-        inst.rd
-      )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
-    );
+    // console.log(
+    //   `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
+    //     inst.rd
+    //   )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
+    // );
   }
 
   reset() {
