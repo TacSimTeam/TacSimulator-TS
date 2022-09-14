@@ -141,7 +141,6 @@ export class IOHostController implements IIOHostController {
         break;
       case io.TIMER1_FLAG_CTRL:
         this.timer1.setInterruptFlag(!!(val & 0x8000));
-        this.timer1.setInterruptFlag(!!(val & 0x8000));
         if ((val & 0x0001) != 0) {
           this.timer1.start();
         } else {
@@ -152,8 +151,8 @@ export class IOHostController implements IIOHostController {
         this.ft232rl.send(val);
         break;
       case io.FT232RL_STAT_CTRL:
-        this.ft232rl.setWriteableIntrFlag(!!(val & 0x0080));
-        this.ft232rl.setReadableIntrFlag(!!(val & 0x0040));
+        this.ft232rl.setSendableIntrFlag(!!(val & 0x0080));
+        this.ft232rl.setReceivableIntrFlag(!!(val & 0x0040));
         break;
       case io.MICROSD_STAT_CTRL:
         this.sd.setInterruptFlag(!!(val & 0x80));

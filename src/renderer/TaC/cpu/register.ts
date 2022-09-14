@@ -63,8 +63,6 @@ export class Register implements IRegister {
   }
 
   write(num: number, val: number) {
-    // console.log(JSON.stringify(this));
-    // console.log(`num : ${num}, val : 0x${val.toString(16)}(${val})`);
     switch (num) {
       case 12:
         this.fp = val;
@@ -82,6 +80,5 @@ export class Register implements IRegister {
       default:
         this.generals[num] = val;
     }
-    // console.log(JSON.stringify(this));
   }
 }

@@ -2,28 +2,46 @@ import { IKeyboardDriver } from '../../../interface/keyboardDriver';
 import { IIOSerial, IIntrSignal } from '../../interface';
 import * as intr from '../../interrupt/interruptNum';
 
+/**
+ * TaCのUSBシリアル変換IC(FT232RL)を再現したもの
+ * キーボード入力を実現するための機能を実装している
+ */
 export class Ft232rl implements IIOSerial, IKeyboardDriver {
+  /**
+   * 書き込み可能かどうか
+   *
+   * 便宜上このフラグは存在するが
+   * シミュレータ上では特に意味が無いので常にTrueとしている
+   */
   private isWriteable: boolean;
-  private isReadable: boolean;
-  private readableIntrFlag: boolean;
-  private writeableIntrFlag: boolean;
 
+  /* 読み込み可能かどうか */
+  private isReadable: boolean;
+
+  /* Trueであれば送信可能になった時に割込みを発生させる */
+  private sendableIntrFlag: boolean;
+
+  /* Trueであれば受信可能になった時に割込みを発生させる */
+  private receivableIntrFlag: boolean;
+
+  /* Ctrlキーが押されたかどうか */
   private isClickedCtrl: boolean;
+
+  /* Shiftキーが押されたかどうか */
   private isClickedShift: boolean;
 
   /* 送受信するデータのバッファ */
   private buf: number;
 
-  private terminal: HTMLTextAreaElement;
-
-  /* 割込み信号 */
-  private intrSignal: IIntrSignal;
+  private terminal: HTMLTextAreaElement; /* HTMLから取得したターミナル */
+  private intrSignal: IIntrSignal; /* 割込み信号 */
 
   constructor(terminal: HTMLTextAreaElement, intrSignal: IIntrSignal) {
     this.isWriteable = true;
     this.isReadable = true;
-    this.readableIntrFlag = false;
-    this.writeableIntrFlag = false;
+
+    this.receivableIntrFlag = false;
+    this.sendableIntrFlag = false;
     this.isClickedCtrl = false;
     this.isClickedShift = false;
     this.buf = 0;
@@ -40,30 +58,24 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     return this.isReadable;
   }
 
-  setWriteableIntrFlag(flag: boolean): void {
-    this.writeableIntrFlag = flag;
+  setSendableIntrFlag(flag: boolean): void {
+    this.sendableIntrFlag = flag;
   }
 
-  setReadableIntrFlag(flag: boolean): void {
-    this.readableIntrFlag = flag;
+  setReceivableIntrFlag(flag: boolean): void {
+    this.receivableIntrFlag = flag;
   }
 
   send(val: number): void {
-    new Promise<void>((resolve) => {
-      // this.isWriteable = false;
+    /* 数値を文字列に変換する */
+    const str = String.fromCodePoint(val);
 
-      /* 数値を文字列に変換する */
-      const str = String.fromCodePoint(val);
+    /* CRを除去してターミナルに文字を出力する */
+    this.terminal.value += str.replace(/\r/, '');
 
-      /* CRを除去してターミナルに文字を出力する */
-      this.terminal.value += str.replace(/\r/, '');
-      resolve();
-    }).then(() => {
-      this.isWriteable = true;
-      if (this.writeableIntrFlag) {
-        this.intrSignal.interrupt(intr.FT232RL_SENT);
-      }
-    });
+    if (this.sendableIntrFlag) {
+      this.intrSignal.interrupt(intr.FT232RL_SENT);
+    }
   }
 
   receive(): number {
@@ -71,19 +83,12 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   }
 
   inputKeyUp(e: KeyboardEvent): void {
-    if (e.key === 'Control') {
-      this.isClickedCtrl = false;
-    } else if (e.key === 'Shift') {
-      this.isClickedShift = false;
-    }
+    return;
   }
 
   inputKeyDown(e: KeyboardEvent): void {
-    if (e.key === 'Control') {
-      this.isClickedCtrl = true;
-    } else if (e.key === 'Shift') {
-      this.isClickedShift = true;
-    }
+    console.log('key : ' + e.key);
+    this.isReadable = false;
 
     if (this.isMetaChar(e)) {
       switch (e.key) {
@@ -104,13 +109,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
           break;
         default:
           this.buf = 0;
-      }
-
-      if (this.buf !== 0) {
-        this.readableIntrFlag = true;
-        if (this.readableIntrFlag) {
-          this.intrSignal.interrupt(intr.FT232RL_RECEIVED);
-        }
+          return;
       }
     } else {
       const ch = e.key.codePointAt(0);
@@ -119,21 +118,13 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
         return;
       }
 
-      if (0x20 <= ch && ch <= 0x7e) {
-        this.buf = ch;
-      }
-      if (this.isClickedCtrl && this.isClickedShift) {
-        if (0x40 <= this.buf && this.buf <= 0x5f) {
-          this.buf = this.buf - 0x40;
-        } else if (0x60 <= this.buf && this.buf <= 0x6e) {
-          this.buf = this.buf - 0x60;
-        }
-      }
+      this.buf = ch;
+    }
 
-      this.readableIntrFlag = true;
-      if (this.readableIntrFlag) {
-        this.intrSignal.interrupt(intr.FT232RL_RECEIVED);
-      }
+    console.log(String.fromCodePoint(this.buf));
+    this.isReadable = true;
+    if (this.receivableIntrFlag) {
+      this.intrSignal.interrupt(intr.FT232RL_RECEIVED);
     }
   }
 
@@ -144,8 +135,8 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   reset() {
     this.isWriteable = true;
     this.isReadable = true;
-    this.readableIntrFlag = false;
-    this.writeableIntrFlag = false;
+    this.receivableIntrFlag = false;
+    this.sendableIntrFlag = false;
     this.isClickedCtrl = false;
     this.isClickedShift = false;
     this.buf = 0;

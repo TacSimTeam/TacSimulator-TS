@@ -4,8 +4,6 @@
 export interface IIOSerial {
   /**
    * 1バイトのデータを送信する
-   *
-   * @param val
    */
   send(val: number): void;
 
@@ -25,18 +23,12 @@ export interface IIOSerial {
   getReadableFlag(): boolean;
 
   /**
-   * 次の受信データが書き込み可能になるときに
-   * 割込み可能とするフラグを設定する
-   *
-   * @param flag
+   * 次のデータが送信可能になるときに割込み可能とするフラグを設定する
    */
-  setWriteableIntrFlag(flag: boolean): void;
+  setSendableIntrFlag(flag: boolean): void;
 
   /**
-   * 次の受信データが読み込み可能になるときに
-   * 割込み可能とするフラグを設定する
-   *
-   * @param flag
+   * 次のデータが受信可能になるときに割込み可能とするフラグを設定する
    */
-  setReadableIntrFlag(flag: boolean): void;
+  setReceivableIntrFlag(flag: boolean): void;
 }

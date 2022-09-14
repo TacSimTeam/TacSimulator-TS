@@ -72,6 +72,7 @@ export class Cpu {
     if (this.evalFlag(FLAG_E) || this.intrHost.isOccurredException()) {
       const intrNum = this.intrHost.checkIntrNum();
       if (intrNum !== -1) {
+        console.log(`interrupt : ${intrNum}`);
         this.handleInterrupt(intrNum);
       }
     }
@@ -101,8 +102,6 @@ export class Cpu {
         return;
       }
     }
-
-    // console.log('-----------------');
   }
 
   /**
@@ -615,11 +614,11 @@ export class Cpu {
 
   private debugPrint(inst: Instruction) {
     this.cnt++;
-    // console.log(
-    //   `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
-    //     inst.rd
-    //   )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
-    // );
+    console.log(
+      `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
+        inst.rd
+      )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
+    );
   }
 
   reset() {

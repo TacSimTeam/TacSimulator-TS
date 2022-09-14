@@ -68,6 +68,14 @@ export class Tac {
       this.update();
     });
 
+    this.terminal.onkeydown = (e) => {
+      this.serialIO.inputKeyDown(e);
+    };
+
+    this.terminal.onkeyup = (e) => {
+      this.serialIO.inputKeyUp(e);
+    };
+
     this.console.drawAll();
   }
 
