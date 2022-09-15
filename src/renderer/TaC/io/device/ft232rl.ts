@@ -7,17 +7,6 @@ import * as intr from '../../interrupt/interruptNum';
  * キーボード入力を実現するための機能を実装している
  */
 export class Ft232rl implements IIOSerial, IKeyboardDriver {
-  /**
-   * 書き込み可能かどうか
-   *
-   * 便宜上このフラグは存在するが
-   * シミュレータ上では特に意味が無いので常にTrueとしている
-   */
-  private isWriteable: boolean;
-
-  /* 読み込み可能かどうか */
-  private isReadable: boolean;
-
   /* Trueであれば送信可能になった時に割込みを発生させる */
   private sendableIntrFlag: boolean;
 
@@ -27,32 +16,43 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   /* 送受信するデータのバッファ */
   private buf: number;
 
-  /* バッファが空であるかどうか(現在のデータが送信済み、受信済みかどうか) */
+  /**
+   * バッファが空であるかどうか
+   *
+   * 実際にバッファが空になるわけでは無いが、
+   * 現在bufに入っているデータが既に送信済み、受信済みであればtrueとなる
+   */
   private emptyFlag: boolean;
 
   private terminal: HTMLTextAreaElement; /* HTMLから取得したターミナル */
   private intrSignal: IIntrSignal; /* 割込み信号 */
 
   constructor(terminal: HTMLTextAreaElement, intrSignal: IIntrSignal) {
-    this.isWriteable = true;
-    this.isReadable = true;
-
     this.receivableIntrFlag = false;
     this.sendableIntrFlag = false;
     this.buf = 0;
     this.emptyFlag = true;
-
     this.terminal = terminal;
     this.intrSignal = intrSignal;
   }
 
   getWriteableFlag(): boolean {
-    return this.isWriteable;
+    return this.emptyFlag;
   }
 
   getReadableFlag(): boolean {
-    return this.isReadable;
+    return !this.emptyFlag;
   }
+
+  /**
+   * setSendableIntrFlag()とsetReceivableIntrFlag()についてのメモ
+   *
+   * 実際のTaCではSIO内の割込み許可フラグとemptyフラグのANDの
+   * 立ち上がりのエッジを観測したときに割込み発生を通知する
+   *
+   * シミュレータ内では、割込み許可フラグが変更された時に
+   * 割込み許可フラグとemptyフラグの両方がrueであれば, 割込みを発生させる
+   */
 
   setSendableIntrFlag(flag: boolean): void {
     this.sendableIntrFlag = flag;
@@ -77,6 +77,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
       this.terminal.value += String.fromCodePoint(val).replace(/\r/, '');
     }
 
+    /* bufのデータを送信したのでemptyをtrueに */
     this.emptyFlag = true;
     if (this.sendableIntrFlag) {
       this.intrSignal.interrupt(intr.FT232RL_SENT);
@@ -84,49 +85,22 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   }
 
   receive(): number {
+    /* この関数の処理でbufのデータを受信したのでemptyをtrueに */
     this.emptyFlag = true;
     return this.buf;
   }
 
   inputKeyUp(e: KeyboardEvent): void {
+    /* 現時点では実装する必要は無いが、Ctrlキーなどの対応させるなら必要なはず */
     return;
   }
 
   inputKeyDown(e: KeyboardEvent): void {
-    console.log('key : ' + e.key);
+    // console.log('key : ' + e.key);
 
-    if (this.isMetaChar(e)) {
-      switch (e.key) {
-        case 'Backspace':
-          this.buf = 0x08;
-          break;
-        case 'Tab':
-          this.buf = 0x09;
-          break;
-        case 'Enter':
-          this.buf = 0x0d;
-          break;
-        case 'Escape':
-          this.buf = 0x1b;
-          break;
-        case 'Delete':
-          this.buf = 0x7f;
-          break;
-        default:
-          this.buf = 0;
-          return;
-      }
-    } else {
-      const ch = e.key.codePointAt(0);
-      if (ch === undefined) {
-        this.buf = 0;
-        return;
-      }
+    this.buf = this.keyToAscii(e.key);
 
-      this.buf = ch;
-    }
-
-    console.log(`${String.fromCodePoint(this.buf)}(0x${this.buf.toString(16)})`);
+    // console.log(`${String.fromCodePoint(this.buf)}(0x${this.buf.toString(16)})`);
 
     this.emptyFlag = false;
     if (this.receivableIntrFlag) {
@@ -134,13 +108,34 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     }
   }
 
-  private isMetaChar(e: KeyboardEvent): boolean {
-    return e.key.length !== 1;
+  /* 押されたキーの名前の文字列をASCIIコードに変換する */
+  private keyToAscii(key: string): number {
+    if (key.length !== 1) {
+      /* key.lengthが1でないなら特殊文字 */
+      switch (key) {
+        case 'Backspace':
+          return 0x08;
+        case 'Tab':
+          return 0x09;
+        case 'Enter':
+          return 0x0d;
+        case 'Escape':
+          return 0x1b;
+        case 'Delete':
+          return 0x7f;
+        default:
+          return 0;
+      }
+    }
+
+    const ch = key.codePointAt(0);
+    if (ch === undefined) {
+      return 0;
+    }
+    return ch;
   }
 
   reset() {
-    this.isWriteable = true;
-    this.isReadable = true;
     this.receivableIntrFlag = false;
     this.sendableIntrFlag = false;
     this.buf = 0;
