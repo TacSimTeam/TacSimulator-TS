@@ -67,15 +67,19 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   }
 
   send(val: number): void {
-    /* 数値を文字列に変換する */
-    const str = String.fromCodePoint(val);
-
-    /* CRを除去してターミナルに文字を出力する */
-    this.terminal.value += str.replace(/\r/, '');
-
-    if (this.sendableIntrFlag) {
-      this.intrSignal.interrupt(intr.FT232RL_SENT);
+    if (val == 0x08) {
+      /* バックスペースなら末尾を削除する */
+      this.terminal.value = this.terminal.value.slice(0, -1);
+    } else {
+      /* CRを除去してターミナルに文字を出力する */
+      this.terminal.value += String.fromCodePoint(val).replace(/\r/, '');
     }
+
+    setTimeout(() => {
+      if (this.sendableIntrFlag) {
+        this.intrSignal.interrupt(intr.FT232RL_SENT);
+      }
+    }, 0);
   }
 
   receive(): number {
@@ -88,21 +92,20 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
 
   inputKeyDown(e: KeyboardEvent): void {
     console.log('key : ' + e.key);
-    this.isReadable = false;
 
     if (this.isMetaChar(e)) {
       switch (e.key) {
-        case 'Escape':
-          this.buf = 0x1b;
+        case 'Backspace':
+          this.buf = 0x08;
           break;
         case 'Tab':
           this.buf = 0x09;
           break;
         case 'Enter':
-          this.buf = 0x0a;
+          this.buf = 0x0d;
           break;
-        case 'Backspace':
-          this.buf = 0x08;
+        case 'Escape':
+          this.buf = 0x1b;
           break;
         case 'Delete':
           this.buf = 0x7f;
@@ -121,8 +124,8 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
       this.buf = ch;
     }
 
-    console.log(String.fromCodePoint(this.buf));
-    this.isReadable = true;
+    console.log(`${String.fromCodePoint(this.buf)}(0x${this.buf.toString(16)})`);
+
     if (this.receivableIntrFlag) {
       this.intrSignal.interrupt(intr.FT232RL_RECEIVED);
     }

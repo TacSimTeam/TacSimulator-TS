@@ -1,11 +1,11 @@
 export const TIMER0 = 0;
 export const TIMER1 = 1;
-export const RN4020_SENT = 2;
-export const RN4020_RECEIVED = 3;
-export const FT232RL_SENT = 4;
-export const FT232RL_RECEIVED = 5;
-export const TEC_SENT = 6;
-export const TEC_RECEIVED = 7;
+export const RN4020_RECEIVED = 2;
+export const RN4020_SENT = 3;
+export const FT232RL_RECEIVED = 4;
+export const FT232RL_SENT = 5;
+export const TEC_RECEIVED = 6;
+export const TEC_SENT = 7;
 export const MICRO_SD = 8;
 export const PIO = 9;
 export const EXCP_TLB_MISS = 10;

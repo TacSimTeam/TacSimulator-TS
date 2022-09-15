@@ -45,6 +45,7 @@ export class IOHostController implements IIOHostController {
         }
         return val;
       case io.FT232RL_RECEIVE_SERVE:
+        console.log(`MEMORY <- IO[0x${addr.toString(16)}](0x${this.ft232rl.receive().toString(16)})`);
         return this.ft232rl.receive();
       case io.FT232RL_STAT_CTRL:
         if (this.ft232rl.getWriteableFlag()) {

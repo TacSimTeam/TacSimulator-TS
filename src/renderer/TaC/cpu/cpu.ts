@@ -614,11 +614,11 @@ export class Cpu {
 
   private debugPrint(inst: Instruction) {
     this.cnt++;
-    console.log(
-      `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
-        inst.rd
-      )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
-    );
+    // console.log(
+    //   `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
+    //     inst.rd
+    //   )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
+    // );
   }
 
   reset() {
