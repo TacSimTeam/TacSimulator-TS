@@ -24,14 +24,11 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   /* Trueであれば受信可能になった時に割込みを発生させる */
   private receivableIntrFlag: boolean;
 
-  /* Ctrlキーが押されたかどうか */
-  private isClickedCtrl: boolean;
-
-  /* Shiftキーが押されたかどうか */
-  private isClickedShift: boolean;
-
   /* 送受信するデータのバッファ */
   private buf: number;
+
+  /* バッファが空であるかどうか(現在のデータが送信済み、受信済みかどうか) */
+  private emptyFlag: boolean;
 
   private terminal: HTMLTextAreaElement; /* HTMLから取得したターミナル */
   private intrSignal: IIntrSignal; /* 割込み信号 */
@@ -42,9 +39,8 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
 
     this.receivableIntrFlag = false;
     this.sendableIntrFlag = false;
-    this.isClickedCtrl = false;
-    this.isClickedShift = false;
     this.buf = 0;
+    this.emptyFlag = true;
 
     this.terminal = terminal;
     this.intrSignal = intrSignal;
@@ -60,10 +56,16 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
 
   setSendableIntrFlag(flag: boolean): void {
     this.sendableIntrFlag = flag;
+    if (this.sendableIntrFlag && this.emptyFlag) {
+      this.intrSignal.interrupt(intr.FT232RL_SENT);
+    }
   }
 
   setReceivableIntrFlag(flag: boolean): void {
     this.receivableIntrFlag = flag;
+    if (this.receivableIntrFlag && !this.emptyFlag) {
+      this.intrSignal.interrupt(intr.FT232RL_RECEIVED);
+    }
   }
 
   send(val: number): void {
@@ -75,14 +77,14 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
       this.terminal.value += String.fromCodePoint(val).replace(/\r/, '');
     }
 
-    setTimeout(() => {
-      if (this.sendableIntrFlag) {
-        this.intrSignal.interrupt(intr.FT232RL_SENT);
-      }
-    }, 0);
+    this.emptyFlag = true;
+    if (this.sendableIntrFlag) {
+      this.intrSignal.interrupt(intr.FT232RL_SENT);
+    }
   }
 
   receive(): number {
+    this.emptyFlag = true;
     return this.buf;
   }
 
@@ -126,6 +128,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
 
     console.log(`${String.fromCodePoint(this.buf)}(0x${this.buf.toString(16)})`);
 
+    this.emptyFlag = false;
     if (this.receivableIntrFlag) {
       this.intrSignal.interrupt(intr.FT232RL_RECEIVED);
     }
@@ -140,8 +143,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     this.isReadable = true;
     this.receivableIntrFlag = false;
     this.sendableIntrFlag = false;
-    this.isClickedCtrl = false;
-    this.isClickedShift = false;
     this.buf = 0;
+    this.emptyFlag = true;
   }
 }
