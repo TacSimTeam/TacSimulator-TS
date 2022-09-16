@@ -62,6 +62,10 @@ export class IOHostController implements IIOHostController {
         if (this.sd.isOccurredError()) {
           val |= 0x0040;
         }
+        if (!window.electronAPI.isSDImageLoaded()) {
+          /* SDカードが挿入されていないことを通知する */
+          val |= 0x0001;
+        }
         return val;
       case io.MICROSD_MEMADDR:
         return this.sd.getMemAddr();

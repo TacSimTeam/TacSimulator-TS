@@ -69,7 +69,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   }
 
   send(val: number): void {
-    if (val == 0x08) {
+    if (val === 0x08) {
       /* バックスペースなら末尾を削除する */
       this.terminal.value = this.terminal.value.slice(0, -1);
     } else {
@@ -96,10 +96,9 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   }
 
   inputKeyDown(e: KeyboardEvent): void {
-    // console.log('key : ' + e.key);
-
     this.buf = this.keyToAscii(e.key);
 
+    // console.log('key : ' + e.key);
     // console.log(`${String.fromCodePoint(this.buf)}(0x${this.buf.toString(16)})`);
 
     this.emptyFlag = false;
