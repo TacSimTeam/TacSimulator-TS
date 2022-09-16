@@ -120,6 +120,10 @@ export class Tac {
   }
 
   update() {
+    assertIsDefined(document.getElementById('value-pc'));
+    const pc_value = document.getElementById('value-pc') as HTMLElement;
+    pc_value.textContent = `PC : ${this.cpu.getPC().toString(16)}`;
+
     assertIsDefined(document.getElementById('reg-list'));
     const reg_list = document.getElementById('reg-list') as HTMLUListElement;
 

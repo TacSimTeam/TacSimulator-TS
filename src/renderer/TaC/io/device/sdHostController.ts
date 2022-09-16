@@ -43,8 +43,7 @@ export class SdHostController implements IIOSdHostController {
   }
 
   init(): void {
-    /* dmgファイルが読み込まれていれば準備完了(-> Idle = 1) */
-    this.idleFlag = window.electronAPI.isSDImageLoaded();
+    this.idleFlag = true;
     this.errorFlag = false;
     this.intrFlag = false;
     this.secAddrH = 0;
