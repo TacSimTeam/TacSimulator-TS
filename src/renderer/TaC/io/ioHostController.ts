@@ -134,7 +134,7 @@ export class IOHostController implements IIOHostController {
         this.timer0.setCycle(val);
         break;
       case io.TIMER0_FLAG_CTRL:
-        this.timer0.setInterruptFlag(!!(val & 0x8000));
+        this.timer0.setIntrFlag(!!(val & 0x8000));
         if ((val & 0x0001) != 0) {
           this.timer0.start();
         } else {
@@ -145,7 +145,7 @@ export class IOHostController implements IIOHostController {
         this.timer1.setCycle(val);
         break;
       case io.TIMER1_FLAG_CTRL:
-        this.timer1.setInterruptFlag(!!(val & 0x8000));
+        this.timer1.setIntrFlag(!!(val & 0x8000));
         if ((val & 0x0001) != 0) {
           this.timer1.start();
         } else {

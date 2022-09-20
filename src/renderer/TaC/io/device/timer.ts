@@ -11,14 +11,14 @@ export class Timer implements IIOTimer {
   /* このタイマーの番号(現状TaCは0か1) */
   private timerNum: 0 | 1;
 
-  /* NodeJSのタイマーのID */
-  private intervalId: NodeJS.Timer | null;
-
   /* カウンタの値と周期の値が一致したかどうか */
   private matchFlag: boolean;
 
-  /* 割込みが許可されているか */
+  /* trueであれば処理終了後に割り込みを発生させる */
   private intrFlag: boolean;
+
+  /* NodeJSのタイマーのID */
+  private intervalId: NodeJS.Timer | null;
 
   /* 割込み信号 */
   private intrSignal: IIntrSignal;
@@ -45,7 +45,7 @@ export class Timer implements IIOTimer {
     this.cycle = cycle;
   }
 
-  setInterruptFlag(flag: boolean): void {
+  setIntrFlag(flag: boolean): void {
     this.clear();
     this.intrFlag = flag;
   }
@@ -63,6 +63,14 @@ export class Timer implements IIOTimer {
     this.clear();
   }
 
+  reset() {
+    this.clear();
+    this.count = 0;
+    this.cycle = 0;
+    this.matchFlag = false;
+    this.intrFlag = false;
+  }
+
   clear(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -73,30 +81,16 @@ export class Timer implements IIOTimer {
     if (this.count === this.cycle) {
       /**
        * カウンタの値と周期レジスタの値が一致したときは
-       * フラグをtrueにし、カウンタをリセットする
-       *
-       * 割込み許可があるなら割込みを発生させる
+       * フラグをtrueにして、カウンタをリセットする
        */
       this.matchFlag = true;
       this.count = 0;
 
       if (this.intrFlag) {
-        if (this.timerNum == 0) {
-          this.intrSignal.interrupt(intr.TIMER0);
-        } else {
-          this.intrSignal.interrupt(intr.TIMER1);
-        }
+        this.intrSignal.interrupt(intr.TIMER0 + this.timerNum);
       }
     } else {
       this.count++;
     }
-  }
-
-  reset() {
-    this.count = 0;
-    this.cycle = 0;
-    this.matchFlag = false;
-    this.intrFlag = false;
-    this.clear();
   }
 }

@@ -7,15 +7,6 @@ import * as intr from '../../interrupt/interruptNum';
  * キーボード入力を実現するための機能を実装している
  */
 export class Ft232rl implements IIOSerial, IKeyboardDriver {
-  /* Trueであれば送信可能になった時に割込みを発生させる */
-  private sendableIntrFlag: boolean;
-
-  /* Trueであれば受信可能になった時に割込みを発生させる */
-  private receivableIntrFlag: boolean;
-
-  /* 送受信するデータのバッファ */
-  private buf: number;
-
   /**
    * バッファが空であるかどうか
    *
@@ -24,7 +15,17 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
    */
   private emptyFlag: boolean;
 
+  /* 送受信するデータのバッファ */
+  private buf: number;
+
   private terminal: HTMLTextAreaElement; /* HTMLから取得したターミナル */
+
+  /* Trueであれば送信可能になった時に割込みを発生させる */
+  private sendableIntrFlag: boolean;
+
+  /* Trueであれば受信可能になった時に割込みを発生させる */
+  private receivableIntrFlag: boolean;
+
   private intrSignal: IIntrSignal; /* 割込み信号 */
 
   constructor(terminal: HTMLTextAreaElement, intrSignal: IIntrSignal) {

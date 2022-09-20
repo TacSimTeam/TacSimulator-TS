@@ -13,9 +13,6 @@ export class SdHostController implements IIOSdHostController {
   /* エラーが発生しているかどうか */
   private errorFlag: boolean;
 
-  /* trueであれば処理終了後に割り込みを発生させる */
-  private intrFlag: boolean;
-
   /* セクタから読み込んだ、または書き込むデータを格納するバッファのアドレス */
   private memAddr: number;
 
@@ -27,6 +24,9 @@ export class SdHostController implements IIOSdHostController {
 
   /* DMA方式で接続されているメモリ */
   private memory: IDmaSignal;
+
+  /* trueであれば処理終了後に割り込みを発生させる */
+  private intrFlag: boolean;
 
   /* 割込み信号 */
   private intrSignal: IIntrSignal;

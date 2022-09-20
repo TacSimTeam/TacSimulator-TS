@@ -27,7 +27,7 @@ export interface IIOTimer {
    *
    * @param flag
    */
-  setInterruptFlag(flag: boolean): void;
+  setIntrFlag(flag: boolean): void;
 
   /**
    * カウンタをリセットしてからタイマーをスタートする
