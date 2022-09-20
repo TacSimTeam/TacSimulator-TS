@@ -15,12 +15,12 @@ export interface IIOSerial {
   /**
    * 送信データが書き込み可能であるかどうか
    */
-  getWriteableFlag(): boolean;
+  isWriteable(): boolean;
 
   /**
    * 受信データが読み込み可能であるかどうか
    */
-  getReadableFlag(): boolean;
+  isReadable(): boolean;
 
   /**
    * 次のデータが送信可能になるときに割込み可能とするフラグを設定する

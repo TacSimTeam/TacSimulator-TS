@@ -3,10 +3,14 @@ import * as intr from '../../interrupt/interruptNum';
 
 const SECTOR_SIZE = 512;
 
+/**
+ * TaCのマイクロSDホストコントローラを再現したもの
+ */
 export class SdHostController implements IIOSdHostController {
   private idleFlag: boolean;
   private errorFlag: boolean;
 
+  /* trueであれば処理終了後に割り込みを発生させる */
   private intrFlag: boolean;
 
   private bufferAddr: number;
@@ -50,35 +54,25 @@ export class SdHostController implements IIOSdHostController {
     this.secAddrL = 0;
   }
 
-  private sectorAddr() {
-    return (this.secAddrH << 16) + this.secAddrL;
-  }
-
   startReading(): void {
     if (!this.idleFlag) {
       return;
     }
     this.idleFlag = false;
 
-    // console.log('Start reading (' + this.sectorAddr() + ')');
-
     window.electronAPI
       .readSector(this.sectorAddr())
       .then((data) => {
-        // console.log(data);
-        /* SDからのデータ読み込み終了後に行う処理 */
         /* 読み込んだ値をメモリにコピーする */
         for (let i = 0; i < SECTOR_SIZE; i++) {
           this.memory.write8(this.bufferAddr + i, data[i]);
         }
       })
       .then(() => {
-        /* メモリへの書き込み終了後に行う処理 */
         this.idleFlag = true;
         if (this.intrFlag) {
           this.intrSignal.interrupt(intr.MICRO_SD);
         }
-        // console.log('Finish reading');
       })
       .catch(() => {
         this.errorFlag = true;
@@ -92,8 +86,6 @@ export class SdHostController implements IIOSdHostController {
     }
     this.idleFlag = false;
 
-    // console.log('Start writing');
-
     new Promise<void>(() => {
       const data = new Uint8Array(SECTOR_SIZE);
 
@@ -105,12 +97,10 @@ export class SdHostController implements IIOSdHostController {
       window.electronAPI
         .writeSector(this.sectorAddr(), data)
         .then(() => {
-          /* SDへの書き込み終了後に行う処理 */
           this.idleFlag = true;
           if (this.intrFlag) {
             this.intrSignal.interrupt(intr.MICRO_SD);
           }
-          // console.log('Finish writing');
         })
         .catch(() => {
           this.errorFlag = true;
@@ -141,6 +131,10 @@ export class SdHostController implements IIOSdHostController {
 
   getSectorAddrLow(): number {
     return this.secAddrL;
+  }
+
+  private sectorAddr() {
+    return (this.secAddrH << 16) + this.secAddrL;
   }
 
   reset() {

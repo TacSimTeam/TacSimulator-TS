@@ -36,11 +36,11 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     this.intrSignal = intrSignal;
   }
 
-  getWriteableFlag(): boolean {
+  isWriteable(): boolean {
     return this.emptyFlag;
   }
 
-  getReadableFlag(): boolean {
+  isReadable(): boolean {
     return !this.emptyFlag;
   }
 

@@ -48,10 +48,10 @@ export class IOHostController implements IIOHostController {
         console.log(`MEMORY <- IO[0x${addr.toString(16)}](0x${this.ft232rl.receive().toString(16)})`);
         return this.ft232rl.receive();
       case io.FT232RL_STAT_CTRL:
-        if (this.ft232rl.getWriteableFlag()) {
+        if (this.ft232rl.isWriteable()) {
           val |= 0x0080;
         }
-        if (this.ft232rl.getReadableFlag()) {
+        if (this.ft232rl.isReadable()) {
           val |= 0x0040;
         }
         return val;
