@@ -7,29 +7,37 @@ const SECTOR_SIZE = 512;
  * TaCのマイクロSDホストコントローラを再現したもの
  */
 export class SdHostController implements IIOSdHostController {
+  /* アイドル状態かどうか(falseなら処理中) */
   private idleFlag: boolean;
+
+  /* エラーが発生しているかどうか */
   private errorFlag: boolean;
 
   /* trueであれば処理終了後に割り込みを発生させる */
   private intrFlag: boolean;
 
-  private bufferAddr: number;
+  /* セクタから読み込んだ、または書き込むデータを格納するバッファのアドレス */
+  private memAddr: number;
 
+  /* セクタのアドレス(LBA方式)の上位16ビット */
   private secAddrH: number;
+
+  /* セクタのアドレス(LBA方式)の下位16ビット */
   private secAddrL: number;
 
+  /* DMA方式で接続されているメモリ */
   private memory: IDmaSignal;
 
   /* 割込み信号 */
   private intrSignal: IIntrSignal;
 
   constructor(memory: IDmaSignal, intrSignal: IIntrSignal) {
-    this.idleFlag = false;
+    this.idleFlag = true;
     this.errorFlag = false;
     this.intrFlag = false;
     this.secAddrH = 0;
     this.secAddrL = 0;
-    this.bufferAddr = 0;
+    this.memAddr = 0;
     this.memory = memory;
     this.intrSignal = intrSignal;
   }
@@ -42,7 +50,7 @@ export class SdHostController implements IIOSdHostController {
     return this.errorFlag;
   }
 
-  setInterruptFlag(flag: boolean): void {
+  setIntrFlag(flag: boolean): void {
     this.intrFlag = flag;
   }
 
@@ -61,11 +69,11 @@ export class SdHostController implements IIOSdHostController {
     this.idleFlag = false;
 
     window.electronAPI
-      .readSector(this.sectorAddr())
+      .readSector(this.secAddr())
       .then((data) => {
         /* 読み込んだ値をメモリにコピーする */
         for (let i = 0; i < SECTOR_SIZE; i++) {
-          this.memory.write8(this.bufferAddr + i, data[i]);
+          this.memory.write8(this.memAddr + i, data[i]);
         }
       })
       .then(() => {
@@ -75,6 +83,10 @@ export class SdHostController implements IIOSdHostController {
         }
       })
       .catch(() => {
+        /**
+         * もし読み込みでエラーが発生したらフラグを立てる
+         * エラーが発生しているときアイドル状態はfalseになる(TeC7/tac_spi.vhd参考)
+         */
         this.errorFlag = true;
         this.idleFlag = false;
       });
@@ -91,11 +103,11 @@ export class SdHostController implements IIOSdHostController {
 
       /* 書き込む値をメモリからコピーしてくる */
       for (let i = 0; i < SECTOR_SIZE; i++) {
-        data[i] = this.memory.read8(this.bufferAddr + i);
+        data[i] = this.memory.read8(this.memAddr + i);
       }
 
       window.electronAPI
-        .writeSector(this.sectorAddr(), data)
+        .writeSector(this.secAddr(), data)
         .then(() => {
           this.idleFlag = true;
           if (this.intrFlag) {
@@ -110,30 +122,30 @@ export class SdHostController implements IIOSdHostController {
   }
 
   getMemAddr(): number {
-    return this.bufferAddr;
+    return this.memAddr;
   }
 
   setMemAddr(addr: number): void {
-    this.bufferAddr = addr;
+    this.memAddr = addr;
   }
 
-  setSectorAddrHigh(addrHigh: number): void {
-    this.secAddrH = addrHigh;
+  setSecAddrH(addrH: number): void {
+    this.secAddrH = addrH;
   }
 
-  setSectorAddrLow(addrLow: number): void {
-    this.secAddrL = addrLow;
+  setSecAddrL(addrL: number): void {
+    this.secAddrL = addrL;
   }
 
-  getSectorAddrHigh(): number {
+  getSecAddrH(): number {
     return this.secAddrH;
   }
 
-  getSectorAddrLow(): number {
+  getSecAddrL(): number {
     return this.secAddrL;
   }
 
-  private sectorAddr() {
+  private secAddr() {
     return (this.secAddrH << 16) + this.secAddrL;
   }
 
@@ -143,6 +155,6 @@ export class SdHostController implements IIOSdHostController {
     this.intrFlag = false;
     this.secAddrH = 0;
     this.secAddrL = 0;
-    this.bufferAddr = 0;
+    this.memAddr = 0;
   }
 }

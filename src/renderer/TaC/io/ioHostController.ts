@@ -70,9 +70,9 @@ export class IOHostController implements IIOHostController {
       case io.MICROSD_MEMADDR:
         return this.sd.getMemAddr();
       case io.MICROSD_SECTOR_HIGH:
-        return this.sd.getSectorAddrHigh();
+        return this.sd.getSecAddrH();
       case io.MICROSD_SECTOR_LOW:
-        return this.sd.getSectorAddrLow();
+        return this.sd.getSecAddrL();
       case io.PIO_MODE_00:
         /* 本当はジャンパから取得するが強制的にTaCモードで実行する */
         return 0x01;
@@ -160,7 +160,7 @@ export class IOHostController implements IIOHostController {
         this.ft232rl.setReceivableIntrFlag(!!(val & 0x0040));
         break;
       case io.MICROSD_STAT_CTRL:
-        this.sd.setInterruptFlag(!!(val & 0x80));
+        this.sd.setIntrFlag(!!(val & 0x80));
         if ((val & 0x04) != 0) {
           this.sd.init();
         }
@@ -175,10 +175,10 @@ export class IOHostController implements IIOHostController {
         this.sd.setMemAddr(val);
         break;
       case io.MICROSD_SECTOR_HIGH:
-        this.sd.setSectorAddrHigh(val);
+        this.sd.setSecAddrH(val);
         break;
       case io.MICROSD_SECTOR_LOW:
-        this.sd.setSectorAddrLow(val);
+        this.sd.setSecAddrL(val);
         break;
       case io.MMU_TLB0_HIGH:
         this.mmu.setTlbHigh8(0, val);

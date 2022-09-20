@@ -17,11 +17,10 @@ export interface IIOSdHostController {
    *
    * @param flag
    */
-  setInterruptFlag(flag: boolean): void;
+  setIntrFlag(flag: boolean): void;
 
   /**
-   * SDをSPIモードに切り替え使用できるように初期化する
-   * 現時点では実装予定無し
+   * SDホストコントローラの内部変数を初期化する
    */
   init(): void;
 
@@ -50,24 +49,24 @@ export interface IIOSdHostController {
   /**
    * データを読み書きするセクタのLBA方式の32ビットのアドレスの上位16ビットを設定する
    *
-   * @param addrHigh
+   * @param addrH
    */
-  setSectorAddrHigh(addrHigh: number): void;
+  setSecAddrH(addrH: number): void;
 
   /**
    * データを読み書きするセクタのLBA方式の32ビットのアドレスの下位16ビットを設定する
    *
-   * @param addrLow
+   * @param addrL
    */
-  setSectorAddrLow(addrLow: number): void;
+  setSecAddrL(addrL: number): void;
 
   /**
    * データを読み書きするセクタのLBA方式の32ビットのアドレスの上位16ビットを取得する
    */
-  getSectorAddrHigh(): number;
+  getSecAddrH(): number;
 
   /**
    * データを読み書きするセクタのLBA方式の32ビットのアドレスの下位16ビットを取得する
    */
-  getSectorAddrLow(): number;
+  getSecAddrL(): number;
 }
