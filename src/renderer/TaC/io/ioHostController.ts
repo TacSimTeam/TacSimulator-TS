@@ -27,8 +27,8 @@ export class IOHostController implements IIOHostController {
 
   input(addr: number): number {
     let val = 0;
-    // console.log(`MEMORY <- IO[0x${addr.toString(16)}]`);
 
+    // console.log(`MEMORY <- IO[0x${addr.toString(16)}]`);
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
         return this.timer0.getCounter();
@@ -45,7 +45,6 @@ export class IOHostController implements IIOHostController {
         }
         return val;
       case io.FT232RL_RECEIVE_SERVE:
-        console.log(`MEMORY <- IO[0x${addr.toString(16)}](0x${this.ft232rl.receive().toString(16)})`);
         return this.ft232rl.receive();
       case io.FT232RL_STAT_CTRL:
         if (this.ft232rl.isWriteable()) {
@@ -63,7 +62,10 @@ export class IOHostController implements IIOHostController {
           val |= 0x0040;
         }
         if (!window.electronAPI.isSDImageLoaded()) {
-          /* SDカードが挿入されていないことを通知する */
+          /**
+           * SDカードが挿入されていないことを通知する
+           * 挿入されていなければLSBを1にして返す
+           */
           val |= 0x0001;
         }
         return val;
@@ -123,6 +125,7 @@ export class IOHostController implements IIOHostController {
       case io.CONSOLE_FUNCREG_00:
         return this.console.getFuncSwitchValue();
       default:
+        /* 対応していないアドレスの場合は0を返す */
         return 0;
     }
   }
@@ -240,8 +243,6 @@ export class IOHostController implements IIOHostController {
         break;
       case io.CONSOLE_DATASW_DATAREG:
         this.console.setLEDValue(val);
-        break;
-      default:
         break;
     }
   }
