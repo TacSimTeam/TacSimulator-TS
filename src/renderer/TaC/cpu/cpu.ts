@@ -1,11 +1,10 @@
 import { REGISTER_FLAG, REGISTER_FP, REGISTER_SP } from './register';
-import { IDataBus, IIntrController, IPrivModeSignal, IIOHostController } from '../interface';
+import { IDataBus, IIntrController, IPrivModeSignal, IIOHostController, IRegister } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
 import { TlbMissError } from '../error';
 import { opcodeToString, regNumToString } from '../debug/instruction';
-import { IRegister } from '../interface/register';
 
 const FLAG_E = 0x80;
 const FLAG_P = 0x40;

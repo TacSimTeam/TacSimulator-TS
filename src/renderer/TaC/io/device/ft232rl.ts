@@ -45,7 +45,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     return !this.emptyFlag;
   }
 
-  /**
+  /*
    * setSendableIntrFlag()とsetReceivableIntrFlag()についてのメモ
    *
    * 実際のTaCではSIO内の割込み許可フラグとemptyフラグのANDの
