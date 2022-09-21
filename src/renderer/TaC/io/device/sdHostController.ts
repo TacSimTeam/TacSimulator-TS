@@ -3,9 +3,6 @@ import * as intr from '../../interrupt/interruptNum';
 
 const SECTOR_SIZE = 512;
 
-/**
- * TaCのマイクロSDホストコントローラを再現したもの
- */
 export class SdHostController implements IIOSdHostController {
   /* アイドル状態かどうか(falseなら処理中) */
   private idleFlag: boolean;
