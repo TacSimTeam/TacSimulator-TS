@@ -71,7 +71,7 @@ export class Cpu {
     /* 割り込み判定 */
     if (this.evalFlag(FLAG_E) || this.intrHost.isOccurredException()) {
       const intrNum = this.intrHost.checkIntrNum();
-      if (intrNum !== -1) {
+      if (intrNum !== null) {
         console.log(`interrupt : ${intrNum}`);
         this.handleInterrupt(intrNum);
       }

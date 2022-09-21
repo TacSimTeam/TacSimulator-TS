@@ -2,6 +2,7 @@ import { IIntrController } from '../interface/';
 import * as intr from './interruptNum';
 
 export class IntrController implements IIntrController {
+  /* 割込みフラグをまとめた配列 */
   private intrFlags: boolean[];
 
   constructor() {
@@ -13,10 +14,11 @@ export class IntrController implements IIntrController {
     this.intrFlags[intrNum] = true;
   }
 
-  checkIntrNum(): number {
+  checkIntrNum(): number | null {
     for (let i = intr.EXCP_TLB_MISS; i <= intr.EXCP_SVC; i++) {
       /* 例外の方が優先度高いので先に見る */
       if (this.intrFlags[i]) {
+        /* 確認した割込みはfalseに戻す */
         this.intrFlags[i] = false;
         return i;
       }
@@ -27,7 +29,9 @@ export class IntrController implements IIntrController {
         return i;
       }
     }
-    return -1;
+
+    /* 割込みが発生していないときはnullを返す */
+    return null;
   }
 
   isOccurredException(): boolean {
