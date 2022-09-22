@@ -16,16 +16,20 @@
 - [webpack](https://webpack.js.org/)  
   静的ファイルを1つにまとめるツール. レンダラープロセス用のJavaScriptコードをまとめるのに用いる.
 
-### npm scripts
-```
-npm start  // アプリを実行する(ビルドはしない)
-npm test   // テスト実行
-npm run dev        // ビルドしてから開発者モードで実行する
-npm run clean      // ビルド結果のファイルを削除する
-npm run build:mac  // MacOS用のパッケージを作成する
-npm run build:win  // Windows用のパッケージを作成する
+### ビルド＆実行
+```shell
+git clone https://github.com/TacSimTeam/TacSimulator-TS.git
+git checkout develop
+npm ci  // 依存ツールを全てダウンロード
+npm run compile  // ts->jsへのトランスパイル
+npm start
 ```
 
 ### タスク
-- [ ] 過去のTacSimulatorのプログラムを移植する
-- [ ] MMUを追加する
+- [x] 8queenテストが動作する
+- [x] SioEchoテストが動作する
+- [ ] MMUテストが動作する
+- [ ] 組み込み用TacOSが動作する
+- [ ] CPUのテストを記述し動作確認する
+- [ ] コンソールのスイッチ、ランプが正しく動作する
+- [ ] 動作音が出る
