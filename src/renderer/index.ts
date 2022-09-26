@@ -10,19 +10,27 @@ const terminal = document.getElementById('terminal') as HTMLTextAreaElement;
 const ctx = canvas.getContext('2d');
 assertIsDefined(ctx);
 
+const tac = new Tac(ctx, terminal);
+
+/* TaCコンソールがクリックされた時の動作 */
+canvas.addEventListener('mousedown', (e) => {
+  const x = e.clientX - canvas.getBoundingClientRect().left;
+  const y = e.clientY - canvas.getBoundingClientRect().top;
+
+  tac.onClick(x, y);
+});
+
 const openBtn = document.getElementById('btn-openFile');
 assertIsDefined(openBtn);
 
-const filePathElement = document.getElementById('filePath');
-assertIsDefined(filePathElement);
-
-const loadingMsg = document.getElementById('loading');
-assertIsDefined(loadingMsg);
-
-const tac = new Tac(ctx, terminal);
-
 /* 「Open a File」ボタンが押された時の動作 */
 openBtn.addEventListener('click', async () => {
+  const filePathElement = document.getElementById('filePath');
+  assertIsDefined(filePathElement);
+
+  const loadingMsg = document.getElementById('loading');
+  assertIsDefined(loadingMsg);
+
   const filePath = await window.electronAPI.getSDImagePath();
 
   if (filePath === undefined) {
@@ -43,12 +51,4 @@ openBtn.addEventListener('click', async () => {
         console.log('ファイルが正常に読み込まれませんでした');
       });
   }
-});
-
-/* TaCコンソールがクリックされた時の動作 */
-canvas.addEventListener('mousedown', (e) => {
-  const x = e.clientX - canvas.getBoundingClientRect().left;
-  const y = e.clientY - canvas.getBoundingClientRect().top;
-
-  tac.onClick(x, y);
 });

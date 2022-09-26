@@ -5,9 +5,13 @@
  * このインターフェースを実装する機器の関数を指定する
  */
 export interface IKeyboardDriver {
-  /* キーが押された時の動作 */
+  /**
+   * キーが押された時の動作
+   */
   inputKeyDown(e: KeyboardEvent): void;
 
-  /* キーが離された時の動作 */
+  /**
+   * キーが離された時の動作
+   */
   inputKeyUp(e: KeyboardEvent): void;
 }
