@@ -107,6 +107,14 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
   }
 
   read16(addr: number) {
+    if (addr % 2 == 1) {
+      /* メモリ保護違反(奇数アドレス) */
+      this.errorAddr = addr;
+      this.errorCause |= ERROR_CAUSE_BAD_ADDRESS;
+      this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+      return 0;
+    }
+
     /* MMUが有効かつ特権モード以外ならp-f変換を行う */
     if (this.mmuMode && !this.privModesignal.getPrivMode()) {
       const page = (addr & 0xff00) >> 8;
@@ -119,18 +127,13 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
       } else if (!this.tlbs[entry].readFlag) {
         /* メモリ保護違反(Readフラグが0) */
         this.errorAddr = addr;
-        this.errorCause = ERROR_CAUSE_MEMORY_VIOLATION;
+        this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
+        this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+        return 0;
       }
 
       const frame = this.tlbs[entry].frame;
       addr = (frame << 8) | (addr & 0x00ff);
-    }
-
-    if (addr % 2 == 1) {
-      this.errorAddr = addr;
-      this.errorCause = ERROR_CAUSE_BAD_ADDRESS;
-      this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
-      return 0;
     }
 
     return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
