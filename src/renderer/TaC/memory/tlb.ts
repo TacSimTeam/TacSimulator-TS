@@ -3,6 +3,8 @@ export type TlbEntry = {
   frame: number;
 
   validFlag: boolean;
+  undefinedFlag1: boolean;
+  undefinedFlag2: boolean;
   referenceFlag: boolean;
   dirtyFlag: boolean;
   readFlag: boolean;
@@ -15,6 +17,12 @@ export function tlbObjToNum(tlbObj: TlbEntry): number {
 
   if (tlbObj.validFlag) {
     entryNum |= 1 << 15;
+  }
+  if (tlbObj.undefinedFlag1) {
+    entryNum |= 1 << 14;
+  }
+  if (tlbObj.undefinedFlag2) {
+    entryNum |= 1 << 13;
   }
   if (tlbObj.referenceFlag) {
     entryNum |= 1 << 12;
@@ -42,6 +50,8 @@ export function tlbNumToObj(tlbNum: number): TlbEntry {
     page: (tlbNum >> 16) & 0xff,
     frame: tlbNum & 0xff,
     validFlag: !!(tlbNum & (1 << 15)),
+    undefinedFlag1: !!(tlbNum & (1 << 14)),
+    undefinedFlag2: !!(tlbNum & (1 << 13)),
     referenceFlag: !!(tlbNum & (1 << 12)),
     dirtyFlag: !!(tlbNum & (1 << 11)),
     readFlag: !!(tlbNum & (1 << 10)),

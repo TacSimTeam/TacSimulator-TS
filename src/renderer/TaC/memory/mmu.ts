@@ -54,6 +54,8 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
         page: 0,
         frame: 0,
         validFlag: false,
+        undefinedFlag1: false,
+        undefinedFlag2: false,
         referenceFlag: false,
         dirtyFlag: false,
         readFlag: false,

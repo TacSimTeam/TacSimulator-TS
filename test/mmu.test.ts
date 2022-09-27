@@ -46,7 +46,7 @@ test('MMU read/write test', () => {
   expect(mmu.read16(0x4000)).toBe(0x5600);
 });
 
-test('IPL loading Test', () => {
+test('IPL loading test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
   const privSig = new PrivModeSignal();
@@ -82,35 +82,16 @@ test('IPL loading Test', () => {
   expect(mmu.read16(0xfffe)).toBe(0x4321);
 });
 
-test('MMU p-f conversion test', () => {
+test('MMU setting TLB entry test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
   const privSig = new PrivModeSignal();
   const mmu = new Mmu(memory, intrController, privSig);
-  mmu.enable();
 
-  privSig.setPrivMode(false);
-
-  mmu.setTlbHigh8(0, 0x10); // Page : 0x10
-  mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
-
-  mmu.setTlbHigh8(1, 0x20); // Page : 0x20
-  mmu.setTlbLow16(1, 0x87aa); // Frame : 0xaa, Valid, RWX = 1
-
-  memory.write16(0x5522, 0x1234);
-  memory.write16(0xaa44, 0x4321);
-
-  expect(mmu.read16(0x1022)).toBe(0x1234); // p : 0x10 -> f : 0x55
-  expect(mmu.read16(0x2044)).toBe(0x4321); // p : 0x20 -> f : 0xaa
-
-  /* 特権モードのときp-f変換は行わない */
-  privSig.setPrivMode(true);
-
-  memory.write16(0x1022, 0x6666);
-  memory.write16(0x2044, 0x7777);
-
-  expect(mmu.read16(0x1022)).toBe(0x6666);
-  expect(mmu.read16(0x2044)).toBe(0x7777);
+  mmu.setTlbHigh8(1, 0xff);
+  mmu.setTlbLow16(1, 0xffff);
+  expect(mmu.getTlbHigh8(1)).toBe(0x00ff);
+  expect(mmu.getTlbLow16(1)).toBe(0xffff);
 });
 
 test('MMU read test', () => {
