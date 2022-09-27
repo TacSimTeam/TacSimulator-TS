@@ -7,18 +7,20 @@ class BaseError extends Error {
   }
 }
 
+/**
+ * TLBミスが発生したときに投げる例外
+ * MMUを介してメモリアクセスする機器(CPUが該当する)は
+ * 適切に処理する必要がある
+ */
 export class TlbMissError extends BaseError {
   constructor() {
     super('TLB miss error');
   }
 }
 
-export class InvalidMemoryAccessError extends BaseError {
-  constructor() {
-    super('Invalid memory access error');
-  }
-}
-
+/**
+ * ROMになっているメモリを書き替えようとしたときに投げる例外
+ */
 export class ReadonlyError extends BaseError {
   constructor() {
     super('Read-only memory error');
