@@ -1,7 +1,7 @@
 import { TlbEntry, tlbObjToNum, tlbNumToObj } from '../src/renderer/TaC/memory/tlb';
 
 test('tlbObjToNum() Test', () => {
-  const entryObj: TlbEntry = {
+  let entryObj: TlbEntry = {
     page: 0x22,
     frame: 0xcc,
     validFlag: true,
@@ -11,7 +11,21 @@ test('tlbObjToNum() Test', () => {
     writeFlag: true,
     executeFlag: false,
   };
-  const entryNum = 0x00228acc;
+  let entryNum = 0x00228acc;
+
+  expect(tlbObjToNum(entryObj)).toBe(entryNum);
+
+  entryObj = {
+    page: 0xaa,
+    frame: 0xdd,
+    validFlag: false,
+    referenceFlag: true,
+    dirtyFlag: false,
+    readFlag: true,
+    writeFlag: false,
+    executeFlag: true,
+  };
+  entryNum = 0x00aa15dd;
 
   expect(tlbObjToNum(entryObj)).toBe(entryNum);
 });
