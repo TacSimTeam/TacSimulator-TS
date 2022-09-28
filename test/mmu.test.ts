@@ -74,6 +74,65 @@ test('Setting TLB entries test', () => {
   expect(mmu.getTlbLow16(1)).toBe(0xffff);
 });
 
+test('MMU read 1byte data test', () => {
+  const memory = new Memory();
+  const intrController = new IntrController();
+  const privSig = new PrivModeSignal();
+  const mmu = new Mmu(memory, intrController, privSig);
+  privSig.setPrivMode(false);
+
+  /* MMU無効の場合 */
+  memory.write16(0x1000, 0x0123);
+  expect(mmu.read8(0x1001)).toBe(0x23);
+
+  /* MMU有効の場合 */
+  mmu.enable();
+
+  /* 正常な動作 */
+  mmu.setTlbHigh8(0, 0x10); // Page : 0x10
+  mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
+
+  memory.write8(0x5511, 0x33);
+  expect(mmu.read8(0x1011)).toBe(0x33); // p : 0x10 -> f : 0x55
+
+  /* Validフラグが0のときTLBミスになる */
+  mmu.setTlbHigh8(1, 0x20); // Page : 0x20
+  mmu.setTlbLow16(1, 0x07aa); // Frame : 0xaa, Invalid, RWX = 1
+  memory.write8(0xaa33, 0x44);
+
+  expect(() => {
+    mmu.read8(0x2033); // p : 0x20 -> f : 0xaa(ただしエラーになるはず)
+  }).toThrowError('TLB miss error');
+  expect(mmu.getTlbMissPage()).toBe(0x20);
+  expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
+
+  /* TLBエントリが存在しないときTLBミスになる */
+  expect(() => {
+    mmu.read8(0xff55); // p : 0xff(存在しない) -> ?
+  }).toThrowError('TLB miss error');
+  expect(mmu.getTlbMissPage()).toBe(0xff);
+  expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
+
+  /* メモリ保護違反(Readフラグが0) */
+  mmu.setTlbHigh8(0, 0x30); // Page : 0x30
+  mmu.setTlbLow16(0, 0x8399); // Frame : 0x99, Valid, R = 0, WX = 1
+
+  memory.write8(0x9977, 0x55);
+  expect(mmu.read8(0x3077)).toBe(0); // p : 0x30 -> f : 0x99(ただしR=0なので読めない)
+  expect(mmu.getErrorAddr()).toBe(0x3077);
+  expect(mmu.getErrorCause()).toBe(1);
+  expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
+
+  /* MMUが有効でも特権モードのときはp-f変換しない */
+  privSig.setPrivMode(true);
+
+  mmu.setTlbHigh8(0, 0x10); // Page : 0x10
+  mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
+
+  memory.write8(0x5599, 0x77);
+  expect(mmu.read8(0x1099)).not.toBe(0x77); // p : 0x10 -> f : 0x55
+});
+
 test('MMU read 2byte data test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
@@ -140,6 +199,65 @@ test('MMU read 2byte data test', () => {
 
   memory.write16(0x5522, 0x1234);
   expect(mmu.read16(0x1022)).not.toBe(0x1234); // p : 0x10 -> f : 0x55
+});
+
+test('MMU write 1byte data test', () => {
+  const memory = new Memory();
+  const intrController = new IntrController();
+  const privSig = new PrivModeSignal();
+  const mmu = new Mmu(memory, intrController, privSig);
+  privSig.setPrivMode(false);
+
+  /* MMU無効の場合 */
+  mmu.write8(0x1000, 0x12);
+  expect(memory.read16(0x1000)).toBe(0x1200);
+
+  /* MMU有効の場合 */
+  mmu.enable();
+
+  /* 正常な動作 */
+  mmu.setTlbHigh8(0, 0x10); // Page : 0x10
+  mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
+
+  mmu.write8(0x1011, 0x22); // p : 0x10 -> f : 0x55
+  expect(memory.read8(0x5511)).toBe(0x22);
+
+  /* Validフラグが0のときTLBミスになる */
+  mmu.setTlbHigh8(1, 0x20); // Page : 0x20
+  mmu.setTlbLow16(1, 0x07aa); // Frame : 0xaa, Invalid, RWX = 1
+
+  expect(() => {
+    mmu.write8(0x2033, 0x44); // p : 0x20 -> f : 0xaa(ただしエラーになるはず)
+  }).toThrowError('TLB miss error');
+  expect(memory.read8(0xaa33)).not.toBe(0x44);
+  expect(mmu.getTlbMissPage()).toBe(0x20);
+  expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
+
+  /* TLBエントリが存在しないときTLBミスになる */
+  expect(() => {
+    mmu.write8(0xff55, 0x66); // p : 0xff(存在しない) -> ?
+  }).toThrowError('TLB miss error');
+  expect(mmu.getTlbMissPage()).toBe(0xff);
+  expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
+
+  /* メモリ保護違反(Writeフラグが0) */
+  mmu.setTlbHigh8(0, 0x30); // Page : 0x30
+  mmu.setTlbLow16(0, 0x8599); // Frame : 0x99, Valid, RX = 1, W = 0
+
+  mmu.write8(0x3077, 0x88); // p : 0x30 -> f : 0x99(ただしR=0なので書けない)
+  expect(memory.read16(0x9977)).not.toBe(0x88);
+  expect(mmu.getErrorAddr()).toBe(0x3077);
+  expect(mmu.getErrorCause()).toBe(1);
+  expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
+
+  /* MMUが有効でも特権モードのときはp-f変換しない */
+  privSig.setPrivMode(true);
+
+  mmu.setTlbHigh8(0, 0x10); // Page : 0x10
+  mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
+
+  mmu.write8(0x1099, 0xaa);
+  expect(mmu.read8(0x1099)).toBe(0xaa);
 });
 
 test('MMU write 2byte data test', () => {
