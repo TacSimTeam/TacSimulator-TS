@@ -8,21 +8,15 @@ import * as intr from '../src/renderer/TaC/interrupt/interruptNum';
 test('Memory read/write test', () => {
   const memory = new Memory();
 
-  memory.write16(0x1000, 10);
-  expect(memory.read16(0x1000)).toBe(10);
+  memory.write16(0x1000, 0x1234);
+  expect(memory.read16(0x1000)).toBe(0x1234);
   expect(memory.read16(0x2000)).toBe(0);
 
-  memory.write16(0xa000, 0x1234);
-  expect(memory.read16(0xa000)).toBe(0x1234);
-
-  memory.write16(0x4000, 0x5678);
-  expect(memory.read8(0x4000 + 0)).toBe(0x0056);
-  expect(memory.read8(0x4000 + 1)).toBe(0x0078);
-
-  memory.write8(0x4000 + 1, 0x00);
-  expect(memory.read16(0x4000)).toBe(0x5600);
-
-  expect(memory.getMemorySize()).toBe(64 * 1024);
+  memory.write16(0x3000, 0x5678);
+  expect(memory.read8(0x3000 + 0)).toBe(0x0056);
+  expect(memory.read8(0x3000 + 1)).toBe(0x0078);
+  memory.write8(0x3000 + 1, 0x00);
+  expect(memory.read16(0x3000)).toBe(0x5600);
 });
 
 test('IPL loading test', () => {
@@ -32,19 +26,18 @@ test('IPL loading test', () => {
   const mmu = new Mmu(memory, intrController, privSig);
   mmu.loadIpl();
 
-  /* IPLが正常に読み込まれているかのテスト */
-  const f1 = (mmu: Mmu) => {
+  /* IPLが正常に読み込まれているか */
+  const f1 = (memory: Memory) => {
     for (let i = 0; i < ipl.length; i++) {
-      if (mmu.read16(0xe000 + i * 2) !== ipl[i]) {
+      if (memory.read16(0xe000 + i * 2) !== ipl[i]) {
         return false;
       }
     }
     return true;
   };
+  expect(f1(memory)).toBe(true);
 
-  expect(f1(mmu)).toBe(true);
-
-  /* 0xe000~0xffffがROMになっているかのテスト */
+  /* 0xe000~0xffffがROMになっているか */
   expect(() => {
     mmu.write16(0xe000, 0x1234);
   }).toThrowError();
@@ -52,10 +45,12 @@ test('IPL loading test', () => {
     mmu.write16(0xfffe, 0x4321);
   }).toThrowError();
 
+  /* IPL切り離しテスト */
   mmu.detachIpl();
   expect(mmu.read16(0xe000)).toBe(0);
+  expect(mmu.read16(0xfffe)).toBe(0);
 
-  /* 0xe000~0xffffがRAMになっているかのテスト */
+  /* IPL切り離し後, 0xe000~0xffffがRAMになっているか */
   mmu.write16(0xe000, 0x1234);
   expect(mmu.read16(0xe000)).toBe(0x1234);
   mmu.write16(0xfffe, 0x4321);
@@ -68,6 +63,7 @@ test('Setting TLB entries test', () => {
   const privSig = new PrivModeSignal();
   const mmu = new Mmu(memory, intrController, privSig);
 
+  /* TLBエントリの設定が正しくできるか */
   mmu.setTlbHigh8(1, 0xff);
   mmu.setTlbLow16(1, 0xffff);
   expect(mmu.getTlbHigh8(1)).toBe(0x00ff);
@@ -80,20 +76,14 @@ test('MMU read 1byte data test', () => {
   const privSig = new PrivModeSignal();
   const mmu = new Mmu(memory, intrController, privSig);
   privSig.setPrivMode(false);
-
-  /* MMU無効の場合 */
-  memory.write16(0x1000, 0x0123);
-  expect(mmu.read8(0x1001)).toBe(0x23);
-
-  /* MMU有効の場合 */
   mmu.enable();
 
   /* 正常な動作 */
   mmu.setTlbHigh8(0, 0x10); // Page : 0x10
   mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
 
-  memory.write8(0x5511, 0x33);
-  expect(mmu.read8(0x1011)).toBe(0x33); // p : 0x10 -> f : 0x55
+  memory.write8(0x5511, 0x22);
+  expect(mmu.read8(0x1011)).toBe(0x22); // p : 0x10 -> f : 0x55
 
   /* Validフラグが0のときTLBミスになる */
   mmu.setTlbHigh8(1, 0x20); // Page : 0x20
@@ -108,29 +98,29 @@ test('MMU read 1byte data test', () => {
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
-    mmu.read8(0xff55); // p : 0xff(存在しない) -> ?
+    mmu.read8(0x3055); // p : 0x30(存在しない) -> ?
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0xff);
+  expect(mmu.getTlbMissPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Readフラグが0) */
-  mmu.setTlbHigh8(0, 0x30); // Page : 0x30
+  mmu.setTlbHigh8(0, 0x40); // Page : 0x40
   mmu.setTlbLow16(0, 0x8399); // Frame : 0x99, Valid, R = 0, WX = 1
 
   memory.write8(0x9977, 0x55);
-  expect(mmu.read8(0x3077)).toBe(0); // p : 0x30 -> f : 0x99(ただしR=0なので読めない)
-  expect(mmu.getErrorAddr()).toBe(0x3077);
+  expect(mmu.read8(0x4077)).toBe(0); // p : 0x40 -> f : 0x99(ただしR=0なので読めない)
+  expect(mmu.getErrorAddr()).toBe(0x4077);
   expect(mmu.getErrorCause()).toBe(1);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
 
   /* MMUが有効でも特権モードのときはp-f変換しない */
   privSig.setPrivMode(true);
 
-  mmu.setTlbHigh8(0, 0x10); // Page : 0x10
+  mmu.setTlbHigh8(0, 0x50); // Page : 0x50
   mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
 
   memory.write8(0x5599, 0x77);
-  expect(mmu.read8(0x1099)).not.toBe(0x77); // p : 0x10 -> f : 0x55
+  expect(mmu.read8(0x5099)).not.toBe(0x77); // p : 0x50 -> f : 0x55
 });
 
 test('MMU read 2byte data test', () => {
@@ -139,25 +129,19 @@ test('MMU read 2byte data test', () => {
   const privSig = new PrivModeSignal();
   const mmu = new Mmu(memory, intrController, privSig);
   privSig.setPrivMode(false);
-
-  /* MMU無効の場合 */
-  memory.write16(0x1000, 10);
-  expect(mmu.read16(0x1000)).toBe(10);
-
-  /* MMU有効の場合 */
   mmu.enable();
 
   /* 正常な動作 */
   mmu.setTlbHigh8(0, 0x10); // Page : 0x10
   mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
 
-  memory.write16(0x5522, 0x1234);
-  expect(mmu.read16(0x1022)).toBe(0x1234); // p : 0x10 -> f : 0x55
+  memory.write16(0x5500, 0x1111);
+  expect(mmu.read16(0x1000)).toBe(0x1111); // p : 0x10 -> f : 0x55
 
   /* Validフラグが0のときTLBミスになる */
   mmu.setTlbHigh8(1, 0x20); // Page : 0x20
   mmu.setTlbLow16(1, 0x07aa); // Frame : 0xaa, Invalid, RWX = 1
-  memory.write16(0xaa44, 0x1234);
+  memory.write16(0xaa44, 0x2222);
 
   expect(() => {
     mmu.read16(0x2044); // p : 0x20 -> f : 0xaa(ただしエラーになるはず)
@@ -167,18 +151,18 @@ test('MMU read 2byte data test', () => {
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
-    mmu.read16(0xff66); // p : 0xff(存在しない) -> ?
+    mmu.read16(0x3066); // p : 0x30(存在しない) -> ?
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0xff);
+  expect(mmu.getTlbMissPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Readフラグが0) */
-  mmu.setTlbHigh8(0, 0x30); // Page : 0x30
+  mmu.setTlbHigh8(0, 0x40); // Page : 0x40
   mmu.setTlbLow16(0, 0x8399); // Frame : 0x99, Valid, R = 0, WX = 1
 
-  memory.write16(0x9988, 0x1234);
-  expect(mmu.read16(0x3088)).toBe(0); // p : 0x30 -> f : 0x99(ただしR=0なので読めない)
-  expect(mmu.getErrorAddr()).toBe(0x3088);
+  memory.write16(0x9988, 0x3333);
+  expect(mmu.read16(0x4088)).toBe(0); // p : 0x40 -> f : 0x99(ただしR=0なので読めない)
+  expect(mmu.getErrorAddr()).toBe(0x4088);
   expect(mmu.getErrorCause()).toBe(1);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
 
@@ -207,12 +191,6 @@ test('MMU write 1byte data test', () => {
   const privSig = new PrivModeSignal();
   const mmu = new Mmu(memory, intrController, privSig);
   privSig.setPrivMode(false);
-
-  /* MMU無効の場合 */
-  mmu.write8(0x1000, 0x12);
-  expect(memory.read16(0x1000)).toBe(0x1200);
-
-  /* MMU有効の場合 */
   mmu.enable();
 
   /* 正常な動作 */
@@ -235,29 +213,30 @@ test('MMU write 1byte data test', () => {
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
-    mmu.write8(0xff55, 0x66); // p : 0xff(存在しない) -> ?
+    mmu.write8(0x3055, 0x66); // p : 0x30(存在しない) -> ?
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0xff);
+  expect(mmu.getTlbMissPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Writeフラグが0) */
-  mmu.setTlbHigh8(0, 0x30); // Page : 0x30
+  mmu.setTlbHigh8(0, 0x40); // Page : 0x40
   mmu.setTlbLow16(0, 0x8599); // Frame : 0x99, Valid, RX = 1, W = 0
 
-  mmu.write8(0x3077, 0x88); // p : 0x30 -> f : 0x99(ただしR=0なので書けない)
-  expect(memory.read16(0x9977)).not.toBe(0x88);
-  expect(mmu.getErrorAddr()).toBe(0x3077);
+  mmu.write8(0x4077, 0x88); // p : 0x40 -> f : 0x99(ただしR=0なので書けない)
+  expect(memory.read16(0x9977)).not.toBe(0x66);
+  expect(mmu.getErrorAddr()).toBe(0x4077);
   expect(mmu.getErrorCause()).toBe(1);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
 
   /* MMUが有効でも特権モードのときはp-f変換しない */
   privSig.setPrivMode(true);
 
-  mmu.setTlbHigh8(0, 0x10); // Page : 0x10
-  mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
+  mmu.setTlbHigh8(0, 0x50); // Page : 0x50
+  mmu.setTlbLow16(0, 0x87cc); // Frame : 0xcc, Valid, RWX = 1
 
-  mmu.write8(0x1099, 0xaa);
-  expect(mmu.read8(0x1099)).toBe(0xaa);
+  mmu.write8(0x5099, 0xaa);
+  expect(mmu.read8(0x5099)).toBe(0xaa);
+  expect(mmu.read8(0xcc99)).not.toBe(0xaa);
 });
 
 test('MMU write 2byte data test', () => {
@@ -266,46 +245,40 @@ test('MMU write 2byte data test', () => {
   const privSig = new PrivModeSignal();
   const mmu = new Mmu(memory, intrController, privSig);
   privSig.setPrivMode(false);
-
-  /* MMU無効の場合 */
-  mmu.write16(0x1000, 10);
-  expect(memory.read16(0x1000)).toBe(10);
-
-  /* MMU有効の場合 */
   mmu.enable();
 
   /* 正常な動作 */
   mmu.setTlbHigh8(0, 0x10); // Page : 0x10
   mmu.setTlbLow16(0, 0x8755); // Frame : 0x55, Valid, RWX = 1
 
-  mmu.write16(0x1022, 0x1234); // p : 0x10 -> f : 0x55
-  expect(memory.read16(0x5522)).toBe(0x1234);
+  mmu.write16(0x1022, 0x1111); // p : 0x10 -> f : 0x55
+  expect(memory.read16(0x5522)).toBe(0x1111);
 
   /* Validフラグが0のときTLBミスになる */
   mmu.setTlbHigh8(1, 0x20); // Page : 0x20
   mmu.setTlbLow16(1, 0x07aa); // Frame : 0xaa, Invalid, RWX = 1
 
   expect(() => {
-    mmu.write16(0x2044, 0x2345); // p : 0x20 -> f : 0xaa(ただしエラーになるはず)
+    mmu.write16(0x2044, 0x2222); // p : 0x20 -> f : 0xaa(ただしエラーになるはず)
   }).toThrowError('TLB miss error');
-  expect(memory.read16(0xaa44)).not.toBe(0x2345);
+  expect(memory.read16(0xaa44)).not.toBe(0x2222);
   expect(mmu.getTlbMissPage()).toBe(0x20);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
-    mmu.write16(0xff66, 0x3456); // p : 0xff(存在しない) -> ?
+    mmu.write16(0x3066, 0x3333); // p : 0x30(存在しない) -> ?
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0xff);
+  expect(mmu.getTlbMissPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Writeフラグが0) */
-  mmu.setTlbHigh8(0, 0x30); // Page : 0x30
+  mmu.setTlbHigh8(0, 0x40); // Page : 0x40
   mmu.setTlbLow16(0, 0x8599); // Frame : 0x99, Valid, RX = 1, W = 0
 
-  mmu.write16(0x3088, 0x4567); // p : 0x30 -> f : 0x99(ただしR=0なので書けない)
-  expect(memory.read16(0x9988)).not.toBe(0x4567);
-  expect(mmu.getErrorAddr()).toBe(0x3088);
+  mmu.write16(0x4088, 0x4444); // p : 0x40 -> f : 0x99(ただしR=0なので書けない)
+  expect(memory.read16(0x9988)).not.toBe(0x4444);
+  expect(mmu.getErrorAddr()).toBe(0x4088);
   expect(mmu.getErrorCause()).toBe(1);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
 
