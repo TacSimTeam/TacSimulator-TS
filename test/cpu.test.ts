@@ -60,25 +60,6 @@ test('Sign extension Test', () => {
   expect(cpu['extSignedInt4'](0b1111)).toBe(0xffff);
 });
 
-test('Converting unsigned int4 to signed int test', () => {
-  expect(cpu['convSignedInt4'](0b0000)).toBe(0);
-  expect(cpu['convSignedInt4'](0b0001)).toBe(1);
-  expect(cpu['convSignedInt4'](0b0010)).toBe(2);
-  expect(cpu['convSignedInt4'](0b0011)).toBe(3);
-  expect(cpu['convSignedInt4'](0b0100)).toBe(4);
-  expect(cpu['convSignedInt4'](0b0101)).toBe(5);
-  expect(cpu['convSignedInt4'](0b0110)).toBe(6);
-  expect(cpu['convSignedInt4'](0b0111)).toBe(7);
-  expect(cpu['convSignedInt4'](0b1000)).toBe(-8);
-  expect(cpu['convSignedInt4'](0b1001)).toBe(-7);
-  expect(cpu['convSignedInt4'](0b1010)).toBe(-6);
-  expect(cpu['convSignedInt4'](0b1011)).toBe(-5);
-  expect(cpu['convSignedInt4'](0b1100)).toBe(-4);
-  expect(cpu['convSignedInt4'](0b1101)).toBe(-3);
-  expect(cpu['convSignedInt4'](0b1110)).toBe(-2);
-  expect(cpu['convSignedInt4'](0b1111)).toBe(-1);
-});
-
 test('CPU effective address calclation test', () => {
   cpu['setPC'](0);
 

@@ -75,7 +75,6 @@ export class Cpu {
     if (this.evalFlag(FLAG_E) || this.intrHost.isOccurredException()) {
       const intrNum = this.intrHost.checkIntrNum();
       if (intrNum !== null) {
-        console.log(`interrupt : ${intrNum}`);
         this.handleInterrupt(intrNum);
       }
     }
@@ -97,7 +96,7 @@ export class Cpu {
     /* 実効アドレス計算 */
     inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
 
-    // this.debugPrint(inst);
+    this.debugPrint(inst);
 
     /* 命令実行(TLBミスが発生する可能性有り) */
     try {
@@ -142,7 +141,7 @@ export class Cpu {
       case ADDRMODE_INDEXED:
         return data + this.readReg(rx);
       case ADDRMODE_FP_RELATIVE:
-        return this.readReg(REGISTER_FP) + this.convSignedInt4(rx) * 2;
+        return (this.readReg(REGISTER_FP) + this.extSignedInt4(rx) * 2) & 0xffff;
       case ADDRMODE_REG_INDIRECT:
       case ADDRMODE_BYTE_REG_INDIRECT:
         return this.readReg(rx);
@@ -275,9 +274,6 @@ export class Cpu {
   private instrCalculation(inst: Instruction) {
     const v1 = this.readReg(inst.rd);
     const v2 = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
-    // if (inst.addrMode === ADDRMODE_SHORT_IMMEDIATE && opcode.SHLA <= v2 && v2 <= opcode.SHRL) {
-    //   v2 = inst.rx;
-    // }
 
     const ans = this.alu.calc(inst.opcode, v1, v2);
     this.changeFlag(inst.opcode, ans, v1, v2);
@@ -488,14 +484,6 @@ export class Cpu {
     this.pc += 2;
   }
 
-  /* 符号無し4bit整数を符号付き整数に変換する */
-  private convSignedInt4(val: number) {
-    if ((val & 0x08) !== 0) {
-      val = (val & 0x07) - 8;
-    }
-    return val;
-  }
-
   /* 4bitの値を符号付き16bitに符号拡張する */
   private extSignedInt4(val: number) {
     if ((val & 0x08) !== 0) {
@@ -556,17 +544,12 @@ export class Cpu {
   private kernelFlag: boolean;
 
   private debugPrint(inst: Instruction) {
-    // if (this.pc === 0 && this.kernelFlag === false) {
-    //   this.kernelFlag = true;
-    // }
-    // if (this.kernelFlag) {
     this.cnt++;
     console.log(
       `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
         inst.rd
       )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
     );
-    // }
   }
 
   reset() {

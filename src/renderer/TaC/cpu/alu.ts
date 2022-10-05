@@ -40,14 +40,18 @@ export class Alu implements IAlu {
         return v1 % v2;
       case opcode.SHLA:
       case opcode.SHLL:
-        return v1 << v2;
+        /**
+         * シフト命令ではv2の符号に関わらず下位4bitをシフトするbit数として使用する
+         * そのためにv2と0x0fのANDをとっている
+         */
+        return v1 << (v2 & 0x0f);
       case opcode.SHRA:
         if ((v1 & 0x8000) != 0) {
-          return (v1 | ~0xffff) >> v2;
+          return (v1 | ~0xffff) >> (v2 & 0x0f);
         }
-        return v1 >> v2;
+        return v1 >> (v2 & 0x0f);
       case opcode.SHRL:
-        return v1 >>> v2;
+        return v1 >>> (v2 & 0x0f);
     }
     return 0;
   }
