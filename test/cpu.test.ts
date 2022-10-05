@@ -2,10 +2,11 @@ import { Memory } from '../src/renderer/TaC/memory/memory';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
 import { PrivModeSignal } from '../src/renderer/TaC/cpu/privModeSignal';
 import { Cpu } from '../src/renderer/TaC/cpu/cpu';
+import { Alu } from '../src/renderer/TaC/cpu/alu';
+import { REGISTER_G0, REGISTER_G1, REGISTER_G2, REGISTER_FP, Register } from '../src/renderer/TaC/cpu/register';
 import { Instruction } from '../src/renderer/TaC/cpu/instruction/instruction';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
 import { IIOHostController } from '../src/renderer/TaC/interface';
-import { REGISTER_G0, REGISTER_G1, REGISTER_G2, REGISTER_FP, Register } from '../src/renderer/TaC/cpu/register';
 import * as opcode from '../src/renderer/TaC/cpu/instruction/opcode';
 
 const io: IIOHostController = {
@@ -21,7 +22,8 @@ const intrController = new IntrController();
 const privSig = new PrivModeSignal();
 const mmu = new Mmu(new Memory(), intrController, privSig);
 const register = new Register(privSig);
-const cpu = new Cpu(register, mmu, intrController, io, privSig);
+const alu = new Alu(intrController);
+const cpu = new Cpu(mmu, register, alu, intrController, io, privSig);
 
 test('CPU instruction decode test', () => {
   /* LD G0, Addr */
@@ -39,7 +41,26 @@ test('CPU instruction decode test', () => {
   expect(inst.rx).toBe(10);
 });
 
-test('Converting unsigned int4 to signed int4 Test', () => {
+test('Sign extension Test', () => {
+  expect(cpu['extSignedInt4'](0b0000)).toBe(0b0000);
+  expect(cpu['extSignedInt4'](0b0001)).toBe(0b0001);
+  expect(cpu['extSignedInt4'](0b0010)).toBe(0b0010);
+  expect(cpu['extSignedInt4'](0b0011)).toBe(0b0011);
+  expect(cpu['extSignedInt4'](0b0100)).toBe(0b0100);
+  expect(cpu['extSignedInt4'](0b0101)).toBe(0b0101);
+  expect(cpu['extSignedInt4'](0b0110)).toBe(0b0110);
+  expect(cpu['extSignedInt4'](0b0111)).toBe(0b0111);
+  expect(cpu['extSignedInt4'](0b1000)).toBe(0xfff8);
+  expect(cpu['extSignedInt4'](0b1001)).toBe(0xfff9);
+  expect(cpu['extSignedInt4'](0b1010)).toBe(0xfffa);
+  expect(cpu['extSignedInt4'](0b1011)).toBe(0xfffb);
+  expect(cpu['extSignedInt4'](0b1100)).toBe(0xfffc);
+  expect(cpu['extSignedInt4'](0b1101)).toBe(0xfffd);
+  expect(cpu['extSignedInt4'](0b1110)).toBe(0xfffe);
+  expect(cpu['extSignedInt4'](0b1111)).toBe(0xffff);
+});
+
+test('Converting unsigned int4 to signed int test', () => {
   expect(cpu['convSignedInt4'](0b0000)).toBe(0);
   expect(cpu['convSignedInt4'](0b0001)).toBe(1);
   expect(cpu['convSignedInt4'](0b0010)).toBe(2);
@@ -109,7 +130,7 @@ test('CPU loading operand test', () => {
 
   /* ショートイミディエイトモード */
   expect(cpu['loadOperand'](5, 0b0111, 0)).toBe(7);
-  expect(cpu['loadOperand'](5, 0b1000, 0)).toBe(-8);
+  expect(cpu['loadOperand'](5, 0b1000, 0)).toBe(0xfff8);
 
   /* バイトレジスタ・インダイレクトモード */
   mmu.write16(0x2000, 0x5678);

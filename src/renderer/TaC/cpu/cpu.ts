@@ -1,5 +1,5 @@
 import { REGISTER_FLAG, REGISTER_FP, REGISTER_SP } from './register';
-import { IDataBus, IIntrController, IPrivModeSignal, IIOHostController, IRegister } from '../interface';
+import { IDataBus, IIntrController, IPrivModeSignal, IIOHostController, IRegister, IAlu } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
@@ -32,20 +32,23 @@ export class Cpu {
   private isHalt: boolean;
 
   private memory: IDataBus;
-  private intrHost: IIntrController;
   private register: IRegister;
+  private alu: IAlu;
+  private intrHost: IIntrController;
   private ioHost: IIOHostController;
   private privSig: IPrivModeSignal;
 
   constructor(
-    register: IRegister,
     memory: IDataBus,
+    register: IRegister,
+    alu: IAlu,
     intrHost: IIntrController,
     ioHost: IIOHostController,
     privSig: IPrivModeSignal
   ) {
     this.memory = memory;
     this.register = register;
+    this.alu = alu;
 
     this.intrHost = intrHost;
     this.ioHost = ioHost;
@@ -170,7 +173,7 @@ export class Cpu {
       case ADDRMODE_REG_TO_REG:
         return this.readReg(rx);
       case ADDRMODE_SHORT_IMMEDIATE:
-        return this.convSignedInt4(rx);
+        return this.extSignedInt4(rx);
       case ADDRMODE_REG_INDIRECT:
         return this.memory.read16(dsp);
       case ADDRMODE_BYTE_REG_INDIRECT:
@@ -270,71 +273,17 @@ export class Cpu {
   }
 
   private instrCalculation(inst: Instruction) {
-    let ans = 0;
-
     const v1 = this.readReg(inst.rd);
     const v2 = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
+    // if (inst.addrMode === ADDRMODE_SHORT_IMMEDIATE && opcode.SHLA <= v2 && v2 <= opcode.SHRL) {
+    //   v2 = inst.rx;
+    // }
 
-    switch (inst.opcode) {
-      case opcode.ADD:
-        ans = v1 + v2;
-        break;
-      case opcode.SUB:
-      case opcode.CMP:
-        ans = v1 - v2;
-        break;
-      case opcode.AND:
-        ans = v1 & v2;
-        break;
-      case opcode.OR:
-        ans = v1 | v2;
-        break;
-      case opcode.XOR:
-        ans = v1 ^ v2;
-        break;
-      case opcode.ADDS:
-        ans = v1 + v2 * 2;
-        break;
-      case opcode.MUL:
-        ans = v1 * v2;
-        break;
-      case opcode.DIV:
-        if (v2 === 0) {
-          this.intrHost.interrupt(intr.EXCP_ZERO_DIV);
-        } else {
-          ans = v1 / v2;
-        }
-        break;
-      case opcode.MOD:
-        if (v2 === 0) {
-          this.intrHost.interrupt(intr.EXCP_ZERO_DIV);
-        } else {
-          ans = v1 % v2;
-        }
-        break;
-      case opcode.SHLA:
-      case opcode.SHLL:
-        /* SHLA命令とSHLL命令は同じ動作 */
-        /* シフト命令をImm4モードで実行したとき, rxは符号なし4bit整数として扱う... */
-        /* 正しい仕様かどうかは不明 */
-        ans = v1 << inst.rx;
-        break;
-      case opcode.SHRA:
-        if ((v1 & 0x8000) != 0) {
-          ans = (v1 | ~0xffff) >> inst.rx;
-        } else {
-          ans = v1 >> inst.rx;
-        }
-        break;
-      case opcode.SHRL:
-        ans = v1 >>> inst.rx;
-        break;
-    }
-
+    const ans = this.alu.calc(inst.opcode, v1, v2);
     this.changeFlag(inst.opcode, ans, v1, v2);
 
     if (inst.opcode !== opcode.CMP) {
-      this.writeReg(inst.rd, ans & 0xffff);
+      this.writeReg(inst.rd, ans);
     }
 
     this.nextPC();
@@ -539,10 +488,18 @@ export class Cpu {
     this.pc += 2;
   }
 
-  /* valを符号付4bit整数に変換する */
+  /* 符号無し4bit整数を符号付き整数に変換する */
   private convSignedInt4(val: number) {
     if ((val & 0x08) !== 0) {
       val = (val & 0x07) - 8;
+    }
+    return val;
+  }
+
+  /* 4bitの値を符号付き16bitに符号拡張する */
+  private extSignedInt4(val: number) {
+    if ((val & 0x08) !== 0) {
+      val |= 0xfff0;
     }
     return val;
   }

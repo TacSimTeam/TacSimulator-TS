@@ -15,7 +15,7 @@ export class Alu implements IAlu {
         return v1 + v2;
       case opcode.SUB:
       case opcode.CMP:
-        return v1 + (~v2 + 1);
+        return v1 - v2;
       case opcode.AND:
         return v1 & v2;
       case opcode.OR:
@@ -45,7 +45,7 @@ export class Alu implements IAlu {
         if ((v1 & 0x8000) != 0) {
           return (v1 | ~0xffff) >> v2;
         }
-        return v1 >>> v2;
+        return v1 >> v2;
       case opcode.SHRL:
         return v1 >>> v2;
     }

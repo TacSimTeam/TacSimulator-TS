@@ -64,20 +64,20 @@ export class Register implements IRegister {
   write(num: number, val: number) {
     switch (num) {
       case 12:
-        this.fp = val;
+        this.fp = val & 0xffff;
         break;
       case 13:
         if (this.privSig.getPrivMode()) {
-          this.ssp = val;
+          this.ssp = val & 0xffff;
         } else {
-          this.usp = val;
+          this.usp = val & 0xffff;
         }
         break;
       case 14:
-        this.usp = val;
+        this.usp = val & 0xffff;
         break;
       default:
-        this.generals[num] = val;
+        this.generals[num] = val & 0xffff;
     }
   }
 }

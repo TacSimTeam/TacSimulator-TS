@@ -2,13 +2,14 @@ import { Console } from './console/console';
 import { Memory } from './memory/memory';
 import { Mmu } from './memory/mmu';
 import { Cpu } from './cpu/cpu';
+import { Register } from './cpu/register';
+import { Alu } from './cpu/alu';
 import { IntrController } from './interrupt/intrController';
 import { PrivModeSignal } from './cpu/privModeSignal';
 import { IOHostController } from './io/ioHostController';
 import { Timer } from './io/device/timer';
 import { Ft232rl } from './io/device/ft232rl';
 import { SdHostController } from './io/device/sdHostController';
-import { Register } from './cpu/register';
 import { regNumToString } from './debug/instruction';
 import { assertIsDefined } from '../utils';
 
@@ -17,6 +18,7 @@ export class Tac {
   private mmu: Mmu;
   private memory: Memory;
   private register: Register;
+  private alu: Alu;
   private cpu: Cpu;
   private intrController: IntrController;
   private io: IOHostController;
@@ -47,7 +49,8 @@ export class Tac {
     this.io = new IOHostController(this.timer0, this.timer1, this.serialIO, this.sd, this.mmu, this.console);
 
     this.register = new Register(this.privModeSignal);
-    this.cpu = new Cpu(this.register, this.mmu, this.intrController, this.io, this.privModeSignal);
+    this.alu = new Alu(this.intrController);
+    this.cpu = new Cpu(this.mmu, this.register, this.alu, this.intrController, this.io, this.privModeSignal);
 
     this.cpuEventId = null;
     this.terminal = terminal;
