@@ -502,7 +502,7 @@ export class Cpu {
     const v1Msb = v1 & 0x8000;
     const v2Msb = v2 & 0x8000;
 
-    this.cpuFlag = this.cpuFlag & 0xfff0;
+    this.cpuFlag &= 0xfff0;
 
     if (op === opcode.ADD) {
       if (v1Msb === v2Msb && ansMsb !== v1Msb) {

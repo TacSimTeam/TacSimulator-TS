@@ -1,5 +1,4 @@
-import { IPrivModeSignal } from '../interface';
-import { IRegister } from '../interface/register';
+import { IPrivModeSignal, IRegister } from '../interface';
 
 export const REGISTER_G0 = 0;
 export const REGISTER_G1 = 1;
