@@ -56,6 +56,7 @@ export class Cpu {
     this.pc = 0;
 
     this.cnt = 0;
+    this.kernelFlag = false;
   }
 
   /* 命令実行サイクル */
@@ -92,6 +93,8 @@ export class Cpu {
 
     /* 実効アドレス計算 */
     inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
+
+    // this.debugPrint(inst);
 
     /* 命令実行(TLBミスが発生する可能性有り) */
     try {
@@ -185,6 +188,7 @@ export class Cpu {
   private execInstruction(inst: Instruction) {
     switch (inst.opcode) {
       case opcode.NOP:
+        this.nextPC();
         break;
       case opcode.LD:
         this.instrLD(inst);
@@ -227,12 +231,10 @@ export class Cpu {
         this.instrReturn(inst);
         break;
       case opcode.SVC:
-        this.debugPrint(inst);
         this.intrHost.interrupt(intr.EXCP_SVC);
         this.pc += 2;
         break;
       case opcode.HALT:
-        this.debugPrint(inst);
         this.instrHalt();
         break;
       default:
@@ -242,7 +244,6 @@ export class Cpu {
 
   private instrLD(inst: Instruction) {
     const data = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
-    this.debugPrint(inst);
 
     this.writeReg(inst.rd, data);
 
@@ -255,7 +256,6 @@ export class Cpu {
   private instrST(inst: Instruction) {
     /* ST命令ではrdがディスティネーションではなくソースとなる */
     const data = this.readReg(inst.rd);
-    this.debugPrint(inst);
 
     if (inst.addrMode == ADDRMODE_BYTE_REG_INDIRECT) {
       this.memory.write8(inst.ea, 0x00ff & data);
@@ -274,8 +274,6 @@ export class Cpu {
 
     const v1 = this.readReg(inst.rd);
     const v2 = this.loadOperand(inst.addrMode, inst.rx, inst.ea);
-
-    this.debugPrint(inst);
 
     switch (inst.opcode) {
       case opcode.ADD:
@@ -317,19 +315,19 @@ export class Cpu {
       case opcode.SHLA:
       case opcode.SHLL:
         /* SHLA命令とSHLL命令は同じ動作 */
-        // シフト命令をImm4モードで実行したとき, rxは符号なし4bit整数として扱う...
-        // 正しい仕様かどうかは不明
+        /* シフト命令をImm4モードで実行したとき, rxは符号なし4bit整数として扱う... */
+        /* 正しい仕様かどうかは不明 */
         ans = v1 << inst.rx;
         break;
       case opcode.SHRA:
         if ((v1 & 0x8000) != 0) {
-          ans = (v1 | ~0xffff) >> v2;
+          ans = (v1 | ~0xffff) >> inst.rx;
         } else {
-          ans = v1 >> v2;
+          ans = v1 >> inst.rx;
         }
         break;
       case opcode.SHRL:
-        ans = v1 >>> v2;
+        ans = v1 >>> inst.rx;
         break;
     }
 
@@ -350,8 +348,6 @@ export class Cpu {
     const cFlag = this.evalFlag(FLAG_C);
     const sFlag = this.evalFlag(FLAG_S);
     const vFlag = this.evalFlag(FLAG_V);
-
-    this.debugPrint(inst);
 
     switch (inst.rd) {
       case opcode.JMP_JZ:
@@ -417,15 +413,11 @@ export class Cpu {
   }
 
   private instrCall(inst: Instruction) {
-    this.debugPrint(inst);
-
     this.pushVal(this.pc + 4);
     this.pc = inst.ea;
   }
 
   private instrPushPop(inst: Instruction) {
-    this.debugPrint(inst);
-
     if (inst.addrMode === 0x00) {
       /* PUSH命令 */
       this.pushVal(this.readReg(inst.rd));
@@ -438,8 +430,6 @@ export class Cpu {
   }
 
   private instrReturn(inst: Instruction) {
-    this.debugPrint(inst);
-
     if (inst.addrMode === 0x00) {
       /* RET命令 */
       this.pc = this.popVal();
@@ -456,8 +446,6 @@ export class Cpu {
   }
 
   private instrIn(inst: Instruction) {
-    this.debugPrint(inst);
-
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
       this.writeReg(inst.rd, this.ioHost.input(inst.ea));
     } else {
@@ -471,8 +459,6 @@ export class Cpu {
   }
 
   private instrOut(inst: Instruction) {
-    this.debugPrint(inst);
-
     if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
       this.ioHost.output(inst.ea, this.readReg(inst.rd));
     } else {
@@ -610,14 +596,20 @@ export class Cpu {
   }
 
   private cnt: number;
+  private kernelFlag: boolean;
 
   private debugPrint(inst: Instruction) {
+    // if (this.pc === 0 && this.kernelFlag === false) {
+    //   this.kernelFlag = true;
+    // }
+    // if (this.kernelFlag) {
     this.cnt++;
-    // console.log(
-    //   `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
-    //     inst.rd
-    //   )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
-    // );
+    console.log(
+      `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
+        inst.rd
+      )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
+    );
+    // }
   }
 
   reset() {
@@ -626,5 +618,6 @@ export class Cpu {
     this.pc = 0;
 
     this.cnt = 0;
+    this.kernelFlag = false;
   }
 }

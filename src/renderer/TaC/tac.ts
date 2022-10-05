@@ -161,6 +161,7 @@ export class Tac {
   }
 
   stop() {
+    console.log(this.memory);
     if (this.cpuEventId !== null) {
       clearTimeout(this.cpuEventId);
     }

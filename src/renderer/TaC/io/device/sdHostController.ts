@@ -65,6 +65,8 @@ export class SdHostController implements IIOSdHostController {
     }
     this.idleFlag = false;
 
+    console.log('Start reading microSD');
+
     window.electronAPI
       .readSector(this.secAddr())
       .then((data) => {
@@ -72,6 +74,11 @@ export class SdHostController implements IIOSdHostController {
         for (let i = 0; i < SECTOR_SIZE; i++) {
           this.memory.write8(this.memAddr + i, data[i]);
         }
+
+        console.log(
+          'Memory address : 0x' + this.memAddr.toString(16) + ' ~ 0x' + (this.memAddr + SECTOR_SIZE - 1).toString(16)
+        );
+        console.log(data);
       })
       .then(() => {
         this.idleFlag = true;
