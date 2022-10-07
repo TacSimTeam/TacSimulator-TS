@@ -7,7 +7,6 @@ import { REGISTER_G0, REGISTER_G1, REGISTER_G2, REGISTER_FP, Register } from '..
 import { Instruction } from '../src/renderer/TaC/cpu/instruction/instruction';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
 import { IIOHostController } from '../src/renderer/TaC/interface';
-import * as opcode from '../src/renderer/TaC/cpu/instruction/opcode';
 
 const io: IIOHostController = {
   input: (addr: number) => {

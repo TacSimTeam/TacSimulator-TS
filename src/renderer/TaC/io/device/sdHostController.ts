@@ -75,10 +75,11 @@ export class SdHostController implements IIOSdHostController {
           this.memory.write8(this.memAddr + i, data[i]);
         }
 
-        console.log(
-          'Memory address : 0x' + this.memAddr.toString(16) + ' ~ 0x' + (this.memAddr + SECTOR_SIZE - 1).toString(16)
-        );
-        console.log(data);
+        // console.log(
+        //   'Memory address : 0x' + this.memAddr.toString(16) + ' ~ 0x' + (this.memAddr + SECTOR_SIZE - 1).toString(16)
+        // );
+        // console.log('Sector address : 0x' + this.secAddr().toString(16) + '(' + this.secAddr() + ')');
+        // console.log(data);
       })
       .then(() => {
         this.idleFlag = true;
