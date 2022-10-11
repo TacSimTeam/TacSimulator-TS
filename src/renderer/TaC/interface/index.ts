@@ -12,3 +12,4 @@ export * from './io/device/ioSdHostController';
 export * from './io/device/ioMmu';
 export * from './io/device/ioSerial';
 export * from './io/device/ioTimer';
+export * from './console/consoleComponent';
