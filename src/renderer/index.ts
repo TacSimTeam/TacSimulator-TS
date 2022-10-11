@@ -7,10 +7,7 @@ const canvas = document.getElementById('console') as HTMLCanvasElement;
 assertIsDefined(document.getElementById('terminal'));
 const terminal = document.getElementById('terminal') as HTMLTextAreaElement;
 
-const ctx = canvas.getContext('2d');
-assertIsDefined(ctx);
-
-const tac = new Tac(ctx, terminal);
+const tac = new Tac(canvas, terminal);
 
 /* TaCコンソールがクリックされた時の動作 */
 canvas.addEventListener('mousedown', (e) => {

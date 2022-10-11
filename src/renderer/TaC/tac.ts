@@ -34,12 +34,12 @@ export class Tac {
 
   private breakAddr: number;
 
-  constructor(ctx: CanvasRenderingContext2D, terminal: HTMLTextAreaElement) {
+  constructor(canvas: HTMLCanvasElement, terminal: HTMLTextAreaElement) {
     this.memory = new Memory();
     this.intrController = new IntrController();
     this.privModeSignal = new PrivModeSignal();
 
-    this.console = new Console(ctx, this.memory);
+    this.console = new Console(canvas, this.memory);
     this.timer0 = new Timer(0, this.intrController);
     this.timer1 = new Timer(1, this.intrController);
     this.serialIO = new Ft232rl(terminal, this.intrController);
