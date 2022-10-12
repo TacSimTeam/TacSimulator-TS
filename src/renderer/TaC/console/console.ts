@@ -23,8 +23,8 @@ export class Console implements IIOConsole {
   private runLed: Led;
 
   private dataSws: Array<Switch>;
-  private breakSw: Switch;
   private stepSw: Switch;
+  private breakSw: Switch;
 
   private leftArrowBtn: Button;
   private rightArrowBtn: Button;
@@ -54,52 +54,54 @@ export class Console implements IIOConsole {
 
     /* コンソール部品の初期化 */
     this.addrLeds = new Array(8);
-    for (let i = 0; i < 8; i++) {
-      this.addrLeds[i] = new Led(this.ctx, 370 - i * 40, 30, 'A' + i, 'red');
-    }
-
     this.dataLeds = new Array(8);
-    for (let i = 0; i < 8; i++) {
-      this.dataLeds[i] = new Led(this.ctx, 370 - i * 40, 90, 'D' + i, 'green');
+    for (let i = 0; i <= 3; i++) {
+      this.addrLeds[i] = new Led(this.ctx, 69 + i * 42, 44, '', 'red');
+      this.dataLeds[i] = new Led(this.ctx, 69 + i * 42, 94, '', 'green');
+    }
+    for (let i = 4; i < 8; i++) {
+      this.addrLeds[i] = new Led(this.ctx, 249 + (i - 4) * 42, 44, '', 'red');
+      this.dataLeds[i] = new Led(this.ctx, 249 + (i - 4) * 42, 94, '', 'green');
     }
 
     this.flagLeds = new Array(3);
-    this.flagLeds[0] = new Led(ctx, 350, 160, 'C', 'yellow');
-    this.flagLeds[1] = new Led(ctx, 380, 160, 'S', 'yellow');
-    this.flagLeds[2] = new Led(ctx, 410, 160, 'Z', 'yellow');
-
-    this.registerLeds = new Array(6);
-    this.registerLeds[0] = new Led(ctx, 105, 160, 'G0', 'yellow');
-    this.registerLeds[1] = new Led(ctx, 139, 160, 'G1', 'yellow');
-    this.registerLeds[2] = new Led(ctx, 173, 160, 'G2', 'yellow');
-    this.registerLeds[3] = new Led(ctx, 207, 160, 'SP', 'yellow');
-    this.registerLeds[4] = new Led(ctx, 241, 160, 'PC', 'yellow');
-    this.registerLeds[5] = new Led(ctx, 275, 160, 'MM', 'yellow');
-
-    this.runLed = new Led(ctx, 400, 60, 'RUN', 'red');
-
-    this.dataSws = new Array(8);
-    for (let i = 0; i < 8; i++) {
-      this.dataSws[i] = new Switch(this.ctx, 370 - i * 40, 250, 'D' + i);
+    for (let i = 0; i < 3; i++) {
+      this.flagLeds[i] = new Led(ctx, 358 + i * 26, 152, '', 'yellow');
     }
 
-    this.stepSw = new Switch(this.ctx, 100, 330, 'STEP');
-    this.breakSw = new Switch(this.ctx, 60, 330, 'BREAK');
+    this.registerLeds = new Array(6);
+    for (let i = 0; i < 6; i++) {
+      this.registerLeds[i] = new Led(ctx, 112 + i * 34, 152, '', 'yellow');
+    }
 
-    this.leftArrowBtn = new Button(this.ctx, 60, 150, '<-');
-    this.rightArrowBtn = new Button(this.ctx, 295, 150, '->');
-    this.resetBtn = new Button(this.ctx, 20, 330, 'RESET');
-    this.runBtn = new Button(this.ctx, 140, 330, 'RUN');
-    this.stopBtn = new Button(this.ctx, 180, 330, 'STOP');
-    this.setaBtn = new Button(this.ctx, 240, 330, 'SETA');
-    this.incaBtn = new Button(this.ctx, 280, 330, 'INCA');
-    this.decaBtn = new Button(this.ctx, 320, 330, 'DECA');
-    this.writeBtn = new Button(this.ctx, 360, 330, 'WRITE');
+    this.runLed = new Led(ctx, 409, 69, 'RUN', 'red');
+
+    this.dataSws = new Array(8);
+    for (let i = 0; i <= 3; i++) {
+      this.dataSws[i] = new Switch(this.ctx, 54 + i * 42, 226, '');
+    }
+    for (let i = 4; i < 8; i++) {
+      this.dataSws[i] = new Switch(this.ctx, 236 + (i - 4) * 42, 226, '');
+    }
+
+    this.breakSw = new Switch(this.ctx, 54, 312, 'BREAK');
+    this.stepSw = new Switch(this.ctx, 96, 312, 'STEP');
+
+    this.leftArrowBtn = new Button(this.ctx, 54, 138, '<-');
+    this.rightArrowBtn = new Button(this.ctx, 309, 138, '->');
+    this.resetBtn = new Button(this.ctx, 7, 312, 'RESET');
+    this.runBtn = new Button(this.ctx, 138, 312, 'RUN');
+    this.stopBtn = new Button(this.ctx, 180, 312, 'STOP');
+    this.setaBtn = new Button(this.ctx, 236, 312, 'SETA');
+    this.incaBtn = new Button(this.ctx, 278, 312, 'INCA');
+    this.decaBtn = new Button(this.ctx, 320, 312, 'DECA');
+    this.writeBtn = new Button(this.ctx, 362, 312, 'WRITE');
 
     this.initComponents();
   }
 
   private initComponents() {
+    /* 全ての部品をcomponents[]に追加する */
     this.addrLeds.forEach((element) => {
       this.components.push(element);
     });
@@ -142,6 +144,12 @@ export class Console implements IIOConsole {
 
   drawAll() {
     this.clear();
+
+    const img = document.getElementById('tac-image');
+    if (img !== null) {
+      this.ctx.drawImage(img as HTMLImageElement, 0, 0);
+    }
+
     this.components.forEach((element) => {
       element.draw();
     });

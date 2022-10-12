@@ -25,3 +25,7 @@ canvas {
   top: 12px;
   left: 90px;
 }
+
+#tac-image {
+  display: none;
+}

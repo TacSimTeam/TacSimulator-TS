@@ -1,10 +1,8 @@
 import { IConsoleComponent } from '../interface';
 
-const SWITCH_WIDTH = 26;
-const SWITCH_HEIGHT = 26;
-
-const SWITCH_TEXT_OFFSET_X = 12;
-const SWITCH_TEXT_OFFSET_Y = 50;
+const SWITCH_WIDTH = 30;
+const SWITCH_HEIGHT = 36;
+const SWITCH_RADIUS = 12;
 
 export class Switch implements IConsoleComponent {
   private readonly posX: number;
@@ -25,41 +23,38 @@ export class Switch implements IConsoleComponent {
   }
 
   draw(): void {
-    this.ctx.clearRect(this.posX - 5, this.posY - 14, 40, 65);
     this.ctx.beginPath();
-    this.ctx.rect(this.posX, this.posY, SWITCH_WIDTH, SWITCH_HEIGHT);
-    this.ctx.fillStyle = '#777777';
-    this.ctx.fill();
-    this.ctx.beginPath();
-    this.ctx.arc(this.posX + 13, this.posY + 13, 10, (0 * Math.PI) / 180, (360 * Math.PI) / 180, false);
-    this.ctx.fillStyle = '#000000';
+    this.ctx.arc(
+      this.posX + SWITCH_WIDTH / 2,
+      this.posY + SWITCH_HEIGHT / 2,
+      SWITCH_RADIUS,
+      (0 * Math.PI) / 180,
+      (360 * Math.PI) / 180,
+      false
+    );
+    this.ctx.fillStyle = '#252525';
     this.ctx.fill();
 
     this.ctx.beginPath();
     if (this.state === true) {
       /* スイッチがONの時は上 */
-      this.ctx.rect(this.posX + 9, this.posY + 12, 8, -20);
-      this.ctx.fillStyle = '#cccccc';
+      this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 - 4, 8, -22);
+      this.ctx.fillStyle = '#f8f8f8';
       this.ctx.fill();
       this.ctx.beginPath();
-      this.ctx.rect(this.posX + 9, this.posY - 12, 8, 8);
+      this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 - 32, 8, 6);
       this.ctx.fillStyle = '#993300';
       this.ctx.fill();
     } else {
-      /* スイッチがONの時は下 */
-      this.ctx.rect(this.posX + 9, this.posY + 12, 8, 20);
-      this.ctx.fillStyle = '#cccccc';
+      /* スイッチがOFFの時は下 */
+      this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 - 4, 8, 22);
+      this.ctx.fillStyle = '#f8f8f8';
       this.ctx.fill();
       this.ctx.beginPath();
-      this.ctx.rect(this.posX + 9, this.posY + 30, 8, 8);
+      this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 + 18, 8, 6);
       this.ctx.fillStyle = '#993300';
       this.ctx.fill();
     }
-
-    this.ctx.beginPath();
-    this.ctx.fillStyle = '#000080';
-    this.ctx.font = '10px serif';
-    this.ctx.fillText(this.name, this.posX + SWITCH_TEXT_OFFSET_X, this.posY + SWITCH_TEXT_OFFSET_Y);
   }
 
   getState() {

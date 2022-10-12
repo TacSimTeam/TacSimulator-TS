@@ -1,11 +1,8 @@
 import { IConsoleComponent } from '../interface';
 
-const BUTTON_WIDTH = 26;
-const BUTTON_HEIGHT = 26;
-const BUTTON_RADIUS = 8;
-
-const BUTTON_TEXT_OFFSET_X = 12;
-const BUTTON_TEXT_OFFSET_Y = 38;
+const BUTTON_WIDTH = 30;
+const BUTTON_HEIGHT = 36;
+const BUTTON_RADIUS = 10;
 
 export class Button implements IConsoleComponent {
   private readonly posX: number;
@@ -29,11 +26,21 @@ export class Button implements IConsoleComponent {
     };
   }
 
+  // 30 * 36
+
   draw(): void {
     this.ctx.beginPath();
-    this.ctx.rect(this.posX, this.posY, BUTTON_WIDTH, BUTTON_HEIGHT);
-    this.ctx.fillStyle = '#777777';
+    this.ctx.arc(
+      this.posX + BUTTON_WIDTH / 2,
+      this.posY + BUTTON_HEIGHT / 2,
+      BUTTON_RADIUS + 2,
+      (0 * Math.PI) / 180,
+      (360 * Math.PI) / 180,
+      false
+    );
+    this.ctx.fillStyle = '#252525';
     this.ctx.fill();
+
     this.ctx.beginPath();
     this.ctx.arc(
       this.posX + BUTTON_WIDTH / 2,
@@ -43,11 +50,8 @@ export class Button implements IConsoleComponent {
       (360 * Math.PI) / 180,
       false
     );
-    this.ctx.fillStyle = '#cccccc';
+    this.ctx.fillStyle = '#f8f8f8';
     this.ctx.fill();
-    this.ctx.fillStyle = '#000080';
-    this.ctx.font = '10px serif';
-    this.ctx.fillText(this.name, this.posX + BUTTON_TEXT_OFFSET_X, this.posY + BUTTON_TEXT_OFFSET_Y);
   }
 
   onClick(clickPosX: number, clickPosY: number): void {
