@@ -56,46 +56,46 @@ export class Console implements IIOConsole {
     this.addrLeds = new Array(8);
     this.dataLeds = new Array(8);
     for (let i = 0; i <= 3; i++) {
-      this.addrLeds[i] = new Led(this.ctx, 69 + i * 42, 44, '', 'red');
-      this.dataLeds[i] = new Led(this.ctx, 69 + i * 42, 94, '', 'green');
+      this.addrLeds[i] = new Led(this.ctx, 69 + i * 42, 44, 'red');
+      this.dataLeds[i] = new Led(this.ctx, 69 + i * 42, 94, 'green');
     }
     for (let i = 4; i < 8; i++) {
-      this.addrLeds[i] = new Led(this.ctx, 249 + (i - 4) * 42, 44, '', 'red');
-      this.dataLeds[i] = new Led(this.ctx, 249 + (i - 4) * 42, 94, '', 'green');
+      this.addrLeds[i] = new Led(this.ctx, 249 + (i - 4) * 42, 44, 'red');
+      this.dataLeds[i] = new Led(this.ctx, 249 + (i - 4) * 42, 94, 'green');
     }
 
     this.flagLeds = new Array(3);
     for (let i = 0; i < 3; i++) {
-      this.flagLeds[i] = new Led(ctx, 358 + i * 26, 152, '', 'yellow');
+      this.flagLeds[i] = new Led(ctx, 358 + i * 26, 152, 'yellow');
     }
 
     this.registerLeds = new Array(6);
     for (let i = 0; i < 6; i++) {
-      this.registerLeds[i] = new Led(ctx, 112 + i * 34, 152, '', 'yellow');
+      this.registerLeds[i] = new Led(ctx, 112 + i * 34, 152, 'yellow');
     }
 
-    this.runLed = new Led(ctx, 409, 69, 'RUN', 'red');
+    this.runLed = new Led(ctx, 409, 69, 'red');
 
     this.dataSws = new Array(8);
     for (let i = 0; i <= 3; i++) {
-      this.dataSws[i] = new Switch(this.ctx, 54 + i * 42, 226, '');
+      this.dataSws[i] = new Switch(this.ctx, 54 + i * 42, 226);
     }
     for (let i = 4; i < 8; i++) {
-      this.dataSws[i] = new Switch(this.ctx, 236 + (i - 4) * 42, 226, '');
+      this.dataSws[i] = new Switch(this.ctx, 236 + (i - 4) * 42, 226);
     }
 
-    this.breakSw = new Switch(this.ctx, 54, 312, 'BREAK');
-    this.stepSw = new Switch(this.ctx, 96, 312, 'STEP');
+    this.breakSw = new Switch(this.ctx, 54, 312);
+    this.stepSw = new Switch(this.ctx, 96, 312);
 
-    this.leftArrowBtn = new Button(this.ctx, 54, 138, '<-');
-    this.rightArrowBtn = new Button(this.ctx, 309, 138, '->');
-    this.resetBtn = new Button(this.ctx, 7, 312, 'RESET');
-    this.runBtn = new Button(this.ctx, 138, 312, 'RUN');
-    this.stopBtn = new Button(this.ctx, 180, 312, 'STOP');
-    this.setaBtn = new Button(this.ctx, 236, 312, 'SETA');
-    this.incaBtn = new Button(this.ctx, 278, 312, 'INCA');
-    this.decaBtn = new Button(this.ctx, 320, 312, 'DECA');
-    this.writeBtn = new Button(this.ctx, 362, 312, 'WRITE');
+    this.leftArrowBtn = new Button(this.ctx, 54, 138);
+    this.rightArrowBtn = new Button(this.ctx, 309, 138);
+    this.resetBtn = new Button(this.ctx, 7, 312);
+    this.runBtn = new Button(this.ctx, 138, 312);
+    this.stopBtn = new Button(this.ctx, 180, 312);
+    this.setaBtn = new Button(this.ctx, 236, 312);
+    this.incaBtn = new Button(this.ctx, 278, 312);
+    this.decaBtn = new Button(this.ctx, 320, 312);
+    this.writeBtn = new Button(this.ctx, 362, 312);
 
     this.initComponents();
   }

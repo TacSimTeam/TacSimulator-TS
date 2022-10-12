@@ -7,20 +7,18 @@ const BUTTON_RADIUS = 10;
 export class Button implements IConsoleComponent {
   private readonly posX: number;
   private readonly posY: number;
-  private readonly name: string;
 
   private event: () => void;
 
   private ctx: CanvasRenderingContext2D;
   private aCtx: AudioContext;
 
-  constructor(ctx: CanvasRenderingContext2D, posX: number, posY: number, name: string) {
+  constructor(ctx: CanvasRenderingContext2D, posX: number, posY: number) {
     this.ctx = ctx;
     this.aCtx = new AudioContext();
 
     this.posX = posX;
     this.posY = posY;
-    this.name = name;
     this.event = () => {
       return;
     };

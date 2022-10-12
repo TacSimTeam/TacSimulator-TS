@@ -7,18 +7,16 @@ const SWITCH_RADIUS = 12;
 export class Switch implements IConsoleComponent {
   private readonly posX: number;
   private readonly posY: number;
-  private readonly name: string;
 
   private state: boolean;
 
   private ctx: CanvasRenderingContext2D;
 
-  constructor(ctx: CanvasRenderingContext2D, posX: number, posY: number, name: string) {
+  constructor(ctx: CanvasRenderingContext2D, posX: number, posY: number) {
     this.ctx = ctx;
 
     this.posX = posX;
     this.posY = posY;
-    this.name = name;
     this.state = false;
   }
 
