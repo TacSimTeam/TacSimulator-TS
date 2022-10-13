@@ -36,7 +36,7 @@ body {
 }
 
 .debugprint-area {
-  height: 340px;
+  height: 330px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
@@ -59,30 +59,6 @@ body {
 
 .terminal-area textarea::-webkit-scrollbar {
   display: none;
-}
-
-#loading {
-  display: none;
-  width: 300px;
-  height: 60px;
-  border: 1px solid #ddd;
-  font-size: 10pt;
-  text-align: left;
-  position: absolute;
-  background: #fff;
-}
-
-#Loading img.load-image {
-  position: absolute;
-  top: 12px;
-  left: 50px;
-}
-
-#Loading p.load-message {
-  position: absolute;
-  text-align: left;
-  top: 12px;
-  left: 90px;
 }
 
 #tac-image {
