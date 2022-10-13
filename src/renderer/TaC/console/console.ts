@@ -291,4 +291,10 @@ export class Console implements IIOConsole {
   setLEDValue(val: number): void {
     return;
   }
+
+  setRunLED(val: boolean) {
+    this.runLed.setState(val);
+    this.updateLED();
+    this.drawAll();
+  }
 }

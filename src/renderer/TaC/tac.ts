@@ -62,12 +62,15 @@ export class Tac {
 
     this.console.setRunBtnFunc(() => {
       this.breakAddr = parseInt((document.getElementById('break-address') as HTMLInputElement).value, 16);
+      this.console.setRunLED(true);
       this.run();
     });
     this.console.setResetBtnFunc(() => {
+      this.console.setRunLED(false);
       this.reset();
     });
     this.console.setStopBtnFunc(() => {
+      this.console.setRunLED(false);
       this.stop();
       this.update();
     });
