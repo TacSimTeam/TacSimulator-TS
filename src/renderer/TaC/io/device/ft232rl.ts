@@ -75,7 +75,15 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
       this.terminal.value = this.terminal.value.slice(0, -1);
     } else {
       /* CRを除去してターミナルに文字を出力する */
-      this.terminal.value += String.fromCodePoint(val).replace(/\r/, '');
+      const ch = String.fromCodePoint(val).replace(/\r/, '');
+      this.terminal.value += ch;
+      if (ch == '\n') {
+        /* 改行なら行の頭に空白を追加する */
+        this.terminal.value += ' ';
+
+        /* ターミナル内の文字位置の調整 */
+        this.terminal.scrollTop = this.terminal.scrollHeight;
+      }
     }
 
     /* bufのデータを送信したのでemptyをtrueに */

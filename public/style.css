@@ -46,8 +46,19 @@ body {
 }
 
 .terminal-area textarea {
-  width: 100%;
+  width: 618px;
   height: 100vh;
+  border: none;
+  resize: none;
+  background-color: black;
+  color: white;
+  font-family: 'courier new', Futura, Helvetica, '游ゴシック', 'メイリオ', Osaka;
+  font-size: 10pt;
+  line-height: 1.2em;
+}
+
+.terminal-area textarea::-webkit-scrollbar {
+  display: none;
 }
 
 #loading {

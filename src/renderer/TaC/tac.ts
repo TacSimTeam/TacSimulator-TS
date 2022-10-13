@@ -80,6 +80,7 @@ export class Tac {
     };
 
     this.console.drawAll();
+    this.reset();
   }
 
   /**
@@ -146,7 +147,7 @@ export class Tac {
     this.stop();
 
     /* ターミナルの文字消去 */
-    this.terminal.value = '';
+    this.terminal.value = ' ';
 
     this.cpu.reset();
     this.register.reset();
