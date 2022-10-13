@@ -31,7 +31,7 @@ function createWindow() {
   };
   mainWindow = new BrowserWindow(options);
   mainWindow.loadFile('public/index.html');
-  mainWindow.setResizable(false);
+  // mainWindow.setResizable(false);
 
   /* レンダリング終了後にウィンドウを表示する */
   mainWindow.once('ready-to-show', () => {
