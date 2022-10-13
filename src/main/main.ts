@@ -20,7 +20,7 @@ async function handleGetSDImagePath() {
 /* ウィンドウを生成し, HTMLを読み込んで表示する */
 function createWindow() {
   const options: Electron.BrowserWindowConstructorOptions = {
-    width: 1000,
+    width: 1200,
     height: 800,
     webPreferences: {
       nodeIntegration: false,
@@ -31,6 +31,7 @@ function createWindow() {
   };
   mainWindow = new BrowserWindow(options);
   mainWindow.loadFile('public/index.html');
+  mainWindow.setResizable(false);
 
   /* レンダリング終了後にウィンドウを表示する */
   mainWindow.once('ready-to-show', () => {

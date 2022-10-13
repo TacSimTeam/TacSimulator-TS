@@ -1,5 +1,53 @@
-canvas {
-  border: 1px solid black;
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+#title {
+  margin: 0;
+}
+
+.layout {
+  width: 1366px;
+  height: 768px;
+
+  display: grid;
+  grid:
+    'content-area terminal-area' 1fr
+    / 590px auto;
+  gap: 0px;
+}
+
+.content-area {
+  grid-area: content-area;
+  border-right: 2px solid;
+}
+
+.console-area {
+  margin-top: 0;
+  padding-bottom: 14px;
+  border-bottom: 2px solid;
+}
+
+.console-area canvas {
+  position: relative;
+  top: 10px;
+  left: 80px;
+}
+
+.debugprint-area {
+  height: 340px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+.terminal-area {
+  grid-area: terminal-area;
+}
+
+.terminal-area textarea {
+  width: 100%;
+  height: 100vh;
 }
 
 #loading {

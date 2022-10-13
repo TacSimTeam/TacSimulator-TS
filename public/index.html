@@ -1,53 +1,60 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-    <link href="../public/style.css" rel="stylesheet" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"/>
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"/>
+    <link href="../public/style.css" rel="stylesheet"/>
     <title>TaC Simulator</title>
   </head>
 
   <body>
-    <h1>TaC Simulator</h1>
-
     <!-- 「しばらくお待ちください」のメッセージを出力する -->
     <div id="loading">
-      <img src="../public/image/loading.gif" class="load-image" />
+      <img src="../public/image/loading.gif" class="load-image"/>
       <p class="load-message">しばらくお待ちください</p>
     </div>
 
-    <canvas height="390px" width="430px" id="console"> TeC7コンソール </canvas>
-    <img src="./image/TaC.png" id="tac-image"/>
-    <textarea id="terminal" rows="30" cols="64" readonly></textarea><br>
+    <section class="layout">
+      <div class="content-area">
+        <div class="console-area">
+          <canvas height="390px" width="430px" id="console"> TeC7コンソール </canvas>
+          <img src="./image/TaC.png" id="tac-image"/>
+        </div>
+        <div class="debugprint-area">
+          <button type="button" id="btn-openFile">Open a File</button>
+          File path: <strong id="filePath">ファイルが選択されていません</strong>
 
-    <button type="button" id="btn-openFile">Open a File</button>
-    File path: <strong id="filePath">ファイルが選択されていません</strong>
-    
-    <br><br>
+          <br/><br/>
 
-    BREAKPOINT : <input type="text" name="break-address" id="break-address"><br>
+          BREAKPOINT : <input type="text" name="break-address" id="break-address"/><br/>
 
-    <p id="value-pc">PC : </p>
-    <ul id="reg-list">
-      <li id="reg-value-G0">G0:</li>
-      <li id="reg-value-G1">G1:</li>
-      <li id="reg-value-G2">G2:</li>
-      <li id="reg-value-G3">G3:</li>
-      <li id="reg-value-G4">G4:</li>
-      <li id="reg-value-G5">G5:</li>
-      <li id="reg-value-G6">G6:</li>
-      <li id="reg-value-G7">G7:</li>
-      <li id="reg-value-G8">G8:</li>
-      <li id="reg-value-G9">G9:</li>
-      <li id="reg-value-G10">G10:</li>
-      <li id="reg-value-G11">G11:</li>
-      <li id="reg-value-FP">FP:</li>
-      <li id="reg-value-SSP">SSP:</li>
-      <li id="reg-value-USP">USP:</li>
-      <li id="reg-value-FLAG">FLAG:</li>
-    </ul>
+          <p id="value-pc">PC :</p>
+          <ul id="reg-list">
+            <li id="reg-value-G0">G0:</li>
+            <li id="reg-value-G1">G1:</li>
+            <li id="reg-value-G2">G2:</li>
+            <li id="reg-value-G3">G3:</li>
+            <li id="reg-value-G4">G4:</li>
+            <li id="reg-value-G5">G5:</li>
+            <li id="reg-value-G6">G6:</li>
+            <li id="reg-value-G7">G7:</li>
+            <li id="reg-value-G8">G8:</li>
+            <li id="reg-value-G9">G9:</li>
+            <li id="reg-value-G10">G10:</li>
+            <li id="reg-value-G11">G11:</li>
+            <li id="reg-value-FP">FP:</li>
+            <li id="reg-value-SSP">SSP:</li>
+            <li id="reg-value-USP">USP:</li>
+            <li id="reg-value-FLAG">FLAG:</li>
+          </ul>
+        </div>
+      </div>
+      <div class="terminal-area">
+        <div class="right"><textarea id="terminal" rows="30" cols="64" readonly></textarea><br/></div>
+      </div>
+    </section>
 
     <script src="../dist/tac.js"></script>
   </body>
