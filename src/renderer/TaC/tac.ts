@@ -39,7 +39,9 @@ export class Tac {
     this.intrController = new IntrController();
     this.privModeSignal = new PrivModeSignal();
 
-    this.console = new Console(canvas, this.memory);
+    this.register = new Register(this.privModeSignal);
+
+    this.console = new Console(canvas, this.memory, this.register);
     this.timer0 = new Timer(0, this.intrController);
     this.timer1 = new Timer(1, this.intrController);
     this.serialIO = new Ft232rl(terminal, this.intrController);
@@ -48,7 +50,6 @@ export class Tac {
 
     this.io = new IOHostController(this.timer0, this.timer1, this.serialIO, this.sd, this.mmu, this.console);
 
-    this.register = new Register(this.privModeSignal);
     this.alu = new Alu(this.intrController);
     this.cpu = new Cpu(this.mmu, this.register, this.alu, this.intrController, this.io, this.privModeSignal);
 

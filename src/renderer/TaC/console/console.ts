@@ -2,7 +2,7 @@ import { Button } from './button';
 import { Switch } from './switch';
 import { Led } from './led';
 
-import { IConsoleComponent, IDmaSignal, IIOConsole } from '../interface';
+import { IConsoleComponent, IDmaSignal, IIOConsole, IRegister } from '../interface';
 
 export class Console implements IIOConsole {
   private ctx: CanvasRenderingContext2D;
@@ -14,7 +14,14 @@ export class Console implements IIOConsole {
   /* コンソールはDMA方式でメモリとアクセスできる */
   private memory: IDmaSignal;
 
+  /* レジスタのデータを読み書きするので必要 */
+  private register: IRegister;
+
   private components: [...IConsoleComponent[]];
+
+  private memAddr: number;
+  private memData: number;
+  private rotSwCur: number;
 
   private addrLeds: Array<Led>;
   private dataLeds: Array<Led>;
@@ -37,7 +44,7 @@ export class Console implements IIOConsole {
   private decaBtn: Button;
   private writeBtn: Button;
 
-  constructor(canvas: HTMLCanvasElement, memory: IDmaSignal) {
+  constructor(canvas: HTMLCanvasElement, memory: IDmaSignal, register: IRegister) {
     const ctx = canvas.getContext('2d');
     if (ctx !== null) {
       this.ctx = ctx;
@@ -50,18 +57,24 @@ export class Console implements IIOConsole {
     this.height = canvas.height;
 
     this.memory = memory;
+    this.register = register;
+
     this.components = [];
+
+    this.memAddr = 0;
+    this.memData = 0;
+    this.rotSwCur = 0;
 
     /* コンソール部品の初期化 */
     this.addrLeds = new Array(8);
     this.dataLeds = new Array(8);
     for (let i = 0; i <= 3; i++) {
-      this.addrLeds[i] = new Led(this.ctx, 69 + i * 42, 44, 'red');
-      this.dataLeds[i] = new Led(this.ctx, 69 + i * 42, 94, 'green');
+      this.addrLeds[i] = new Led(this.ctx, 375 - i * 42, 44, 'red');
+      this.dataLeds[i] = new Led(this.ctx, 375 - i * 42, 94, 'green');
     }
     for (let i = 4; i < 8; i++) {
-      this.addrLeds[i] = new Led(this.ctx, 249 + (i - 4) * 42, 44, 'red');
-      this.dataLeds[i] = new Led(this.ctx, 249 + (i - 4) * 42, 94, 'green');
+      this.addrLeds[i] = new Led(this.ctx, 195 - (i - 4) * 42, 44, 'red');
+      this.dataLeds[i] = new Led(this.ctx, 195 - (i - 4) * 42, 94, 'green');
     }
 
     this.flagLeds = new Array(3);
@@ -98,6 +111,11 @@ export class Console implements IIOConsole {
     this.writeBtn = new Button(this.ctx, 362, 312);
 
     this.initComponents();
+    this.initButtons();
+
+    this.updateRotSw();
+    this.updateLED();
+    this.drawAll();
   }
 
   private initComponents() {
@@ -136,6 +154,78 @@ export class Console implements IIOConsole {
     this.components.push(this.incaBtn);
     this.components.push(this.decaBtn);
     this.components.push(this.writeBtn);
+  }
+
+  private initButtons() {
+    this.leftArrowBtn.setEvent(() => {
+      if (this.rotSwCur !== 0) {
+        this.rotSwCur--;
+      }
+      this.updateRotSw();
+      this.updateLED();
+      this.drawAll();
+    });
+
+    this.rightArrowBtn.setEvent(() => {
+      if (this.rotSwCur !== 17) {
+        this.rotSwCur++;
+      }
+      this.updateRotSw();
+      this.updateLED();
+      this.drawAll();
+    });
+  }
+
+  private updateRotSw() {
+    for (let i = 0; i < 6; i++) {
+      if (i === this.rotSwCur % 6) {
+        this.registerLeds[i].setState(true);
+      } else {
+        this.registerLeds[i].setState(false);
+      }
+    }
+
+    for (let i = 0; i < 3; i++) {
+      if (i === Math.trunc(this.rotSwCur / 6)) {
+        this.flagLeds[i].setState(true);
+      } else {
+        this.flagLeds[i].setState(false);
+      }
+    }
+  }
+
+  updateLED() {
+    const val = this.readReg();
+    this.addrLeds[7].setState(!!(val & (1 << 15)));
+    this.addrLeds[6].setState(!!(val & (1 << 14)));
+    this.addrLeds[5].setState(!!(val & (1 << 13)));
+    this.addrLeds[4].setState(!!(val & (1 << 12)));
+    this.addrLeds[3].setState(!!(val & (1 << 11)));
+    this.addrLeds[2].setState(!!(val & (1 << 10)));
+    this.addrLeds[1].setState(!!(val & (1 << 9)));
+    this.addrLeds[0].setState(!!(val & (1 << 8)));
+    this.dataLeds[7].setState(!!(val & (1 << 7)));
+    this.dataLeds[6].setState(!!(val & (1 << 6)));
+    this.dataLeds[5].setState(!!(val & (1 << 5)));
+    this.dataLeds[4].setState(!!(val & (1 << 4)));
+    this.dataLeds[3].setState(!!(val & (1 << 3)));
+    this.dataLeds[2].setState(!!(val & (1 << 2)));
+    this.dataLeds[1].setState(!!(val & (1 << 1)));
+    this.dataLeds[0].setState(!!(val & (1 << 0)));
+    this.drawAll();
+  }
+
+  readReg() {
+    switch (this.rotSwCur) {
+      case 14:
+        return 0;
+      case 16:
+        return this.memData;
+      case 17:
+        return this.memAddr;
+      default:
+        return this.register.read(this.rotSwCur);
+    }
   }
 
   clear() {
