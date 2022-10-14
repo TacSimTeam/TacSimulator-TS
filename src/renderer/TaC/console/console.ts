@@ -19,6 +19,7 @@ export class Console implements IIOConsole {
 
   private components: [...IConsoleComponent[]];
 
+  private pc: number;
   private memAddr: number;
   private memData: number;
   private rotSwCur: number;
@@ -61,6 +62,7 @@ export class Console implements IIOConsole {
 
     this.components = [];
 
+    this.pc = 0;
     this.memAddr = 0;
     this.memData = 0;
     this.rotSwCur = 0;
@@ -91,10 +93,10 @@ export class Console implements IIOConsole {
 
     this.dataSws = new Array(8);
     for (let i = 0; i <= 3; i++) {
-      this.dataSws[i] = new Switch(this.ctx, 54 + i * 42, 226);
+      this.dataSws[i] = new Switch(this.ctx, 362 - i * 42, 226);
     }
     for (let i = 4; i < 8; i++) {
-      this.dataSws[i] = new Switch(this.ctx, 236 + (i - 4) * 42, 226);
+      this.dataSws[i] = new Switch(this.ctx, 180 - (i - 4) * 42, 226);
     }
 
     this.breakSw = new Switch(this.ctx, 54, 312);
@@ -174,6 +176,28 @@ export class Console implements IIOConsole {
       this.updateLED();
       this.drawAll();
     });
+
+    this.incaBtn.setEvent(() => {
+      if (this.memAddr === 0xfffe) {
+        this.memAddr = 0;
+      } else {
+        this.memAddr += 2;
+      }
+      this.updateRotSw();
+      this.updateLED();
+      this.drawAll();
+    });
+
+    this.decaBtn.setEvent(() => {
+      if (this.memAddr === 0) {
+        this.memAddr = 0xfffe;
+      } else {
+        this.memAddr -= 2;
+      }
+      this.updateRotSw();
+      this.updateLED();
+      this.drawAll();
+    });
   }
 
   private updateRotSw() {
@@ -218,7 +242,7 @@ export class Console implements IIOConsole {
   readReg() {
     switch (this.rotSwCur) {
       case 14:
-        return 0;
+        return this.pc;
       case 16:
         return this.memData;
       case 17:
@@ -226,6 +250,19 @@ export class Console implements IIOConsole {
       default:
         return this.register.read(this.rotSwCur);
     }
+  }
+
+  readSwValue() {
+    let val = 0;
+    if (this.dataSws[0].getState()) val |= 1 << 0;
+    if (this.dataSws[1].getState()) val |= 1 << 1;
+    if (this.dataSws[2].getState()) val |= 1 << 2;
+    if (this.dataSws[3].getState()) val |= 1 << 3;
+    if (this.dataSws[4].getState()) val |= 1 << 4;
+    if (this.dataSws[5].getState()) val |= 1 << 5;
+    if (this.dataSws[6].getState()) val |= 1 << 6;
+    if (this.dataSws[7].getState()) val |= 1 << 7;
+    return val;
   }
 
   clear() {
