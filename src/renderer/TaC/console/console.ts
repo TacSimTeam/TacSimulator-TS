@@ -177,6 +177,17 @@ export class Console implements IIOConsole {
       this.drawAll();
     });
 
+    this.setaBtn.setEvent(() => {
+      this.memAddr = (this.memAddr << 8) | (this.readSwValue() & 0x00ff);
+      this.updateRotSw();
+      this.updateLED();
+      if (this.dataLeds[0].getState()) {
+        /* アドレスを設定するとき, LSBは光らせない */
+        this.dataLeds[0].setState(false);
+      }
+      this.drawAll();
+    });
+
     this.incaBtn.setEvent(() => {
       if (this.memAddr === 0xfffe) {
         this.memAddr = 0;
@@ -194,6 +205,13 @@ export class Console implements IIOConsole {
       } else {
         this.memAddr -= 2;
       }
+      this.updateRotSw();
+      this.updateLED();
+      this.drawAll();
+    });
+
+    this.writeBtn.setEvent(() => {
+      this.writeReg(this.readSwValue());
       this.updateRotSw();
       this.updateLED();
       this.drawAll();
@@ -249,6 +267,22 @@ export class Console implements IIOConsole {
         return this.memAddr;
       default:
         return this.register.read(this.rotSwCur);
+    }
+  }
+
+  writeReg(val: number) {
+    const regVal = this.readReg();
+    switch (this.rotSwCur) {
+      case 14:
+        this.pc = (regVal << 8) | (val & 0x00ff);
+        break;
+      case 16:
+      case 17:
+        this.memData = (this.memData << 8) | (val & 0x00ff);
+        break;
+      default:
+        this.register.write(this.rotSwCur, (regVal << 8) | (val & 0x00ff));
+        break;
     }
   }
 
