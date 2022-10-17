@@ -346,6 +346,10 @@ export class Console implements IIOConsole {
     return 0;
   }
 
+  setLEDValue(val: number): void {
+    return;
+  }
+
   setStopBtnFunc(f: () => void) {
     this.stopBtn.setEvent(f);
   }
@@ -364,10 +368,6 @@ export class Console implements IIOConsole {
 
   getBreakSwitchValue(): boolean {
     return this.breakSw.getState();
-  }
-
-  setLEDValue(val: number): void {
-    return;
   }
 
   setRunLED(val: boolean) {
