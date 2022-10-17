@@ -2,7 +2,7 @@ import { Button } from './button';
 import { Switch } from './switch';
 import { Led } from './led';
 
-import { IConsoleComponent, IDmaSignal, IIOConsole, IRegister } from '../interface';
+import { IConsoleComponent, IDmaSignal, IIOConsole, IPsw, IRegister } from '../interface';
 
 export class Console implements IIOConsole {
   private ctx: CanvasRenderingContext2D;
@@ -14,12 +14,14 @@ export class Console implements IIOConsole {
   /* コンソールはDMA方式でメモリとアクセスできる */
   private memory: IDmaSignal;
 
+  /* PCとフラグを読むために必要 */
+  private psw: IPsw;
+
   /* レジスタのデータを読み書きするので必要 */
   private register: IRegister;
 
   private components: [...IConsoleComponent[]];
 
-  private pc: number;
   private memAddr: number;
   private memData: number;
   private rotSwCur: number;
@@ -45,7 +47,7 @@ export class Console implements IIOConsole {
   private decaBtn: Button;
   private writeBtn: Button;
 
-  constructor(canvas: HTMLCanvasElement, memory: IDmaSignal, register: IRegister) {
+  constructor(canvas: HTMLCanvasElement, memory: IDmaSignal, psw: IPsw, register: IRegister) {
     const ctx = canvas.getContext('2d');
     if (ctx !== null) {
       this.ctx = ctx;
@@ -58,11 +60,11 @@ export class Console implements IIOConsole {
     this.height = canvas.height;
 
     this.memory = memory;
+    this.psw = psw;
     this.register = register;
 
     this.components = [];
 
-    this.pc = 0;
     this.memAddr = 0;
     this.memData = 0;
     this.rotSwCur = 0;
@@ -260,7 +262,9 @@ export class Console implements IIOConsole {
   readReg() {
     switch (this.rotSwCur) {
       case 14:
-        return this.pc;
+        return this.psw.getPC();
+      case 15:
+        return this.psw.getFlags();
       case 16:
         return this.memData;
       case 17:
@@ -274,14 +278,17 @@ export class Console implements IIOConsole {
     const regVal = this.readReg();
     switch (this.rotSwCur) {
       case 14:
-        this.pc = (regVal << 8) | (val & 0x00ff);
+        this.psw.setPC(((this.psw.getPC() & 0x00ff) << 8) | (val & 0x00ff));
+        break;
+      case 15:
+        this.psw.setFlags(((this.psw.getFlags() & 0x00ff) << 8) | (val & 0x00ff));
         break;
       case 16:
       case 17:
-        this.memData = (this.memData << 8) | (val & 0x00ff);
+        this.memData = ((this.memData & 0x00ff) << 8) | (val & 0x00ff);
         break;
       default:
-        this.register.write(this.rotSwCur, (regVal << 8) | (val & 0x00ff));
+        this.register.write(this.rotSwCur, ((regVal & 0x00ff) << 8) | (val & 0x00ff));
         break;
     }
   }

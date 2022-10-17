@@ -1,5 +1,5 @@
 import { REGISTER_FLAG, REGISTER_FP, REGISTER_SP } from './register';
-import { IDataBus, IIntrController, IPrivModeSignal, IIOHostController, IRegister, IAlu } from '../interface';
+import { IDataBus, IIntrController, IIOHostController, IRegister, IPsw, IAlu } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
@@ -26,40 +26,34 @@ const ADDRMODE_BYTE_REG_INDIRECT = 7;
 const INTERRUPT_VECTOR = 0xffe0;
 
 export class Cpu {
-  private cpuFlag: number;
-  private pc: number;
-
   private isHalt: boolean;
 
   private memory: IDataBus;
+  private psw: IPsw;
   private register: IRegister;
   private alu: IAlu;
   private intrHost: IIntrController;
   private ioHost: IIOHostController;
-  private privSig: IPrivModeSignal;
 
   constructor(
     memory: IDataBus,
+    psw: IPsw,
     register: IRegister,
     alu: IAlu,
     intrHost: IIntrController,
-    ioHost: IIOHostController,
-    privSig: IPrivModeSignal
+    ioHost: IIOHostController
   ) {
     this.memory = memory;
+    this.psw = psw;
     this.register = register;
     this.alu = alu;
 
     this.intrHost = intrHost;
     this.ioHost = ioHost;
-    this.privSig = privSig;
 
-    this.cpuFlag = FLAG_P;
     this.isHalt = false;
-    this.pc = 0;
 
     this.cnt = 0;
-    this.kernelFlag = false;
   }
 
   /* 命令実行サイクル */
@@ -68,11 +62,8 @@ export class Cpu {
       return;
     }
 
-    /* 特権フラグの確認用信号の更新 */
-    this.privSig.setPrivMode(this.evalFlag(FLAG_P));
-
     /* 割り込み判定 */
-    if (this.evalFlag(FLAG_E) || this.intrHost.isOccurredException()) {
+    if (this.psw.evalFlag(FLAG_E) || this.intrHost.isOccurredException()) {
       const intrNum = this.intrHost.checkIntrNum();
       if (intrNum !== null) {
         this.handleInterrupt(intrNum);
@@ -82,7 +73,7 @@ export class Cpu {
     /* 命令フェッチ(TLBミスが発生する可能性有り) */
     let data = 0;
     try {
-      data = this.memory.read16(this.pc);
+      data = this.memory.read16(this.psw.getPC());
     } catch (e) {
       if (e instanceof TlbMissError) {
         /* TLBMissが発生したのでPCを進めずに一旦戻す */
@@ -134,7 +125,7 @@ export class Cpu {
    * @returns 対象となるアドレス. 1ワード命令の時は0を返す
    */
   private calcEffectiveAddress(addrMode: number, rx: number) {
-    const data = this.memory.read16(this.pc + 2);
+    const data = this.memory.read16(this.psw.getPC() + 2);
     switch (addrMode) {
       case ADDRMODE_DIRECT:
         return data;
@@ -166,7 +157,7 @@ export class Cpu {
       case ADDRMODE_INDEXED:
         return this.memory.read16(dsp);
       case ADDRMODE_IMMEDIATE:
-        return this.memory.read16(this.pc + 2);
+        return this.memory.read16(this.psw.getPC() + 2);
       case ADDRMODE_FP_RELATIVE:
         return this.memory.read16(dsp);
       case ADDRMODE_REG_TO_REG:
@@ -190,7 +181,7 @@ export class Cpu {
   private execInstruction(inst: Instruction) {
     switch (inst.opcode) {
       case opcode.NOP:
-        this.nextPC();
+        this.psw.nextPC();
         break;
       case opcode.LD:
         this.instrLD(inst);
@@ -234,10 +225,11 @@ export class Cpu {
         break;
       case opcode.SVC:
         this.intrHost.interrupt(intr.EXCP_SVC);
-        this.pc += 2;
+        this.psw.nextPC();
         break;
       case opcode.HALT:
         this.instrHalt();
+        this.psw.nextPC();
         break;
       default:
         this.intrHost.interrupt(intr.EXCP_OP_UNDEFINED);
@@ -249,9 +241,9 @@ export class Cpu {
 
     this.writeReg(inst.rd, data);
 
-    this.nextPC();
+    this.psw.nextPC();
     if (this.isTwoWordInstruction(inst.addrMode)) {
-      this.nextPC();
+      this.psw.nextPC();
     }
   }
 
@@ -265,9 +257,9 @@ export class Cpu {
       this.memory.write16(inst.ea, data);
     }
 
-    this.nextPC();
+    this.psw.nextPC();
     if (this.isTwoWordInstruction(inst.addrMode)) {
-      this.nextPC();
+      this.psw.nextPC();
     }
   }
 
@@ -282,84 +274,116 @@ export class Cpu {
       this.writeReg(inst.rd, ans);
     }
 
-    this.nextPC();
+    this.psw.nextPC();
     if (this.isTwoWordInstruction(inst.addrMode)) {
-      this.nextPC();
+      this.psw.nextPC();
     }
   }
 
   private instrJump(inst: Instruction) {
-    const zFlag = this.evalFlag(FLAG_Z);
-    const cFlag = this.evalFlag(FLAG_C);
-    const sFlag = this.evalFlag(FLAG_S);
-    const vFlag = this.evalFlag(FLAG_V);
+    const zFlag = this.psw.evalFlag(FLAG_Z);
+    const cFlag = this.psw.evalFlag(FLAG_C);
+    const sFlag = this.psw.evalFlag(FLAG_S);
+    const vFlag = this.psw.evalFlag(FLAG_V);
 
     switch (inst.rd) {
       case opcode.JMP_JZ:
-        if (zFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (zFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JC:
-        if (cFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (cFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JM:
-        if (sFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (sFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JO:
-        if (vFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (vFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JGT:
-        if (!(zFlag || (!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (!(zFlag || (!sFlag && vFlag) || (sFlag && !vFlag))) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JGE:
-        if (!((!sFlag && vFlag) || (sFlag && !vFlag))) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (!((!sFlag && vFlag) || (sFlag && !vFlag))) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JLE:
-        if (zFlag || (!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (zFlag || (!sFlag && vFlag) || (sFlag && !vFlag)) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JLT:
-        if ((!sFlag && vFlag) || (sFlag && !vFlag)) this.setPC(inst.ea);
-        else this.pc += 4;
+        if ((!sFlag && vFlag) || (sFlag && !vFlag)) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JNZ:
-        if (!zFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (!zFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JNC:
-        if (!cFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (!cFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JNM:
-        if (!sFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (!sFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JNO:
-        if (!vFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (!vFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JHI:
-        if (!(zFlag || cFlag)) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (!(zFlag || cFlag)) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JLS:
-        if (zFlag || cFlag) this.setPC(inst.ea);
-        else this.pc += 4;
+        if (zFlag || cFlag) {
+          this.psw.setPC(inst.ea);
+          return;
+        }
         break;
       case opcode.JMP_JMP:
-        this.setPC(inst.ea);
-        break;
+        this.psw.setPC(inst.ea);
+        return;
     }
+
+    /* ジャンプ命令は全て2ワード長なのでpc += 4 */
+    this.psw.nextPC();
+    this.psw.nextPC();
   }
 
   private instrCall(inst: Instruction) {
-    this.pushVal(this.pc + 4);
-    this.pc = inst.ea;
+    this.pushVal(this.psw.getPC() + 4);
+    this.psw.setPC(inst.ea);
   }
 
   private instrPushPop(inst: Instruction) {
@@ -371,53 +395,54 @@ export class Cpu {
       this.writeReg(inst.rd, this.popVal());
     }
 
-    this.nextPC();
+    this.psw.nextPC();
   }
 
   private instrReturn(inst: Instruction) {
     if (inst.addrMode === 0x00) {
       /* RET命令 */
-      this.pc = this.popVal();
+      this.psw.setPC(this.popVal());
     } else if (inst.addrMode === 0x04) {
       /* RETI命令*/
-      if (this.evalFlag(FLAG_P)) {
-        this.cpuFlag = this.popVal();
+      if (this.psw.evalFlag(FLAG_P)) {
+        this.psw.setFlags(this.popVal());
       } else {
         /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
-        this.cpuFlag = (0xf0 & this.cpuFlag) | (0x0f & this.popVal());
+        const f = (0xf0 & this.psw.getFlags()) | (0x0f & this.popVal());
+        this.psw.setFlags(f);
       }
-      this.pc = this.popVal();
+      this.psw.setPC(this.popVal());
     }
   }
 
   private instrIn(inst: Instruction) {
-    if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
+    if (this.psw.evalFlag(FLAG_P) || this.psw.evalFlag(FLAG_I)) {
       this.writeReg(inst.rd, this.ioHost.input(inst.ea));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }
 
-    this.nextPC();
+    this.psw.nextPC();
     if (this.isTwoWordInstruction(inst.addrMode)) {
-      this.nextPC();
+      this.psw.nextPC();
     }
   }
 
   private instrOut(inst: Instruction) {
-    if (this.evalFlag(FLAG_P) || this.evalFlag(FLAG_I)) {
+    if (this.psw.evalFlag(FLAG_P) || this.psw.evalFlag(FLAG_I)) {
       this.ioHost.output(inst.ea, this.readReg(inst.rd));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }
 
-    this.nextPC();
+    this.psw.nextPC();
     if (this.isTwoWordInstruction(inst.addrMode)) {
-      this.nextPC();
+      this.psw.nextPC();
     }
   }
 
   private instrHalt() {
-    if (this.evalFlag(FLAG_P)) {
+    if (this.psw.evalFlag(FLAG_P)) {
       this.isHalt = true;
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
@@ -435,11 +460,6 @@ export class Cpu {
     return val;
   }
 
-  /* 引数に指定したフラグが立っているかを確認する */
-  private evalFlag(f: number) {
-    return (this.cpuFlag & f) !== 0;
-  }
-
   /* 演算の種類と式を読み取りフラグを変化させる */
   private changeFlag(op: number, ans: number, v1: number, v2: number) {
     /* TeC7/VHDL/TaC/tac_cpu_alu.vhdを参考にした */
@@ -447,41 +467,38 @@ export class Cpu {
     const v1Msb = v1 & 0x8000;
     const v2Msb = v2 & 0x8000;
 
-    this.cpuFlag &= 0xfff0;
+    let flags = this.psw.getFlags() & 0xfff0;
 
     if (op === opcode.ADD) {
       if (v1Msb === v2Msb && ansMsb !== v1Msb) {
-        this.cpuFlag |= FLAG_V;
+        flags |= FLAG_V;
       }
     } else if (op === opcode.SUB || op === opcode.CMP) {
       if (v1Msb !== v2Msb && ansMsb !== v1Msb) {
-        this.cpuFlag |= FLAG_V;
+        flags |= FLAG_V;
       }
     }
 
     if (opcode.ADD <= op && op <= opcode.CMP) {
       if ((ans & 0x10000) !== 0) {
-        this.cpuFlag |= FLAG_C;
+        flags |= FLAG_C;
       }
     } else if (opcode.SHLA <= op && op <= opcode.SHRL && v2 === 1) {
       /* シフト命令は1ビットシフトのときだけCフラグを変化させる */
       if ((ans & 0x10000) !== 0) {
-        this.cpuFlag |= FLAG_C;
+        flags |= FLAG_C;
       }
     }
 
     if (ansMsb !== 0) {
-      this.cpuFlag |= FLAG_S;
+      flags |= FLAG_S;
     }
 
     if ((ans & 0xffff) == 0) {
-      this.cpuFlag |= FLAG_Z;
+      flags |= FLAG_Z;
     }
-  }
 
-  /* PCを1ワード分(2バイト)進める */
-  private nextPC() {
-    this.pc += 2;
+    this.psw.setFlags(flags);
   }
 
   /* 4bitの値を符号付き16bitに符号拡張する */
@@ -498,23 +515,23 @@ export class Cpu {
   }
 
   private handleInterrupt(intrNum: number): void {
-    const tmp = this.cpuFlag;
+    const tmp = this.psw.getFlags();
 
     /* 割込み禁止、特権モードの状態にする */
-    this.cpuFlag = (this.cpuFlag & ~FLAG_E) | FLAG_P;
+    this.psw.setFlags((tmp & ~FLAG_E) | FLAG_P);
 
-    this.pushVal(this.pc);
+    this.pushVal(this.psw.getPC());
     this.pushVal(tmp);
-    this.pc = this.memory.read16(INTERRUPT_VECTOR + intrNum * 2);
+    this.psw.setPC(this.memory.read16(INTERRUPT_VECTOR + intrNum * 2));
   }
 
   writeReg(num: number, val: number) {
     if (num == REGISTER_FLAG) {
-      if (this.privSig.getPrivMode()) {
-        this.cpuFlag = (0xff00 & this.cpuFlag) | (0x00ff & val);
+      if (this.psw.evalFlag(FLAG_P)) {
+        this.psw.setFlags((0xff00 & this.psw.getFlags()) | (0x00ff & val));
       } else {
         /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
-        this.cpuFlag = (0xffe0 & this.cpuFlag) | (0x001f & val);
+        this.psw.setFlags((0xffe0 & this.psw.getFlags()) | (0x001f & val));
       }
     } else {
       this.register.write(num, val);
@@ -523,41 +540,26 @@ export class Cpu {
 
   readReg(num: number) {
     if (num == REGISTER_FLAG) {
-      return this.cpuFlag;
+      return this.psw.getFlags();
     }
     return this.register.read(num);
   }
 
-  setPC(pc: number) {
-    this.pc = pc;
-  }
-
-  getPC() {
-    return this.pc;
-  }
-
-  getFlag() {
-    return this.cpuFlag;
-  }
-
   private cnt: number;
-  private kernelFlag: boolean;
 
   private debugPrint(inst: Instruction) {
     this.cnt++;
     console.log(
-      `${this.cnt} : 0x${this.pc.toString(16)} ${opcodeToString(inst.opcode, inst.addrMode, inst.rd)} ${regNumToString(
+      `${this.cnt} : 0x${this.psw.getPC().toString(16)} ${opcodeToString(
+        inst.opcode,
+        inst.addrMode,
         inst.rd
-      )}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
+      )} ${regNumToString(inst.rd)}, 0x${inst.ea.toString(16)} (addrMode : ${inst.addrMode})`
     );
   }
 
   reset() {
-    this.cpuFlag = FLAG_P;
     this.isHalt = false;
-    this.pc = 0;
-
     this.cnt = 0;
-    this.kernelFlag = false;
   }
 }

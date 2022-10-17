@@ -1,5 +1,6 @@
 import { Memory } from '../src/renderer/TaC/memory/memory';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
+import { Psw } from '../src/renderer/TaC/cpu/psw';
 import { PrivModeSignal } from '../src/renderer/TaC/cpu/privModeSignal';
 import { Cpu } from '../src/renderer/TaC/cpu/cpu';
 import { Alu } from '../src/renderer/TaC/cpu/alu';
@@ -20,9 +21,10 @@ const io: IIOHostController = {
 const intrController = new IntrController();
 const privSig = new PrivModeSignal();
 const mmu = new Mmu(new Memory(), intrController, privSig);
+const psw = new Psw(privSig);
 const register = new Register(privSig);
 const alu = new Alu(intrController);
-const cpu = new Cpu(mmu, register, alu, intrController, io, privSig);
+const cpu = new Cpu(mmu, psw, register, alu, intrController, io);
 
 test('CPU instruction decode test', () => {
   /* LD G0, Addr */
@@ -60,7 +62,7 @@ test('Sign extension Test', () => {
 });
 
 test('CPU effective address calclation test', () => {
-  cpu['setPC'](0);
+  psw.setPC(0);
 
   /* ダイレクトモード */
   mmu.write16(0x0002, 0x1234);
@@ -93,14 +95,14 @@ test('CPU effective address calclation test', () => {
 });
 
 test('CPU loading operand test', () => {
-  cpu['setPC'](0);
+  psw.setPC(0);
 
   /* ダイレクトモード */
   mmu.write16(0x1000, 0x1234);
   expect(cpu['loadOperand'](0, 0, 0x1000)).toBe(0x1234);
 
   /* イミディエイトモード */
-  cpu['setPC'](0x2000);
+  psw.setPC(0x2000);
   mmu.write16(0x2000 + 2, 0x5555);
   expect(cpu['loadOperand'](2, 0, 0)).toBe(0x5555);
 

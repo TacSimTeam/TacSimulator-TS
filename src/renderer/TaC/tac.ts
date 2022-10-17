@@ -4,8 +4,9 @@ import { Mmu } from './memory/mmu';
 import { Cpu } from './cpu/cpu';
 import { Register } from './cpu/register';
 import { Alu } from './cpu/alu';
-import { IntrController } from './interrupt/intrController';
+import { Psw } from './cpu/psw';
 import { PrivModeSignal } from './cpu/privModeSignal';
+import { IntrController } from './interrupt/intrController';
 import { IOHostController } from './io/ioHostController';
 import { Timer } from './io/device/timer';
 import { Ft232rl } from './io/device/ft232rl';
@@ -18,6 +19,7 @@ export class Tac {
   private mmu: Mmu;
   private memory: Memory;
   private register: Register;
+  private psw: Psw;
   private alu: Alu;
   private cpu: Cpu;
   private intrController: IntrController;
@@ -40,8 +42,9 @@ export class Tac {
     this.privModeSignal = new PrivModeSignal();
 
     this.register = new Register(this.privModeSignal);
+    this.psw = new Psw(this.privModeSignal);
 
-    this.console = new Console(canvas, this.memory, this.register);
+    this.console = new Console(canvas, this.memory, this.psw, this.register);
     this.timer0 = new Timer(0, this.intrController);
     this.timer1 = new Timer(1, this.intrController);
     this.serialIO = new Ft232rl(terminal, this.intrController);
@@ -51,14 +54,13 @@ export class Tac {
     this.io = new IOHostController(this.timer0, this.timer1, this.serialIO, this.sd, this.mmu, this.console);
 
     this.alu = new Alu(this.intrController);
-    this.cpu = new Cpu(this.mmu, this.register, this.alu, this.intrController, this.io, this.privModeSignal);
+    this.cpu = new Cpu(this.mmu, this.psw, this.register, this.alu, this.intrController, this.io);
 
     this.cpuEventId = null;
     this.terminal = terminal;
     this.breakAddr = 0;
 
     this.mmu.loadIpl();
-    this.cpu.setPC(0xe000);
 
     this.console.setRunBtnFunc(() => {
       this.breakAddr = parseInt((document.getElementById('break-address') as HTMLInputElement).value, 16);
@@ -100,7 +102,7 @@ export class Tac {
   run() {
     const start = new Date();
     for (;;) {
-      if (this.console.getBreakSwitchValue() && this.cpu.getPC() === this.breakAddr) {
+      if (this.console.getBreakSwitchValue() && this.psw.getPC() === this.breakAddr) {
         /* BREAKスイッチがONなので1命令実行後一時停止 */
         this.cpu.run();
         this.update();
@@ -130,7 +132,7 @@ export class Tac {
   update() {
     assertIsDefined(document.getElementById('value-pc'));
     const pc_value = document.getElementById('value-pc') as HTMLElement;
-    pc_value.textContent = `PC : ${this.cpu.getPC().toString(16)}`;
+    pc_value.textContent = `PC : ${this.psw.getPC().toString(16)}`;
 
     assertIsDefined(document.getElementById('reg-list'));
     const reg_list = document.getElementById('reg-list') as HTMLUListElement;
@@ -154,6 +156,7 @@ export class Tac {
     this.terminal.value = ' ';
 
     this.cpu.reset();
+    this.psw.reset();
     this.register.reset();
     this.mmu.reset();
     this.intrController.reset();
@@ -163,7 +166,6 @@ export class Tac {
     this.sd.reset();
 
     this.mmu.loadIpl();
-    this.cpu.setPC(0xe000);
 
     this.update();
   }
@@ -177,7 +179,7 @@ export class Tac {
 
   test() {
     this.mmu.loadIpl();
-    this.cpu.setPC(0xe000);
+    this.psw.setPC(0xe000);
 
     const start = new Date();
     for (let i = 0; i < 10000; i++) {

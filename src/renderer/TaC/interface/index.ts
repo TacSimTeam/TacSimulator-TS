@@ -6,6 +6,7 @@ export * from './intrSignal';
 export * from './privModeSignal';
 export * from './cpu/register';
 export * from './cpu/alu';
+export * from './cpu/psw';
 export * from './io/ioHostController';
 export * from './io/device/ioConsole';
 export * from './io/device/ioSdHostController';
