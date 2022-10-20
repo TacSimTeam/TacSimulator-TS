@@ -168,9 +168,8 @@ export class Cpu {
         return this.memory.read16(dsp);
       case ADDRMODE_BYTE_REG_INDIRECT:
         return this.memory.read8(dsp);
-      default:
-        throw new Error('不正なアドレッシングモードエラー');
     }
+    return 0;
   }
 
   /**

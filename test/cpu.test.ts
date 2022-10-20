@@ -101,10 +101,18 @@ test('CPU loading operand test', () => {
   mmu.write16(0x1000, 0x1234);
   expect(cpu['loadOperand'](0, 0, 0x1000)).toBe(0x1234);
 
+  /* インデクスドモード */
+  mmu.write16(0x1100, 0x2345);
+  expect(cpu['loadOperand'](1, 0, 0x1100)).toBe(0x2345);
+
   /* イミディエイトモード */
   psw.setPC(0x2000);
   mmu.write16(0x2000 + 2, 0x5555);
   expect(cpu['loadOperand'](2, 0, 0)).toBe(0x5555);
+
+  /* FP相対モード */
+  mmu.write16(0x1200, 0x3456);
+  expect(cpu['loadOperand'](3, 0, 0x1200)).toBe(0x3456);
 
   /* レジスタレジスタモード */
   cpu.writeReg(REGISTER_G2, 0xaaaa);
@@ -113,6 +121,10 @@ test('CPU loading operand test', () => {
   /* ショートイミディエイトモード */
   expect(cpu['loadOperand'](5, 0b0111, 0)).toBe(7);
   expect(cpu['loadOperand'](5, 0b1000, 0)).toBe(0xfff8);
+
+  /* レジスタ・インダイレクトモード */
+  mmu.write16(0x1300, 0x4567);
+  expect(cpu['loadOperand'](6, 0, 0x1200)).toBe(0x4567);
 
   /* バイトレジスタ・インダイレクトモード */
   mmu.write16(0x2000, 0x5678);
