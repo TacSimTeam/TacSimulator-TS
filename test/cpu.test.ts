@@ -34,7 +34,7 @@ test('CPU instruction decode test', () => {
   expect(inst.rd).toBe(0);
   expect(inst.rx).toBe(0);
 
-  /* IN G5,%G10 */
+  /* IN G5, %G10 */
   inst = cpu['decode'](0b1011011001011010);
   expect(inst.opcode).toBe(0b10110);
   expect(inst.addrMode).toBe(6);
@@ -65,13 +65,13 @@ test('CPU effective address calclation test', () => {
   psw.setPC(0);
 
   /* ダイレクトモード */
-  mmu.write16(0x0002, 0x1234);
-  expect(cpu['calcEffectiveAddress'](0, REGISTER_G0)).toBe(0x1234);
+  mmu.write16(0x0002, 0x1000);
+  expect(cpu['calcEffectiveAddress'](0, REGISTER_G0)).toBe(0x1000);
 
   /* インデクスドモード */
-  mmu.write16(0x0002, 0x2345);
-  cpu.writeReg(REGISTER_G1, 0x6543);
-  expect(cpu['calcEffectiveAddress'](1, REGISTER_G1)).toBe(0x8888);
+  mmu.write16(0x0002, 0x2000);
+  cpu.writeReg(REGISTER_G1, 0x0002);
+  expect(cpu['calcEffectiveAddress'](1, REGISTER_G1)).toBe(0x2002);
 
   /* FP相対モード */
   cpu.writeReg(REGISTER_FP, 0x1000);
@@ -79,59 +79,51 @@ test('CPU effective address calclation test', () => {
   expect(cpu['calcEffectiveAddress'](3, 0b1000)).toBe(0x1000 - 8 * 2);
 
   /* レジスタ・インダイレクトモード */
-  cpu.writeReg(REGISTER_G1, 0x2222);
-  expect(cpu['calcEffectiveAddress'](6, REGISTER_G1)).toBe(0x2222);
+  cpu.writeReg(REGISTER_G1, 0x4000);
+  expect(cpu['calcEffectiveAddress'](6, REGISTER_G1)).toBe(0x4000);
 
   /* バイトレジスタ・インダイレクトモード */
-  cpu.writeReg(REGISTER_G1, 0xaaaa);
-  expect(cpu['calcEffectiveAddress'](7, REGISTER_G1)).toBe(0xaaaa);
+  cpu.writeReg(REGISTER_G1, 0x5001);
+  expect(cpu['calcEffectiveAddress'](7, REGISTER_G1)).toBe(0x5001);
 
   /* それ以外 */
   expect(cpu['calcEffectiveAddress'](2, 0)).toBe(0);
-
-  mmu.write16(0x0002, 0);
-  cpu.writeReg(REGISTER_G1, 0);
-  cpu.writeReg(REGISTER_FP, 0);
 });
 
 test('CPU loading operand test', () => {
   psw.setPC(0);
 
   /* ダイレクトモード */
-  mmu.write16(0x1000, 0x1234);
-  expect(cpu['loadOperand'](0, 0, 0x1000)).toBe(0x1234);
+  mmu.write16(0x1000, 1);
+  expect(cpu['loadOperand'](0, 0, 0x1000)).toBe(1);
 
   /* インデクスドモード */
-  mmu.write16(0x1100, 0x2345);
-  expect(cpu['loadOperand'](1, 0, 0x1100)).toBe(0x2345);
+  mmu.write16(0x2000, 2);
+  expect(cpu['loadOperand'](1, 0, 0x2000)).toBe(2);
 
   /* イミディエイトモード */
-  psw.setPC(0x2000);
-  mmu.write16(0x2000 + 2, 0x5555);
-  expect(cpu['loadOperand'](2, 0, 0)).toBe(0x5555);
+  psw.setPC(0x3000);
+  mmu.write16(0x3000 + 2, 3);
+  expect(cpu['loadOperand'](2, 0, 0)).toBe(3);
 
   /* FP相対モード */
-  mmu.write16(0x1200, 0x3456);
-  expect(cpu['loadOperand'](3, 0, 0x1200)).toBe(0x3456);
+  mmu.write16(0x4000, 4);
+  expect(cpu['loadOperand'](3, 0, 0x4000)).toBe(4);
 
   /* レジスタレジスタモード */
-  cpu.writeReg(REGISTER_G2, 0xaaaa);
-  expect(cpu['loadOperand'](4, REGISTER_G2, 0)).toBe(0xaaaa);
+  cpu.writeReg(REGISTER_G2, 5);
+  expect(cpu['loadOperand'](4, REGISTER_G2, 0)).toBe(5);
 
   /* ショートイミディエイトモード */
   expect(cpu['loadOperand'](5, 0b0111, 0)).toBe(7);
   expect(cpu['loadOperand'](5, 0b1000, 0)).toBe(0xfff8);
 
   /* レジスタ・インダイレクトモード */
-  mmu.write16(0x1300, 0x4567);
-  expect(cpu['loadOperand'](6, 0, 0x1200)).toBe(0x4567);
+  mmu.write16(0x5000, 0x1234);
+  expect(cpu['loadOperand'](6, 0, 0x5000)).toBe(0x1234);
 
   /* バイトレジスタ・インダイレクトモード */
-  mmu.write16(0x2000, 0x5678);
-  expect(cpu['loadOperand'](7, 0, 0x2001)).toBe(0x0078);
-
-  mmu.write16(0x1000, 0);
-  mmu.write16(0x2000, 0);
-  mmu.write16(0x2000 + 2, 0);
-  cpu.writeReg(REGISTER_G2, 0);
+  mmu.write16(0x2000, 0x1234);
+  expect(cpu['loadOperand'](7, 0, 0x2000)).toBe(0x0012);
+  expect(cpu['loadOperand'](7, 0, 0x2001)).toBe(0x0034);
 });

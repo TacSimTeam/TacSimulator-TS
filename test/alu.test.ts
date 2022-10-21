@@ -15,16 +15,12 @@ test('Alu calculation test', () => {
   expect(alu.calc(opcode.SUB, 0x0002, 0x0001) & 0xffff).toBe(0x0001);
   expect(alu.calc(opcode.SUB, 0x0001, 0x0002) & 0xffff).toBe(0xffff);
   expect(alu.calc(opcode.SUB, 0x0001, 0xffff) & 0xffff).toBe(0x0002);
-  expect(alu.calc(opcode.SUB, 0xffff, 0x0001) & 0xffff).toBe(0xfffe);
-  expect(alu.calc(opcode.SUB, 0xffff, 0xfffe) & 0xffff).toBe(0x0001);
   expect(alu.calc(opcode.SUB, 0xfffe, 0xffff) & 0xffff).toBe(0xffff);
 
   expect(alu.calc(opcode.CMP, 0x0001, 0x0001) & 0xffff).toBe(0x0000);
   expect(alu.calc(opcode.CMP, 0x0002, 0x0001) & 0xffff).toBe(0x0001);
   expect(alu.calc(opcode.CMP, 0x0001, 0x0002) & 0xffff).toBe(0xffff);
   expect(alu.calc(opcode.CMP, 0x0001, 0xffff) & 0xffff).toBe(0x0002);
-  expect(alu.calc(opcode.CMP, 0xffff, 0x0001) & 0xffff).toBe(0xfffe);
-  expect(alu.calc(opcode.CMP, 0xffff, 0xfffe) & 0xffff).toBe(0x0001);
   expect(alu.calc(opcode.CMP, 0xfffe, 0xffff) & 0xffff).toBe(0xffff);
 
   expect(alu.calc(opcode.AND, 0x00ff, 0x1234) & 0xffff).toBe(0x0034);
@@ -47,14 +43,14 @@ test('Alu calculation test', () => {
   expect(alu.calc(opcode.DIV, 0x0001, 0x0002) & 0xffff).toBe(0x0000);
 
   expect(alu.calc(opcode.DIV, 0x0001, 0x0000) & 0xffff).toBe(0x0000);
-  expect(intrController.checkIntrNum()).toBe(intr.EXCP_ZERO_DIV);
+  expect(intrController.checkIntrNum()).toBe(intr.EXCP_ZERO_DIV); /* 0除算例外の確認 */
 
   expect(alu.calc(opcode.MOD, 0x0008, 0x0002) & 0xffff).toBe(0x0000);
   expect(alu.calc(opcode.MOD, 0x0009, 0x0002) & 0xffff).toBe(0x0001);
   expect(alu.calc(opcode.MOD, 0x00ff, 0xffff) & 0xffff).toBe(0x00ff);
 
   expect(alu.calc(opcode.MOD, 0x0001, 0x0000) & 0xffff).toBe(0x0000);
-  expect(intrController.checkIntrNum()).toBe(intr.EXCP_ZERO_DIV);
+  expect(intrController.checkIntrNum()).toBe(intr.EXCP_ZERO_DIV); /* 0除算例外の確認 */
 
   expect(alu.calc(opcode.SHLA, 0x0055, 0x0001) & 0xffff).toBe(0x00aa);
   expect(alu.calc(opcode.SHLA, 0xff00, 0x0004) & 0xffff).toBe(0xf000);

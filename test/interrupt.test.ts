@@ -20,6 +20,7 @@ test('Interrupt test', () => {
   intrController.interrupt(intr.EXCP_ZERO_DIV);
   expect(intrController.isOccurredException()).toBe(true);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_ZERO_DIV);
+  expect(intrController.isOccurredException()).toBe(false);
   expect(intrController.checkIntrNum()).toBe(intr.MICRO_SD);
   expect(intrController.checkIntrNum()).toBe(null);
 });
