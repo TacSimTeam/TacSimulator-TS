@@ -61,7 +61,7 @@ export class IOHostController implements IIOHostController {
         if (this.sd.isOccurredError()) {
           val |= 0x0040;
         }
-        if (!window.electronAPI.isSDImageLoaded()) {
+        if (!window.electronAPI.isSDImgLoaded()) {
           /**
            * SDカードが挿入されていないことを通知する
            * 挿入されていなければLSBを1にして返す

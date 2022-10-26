@@ -3,8 +3,10 @@ import * as path from 'path';
 
 let mainWindow: BrowserWindow;
 
-/* ファイルダイアログを開き「.dmg」ファイルのパスを返す */
-async function handleGetSDImagePath() {
+/**
+ * ファイルダイアログを開き「.dmg」ファイルのパスを返す
+ */
+async function handleGetSDImgPath() {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     title: 'ファイルを選択してください',
     filters: [{ name: 'SDイメージファイル', extensions: ['dmg'] }],
@@ -17,7 +19,9 @@ async function handleGetSDImagePath() {
   }
 }
 
-/* ウィンドウを生成し, HTMLを読み込んで表示する */
+/**
+ * ウィンドウを生成し, HTMLを読み込んで表示する
+ */
 function createWindow() {
   const options: Electron.BrowserWindowConstructorOptions = {
     width: 1200,
@@ -31,7 +35,6 @@ function createWindow() {
   };
   mainWindow = new BrowserWindow(options);
   mainWindow.loadFile('public/index.html');
-  // mainWindow.setResizable(false);
 
   /* レンダリング終了後にウィンドウを表示する */
   mainWindow.once('ready-to-show', () => {
@@ -41,12 +44,8 @@ function createWindow() {
 
 /* Electron の初期化完了を待ってからウィンドウを作成 */
 app.whenReady().then(() => {
-  ipcMain.handle('dialog:getSDImagePath', handleGetSDImagePath);
+  ipcMain.handle('dialog:getSDImagePath', handleGetSDImgPath);
   createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
 });
 
 /* ウィンドウが全て閉じられたときアプリが終了させる(macOS以外) */

@@ -1,31 +1,31 @@
 /**
  * Electronアプリのプリロードスクリプト
- * レンダラープロセスに公開する機能(FileIOなど)をここで定義し指定する
+ * レンダラープロセスに公開する機能(FileI/Oなど)をここで定義し指定する
  *
  * もし機能を追加したい場合はこのファイルに新しく関数を定義して、
  * contextBridge.exposeInMainWorldの第2引数のオブジェクトに追加する
  * (コード補完を効かせるためにはsrc/renderer/types/renderer.d.tsに型定義を追記する)
  */
 import { contextBridge, ipcRenderer } from 'electron';
-import { SDCardImageIOAsync } from './sdImageIOAsync';
+import { SDImgIOAsync } from './sdImgIOAsync';
 
-const sdImgIO = new SDCardImageIOAsync();
+const sdImgIO = new SDImgIOAsync();
 
 /* レンダラープロセスに公開するAPI */
 contextBridge.exposeInMainWorld('electronAPI', {
-  readSector: (sectorNum: number) => {
-    return sdImgIO.readSector(sectorNum);
+  readSct: async (sctAddr: number) => {
+    return sdImgIO.readSct(sctAddr);
   },
-  writeSector: async (sectorNum: number, data: Uint8Array) => {
-    await sdImgIO.writeSector(sectorNum, data);
+  writeSct: async (sctAddr: number, data: Uint8Array) => {
+    await sdImgIO.writeSct(sctAddr, data);
   },
-  openFile: async (filepath: string) => {
-    await sdImgIO.open(filepath);
+  openFile: async (filePath: string) => {
+    await sdImgIO.open(filePath);
   },
-  isSDImageLoaded: () => {
+  isSDImgLoaded: () => {
     return sdImgIO.isLoaded();
   },
-  getSDImagePath: () => {
+  getSDImgPath: () => {
     return ipcRenderer.invoke('dialog:getSDImagePath');
   },
 });

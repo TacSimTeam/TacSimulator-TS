@@ -25,10 +25,10 @@ openBtn.addEventListener('click', async () => {
   const filePathElement = document.getElementById('filePath');
   assertIsDefined(filePathElement);
 
-  const filePath = await window.electronAPI.getSDImagePath();
+  const filePath = await window.electronAPI.getSDImgPath();
 
   if (filePath === undefined) {
-    if (window.electronAPI.isSDImageLoaded()) {
+    if (window.electronAPI.isSDImgLoaded()) {
       return;
     }
     filePathElement.innerText = 'ファイルが選択されていません';
