@@ -15,13 +15,11 @@ export class SDImgIOAsync {
   }
 
   /**
-   * イメージファイルを非同期に読み込む
+   * イメージファイルを読み込む
    */
   async open(path: string) {
-    if (this.fHandle !== null) {
-      /* 既に読み込んでいるSDイメージがあった場合はクローズする */
-      await this.fHandle.close();
-    }
+    /* 既に読み込んでいるSDイメージがあった場合のためにクローズする */
+    await this.close();
 
     try {
       this.fHandle = await fs.open(path, 'r+');
@@ -59,5 +57,14 @@ export class SDImgIOAsync {
    */
   isLoaded() {
     return this.fHandle !== null;
+  }
+
+  /**
+   * イメージファイルをクローズする
+   */
+  async close() {
+    if (this.fHandle !== null) {
+      await this.fHandle.close();
+    }
   }
 }

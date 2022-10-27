@@ -3,29 +3,16 @@ import * as path from 'path';
 
 let mainWindow: BrowserWindow;
 
-/**
- * ファイルダイアログを開き「.dmg」ファイルのパスを返す
- */
-async function handleGetSDImgPath() {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
-    title: 'ファイルを選択してください',
-    filters: [{ name: 'SDイメージファイル', extensions: ['dmg'] }],
-  });
-
-  if (canceled) {
-    return;
-  } else {
-    return filePaths[0];
-  }
-}
+const WINDOW_WIDTH = 1200;
+const WINDOW_HEIGHT = 800;
 
 /**
  * ウィンドウを生成し, HTMLを読み込んで表示する
  */
 function createWindow() {
   const options: Electron.BrowserWindowConstructorOptions = {
-    width: 1200,
-    height: 800,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -52,3 +39,19 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+
+/**
+ * ファイルダイアログを開き「.dmg」ファイルのパスを返す
+ */
+async function handleGetSDImgPath() {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    title: 'ファイルを選択してください',
+    filters: [{ name: 'SDイメージファイル', extensions: ['dmg'] }],
+  });
+
+  if (canceled) {
+    return;
+  } else {
+    return filePaths[0];
+  }
+}

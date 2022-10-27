@@ -6,7 +6,7 @@
  * contextBridge.exposeInMainWorldの第2引数のオブジェクトに追加する
  * (コード補完を効かせるためにはsrc/renderer/types/renderer.d.tsに型定義を追記する)
  */
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, app } from 'electron';
 import { SDImgIOAsync } from './sdImgIOAsync';
 
 const sdImgIO = new SDImgIOAsync();
@@ -25,7 +25,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isSDImgLoaded: () => {
     return sdImgIO.isLoaded();
   },
-  getSDImgPath: () => {
+  getSDImgPath: async () => {
     return ipcRenderer.invoke('dialog:getSDImagePath');
   },
+});
+
+/* アプリ終了時にファイルをクローズする */
+app.on('quit', () => {
+  sdImgIO.close();
 });
