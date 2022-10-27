@@ -2,10 +2,9 @@
 <html>
   <head>
     <meta charset="UTF-8"/>
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"/>
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"/>
-    <link href="../public/style.css" rel="stylesheet"/>
+    <link href="style.css" rel="stylesheet"/>
     <title>TaC Simulator</title>
   </head>
 
@@ -14,7 +13,7 @@
       <div class="content-area">
         <div class="console-area">
           <canvas height="390px" width="430px" id="console"> TeC7コンソール </canvas>
-          <img src="./image/TaC.png" id="tac-image"/>
+          <img src="image/TaC.png" id="console-image"/>
         </div>
         <div class="debugprint-area">
           <button type="button" id="btn-openFile">Open a File</button>
@@ -22,7 +21,7 @@
 
           <br/>
 
-          BREAKPOINT : <input type="text" name="break-address" id="break-address"/><br/>
+          BREAKPOINT : <input type="text" id="break-address"/><br/>
 
           <p id="value-pc">PC :</p>
           <ul id="reg-list">
@@ -46,7 +45,7 @@
         </div>
       </div>
       <div class="terminal-area">
-        <textarea id="terminal" rows="5" cols="20" spellcheck="false" readonly></textarea>
+        <textarea id="terminal" spellcheck="false" wrap="soft" readonly></textarea>
       </div>
     </section>
 

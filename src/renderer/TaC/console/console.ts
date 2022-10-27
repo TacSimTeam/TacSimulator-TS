@@ -313,7 +313,7 @@ export class Console implements IIOConsole {
   drawAll() {
     this.clear();
 
-    const img = document.getElementById('tac-image');
+    const img = document.getElementById('console-image');
     if (img !== null) {
       this.ctx.drawImage(img as HTMLImageElement, 0, 0);
     }
