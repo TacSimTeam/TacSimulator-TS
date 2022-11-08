@@ -16,32 +16,70 @@
           <img src="image/TaC.png" id="console-image"/>
         </div>
         <div class="debugprint-area">
-          <button type="button" id="btn-openFile">Open a File</button>
-          File path: <strong id="filePath">ファイルが選択されていません</strong>
+          <div class="openfile-area">
+            <button type="button" id="btn-openFile">Open microSD image file</button> <br>
+            File path: <strong id="filePath">ファイルが選択されていません</strong>            
+          </div>
 
-          <br/>
+          <div class="breakpoint-area">
+            BREAKPOINT : <input type="text" id="break-address"/>
+          </div>
+          
+          <div class="register-print-area">
+            <table id="reg-table">
+              <tbody>
+                <tr>
+                  <td class="reg-table-name">G0</td>
+                  <td class="reg-table-value" id="reg-value-G0">0x0000</td>
+                  <td class="reg-table-name">G6</td>
+                  <td class="reg-table-value" id="reg-value-G6">0x0000</td>
+                  <td class="reg-table-name">FP</td>
+                  <td class="reg-table-value" id="reg-value-FP">0x0000</td>
+                </tr>
+                <tr>
+                  <td class="reg-table-name">G1</td>
+                  <td class="reg-table-value" id="reg-value-G1">0x0000</td>
+                  <td class="reg-table-name">G7</td>
+                  <td class="reg-table-value" id="reg-value-G7">0x0000</td>
+                  <td class="reg-table-name">SP</td>
+                  <td class="reg-table-value" id="reg-value-SP">0x0000</td>
+                </tr>
+                <tr>
+                  <td class="reg-table-name">G2</td>
+                  <td class="reg-table-value" id="reg-value-G2">0x0000</td>
+                  <td class="reg-table-name">G8</td>
+                  <td class="reg-table-value" id="reg-value-G8">0x0000</td>
+                  <td class="reg-table-name">PC</td>
+                  <td class="reg-table-value" id="reg-value-PC">0x0000</td>
+                </tr>
+                <tr>
+                  <td class="reg-table-name">G3</td>
+                  <td class="reg-table-value" id="reg-value-G3">0x0000</td>
+                  <td class="reg-table-name">G9</td>
+                  <td class="reg-table-value" id="reg-value-G9">0x0000</td>
+                  <td class="reg-table-name">FLAG</td>
+                  <td class="reg-table-value" id="reg-value-FLAG">0x0000</td>
+                </tr>
+                <tr>
+                  <td class="reg-table-name">G4</td>
+                  <td class="reg-table-value" id="reg-value-G4">0x0000</td>
+                  <td class="reg-table-name">G10</td>
+                  <td class="reg-table-value" id="reg-value-G10">0x0000</td>
+                  <td class="reg-table-name">MD</td>
+                  <td class="reg-table-value" id="reg-value-MD">0x0000</td>
+                </tr>
+                <tr>
+                  <td class="reg-table-name">G5</td>
+                  <td class="reg-table-value" id="reg-value-G5">0x0000</td>
+                  <td class="reg-table-name">G11</td>
+                  <td class="reg-table-value" id="reg-value-G11">0x0000</td>
+                  <td class="reg-table-name">MA</td>
+                  <td class="reg-table-value" id="reg-value-MA">0x0000</td>
+                </tr>
+              </tbody>
+            </table>            
+          </div>
 
-          BREAKPOINT : <input type="text" id="break-address"/><br/>
-
-          <p id="value-pc">PC :</p>
-          <ul id="reg-list">
-            <li id="reg-value-G0">G0:</li>
-            <li id="reg-value-G1">G1:</li>
-            <li id="reg-value-G2">G2:</li>
-            <li id="reg-value-G3">G3:</li>
-            <li id="reg-value-G4">G4:</li>
-            <li id="reg-value-G5">G5:</li>
-            <li id="reg-value-G6">G6:</li>
-            <li id="reg-value-G7">G7:</li>
-            <li id="reg-value-G8">G8:</li>
-            <li id="reg-value-G9">G9:</li>
-            <li id="reg-value-G10">G10:</li>
-            <li id="reg-value-G11">G11:</li>
-            <li id="reg-value-FP">FP:</li>
-            <li id="reg-value-SSP">SSP:</li>
-            <li id="reg-value-USP">USP:</li>
-            <li id="reg-value-FLAG">FLAG:</li>
-          </ul>
         </div>
       </div>
       <div class="terminal-area">

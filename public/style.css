@@ -40,8 +40,39 @@ body {
 
 .debugprint-area {
   height: 330px;
+  padding-top: 5px;
+  padding-left: 5px;
   overflow-x: hidden;
   overflow-y: scroll;
+}
+
+.breakpoint-area {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.register-print-area {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+#reg-table {
+  border-collapse: collapse;
+}
+
+#reg-table tbody tr td {
+  border: 1px solid #333;
+}
+
+
+td.reg-table-name {
+  width: 50px;
+  text-align: center;
+}
+
+td.reg-table-value {
+  text-align: center;
+  width: 100px;
 }
 
 .terminal-area {

@@ -130,23 +130,24 @@ export class Tac {
   }
 
   update() {
-    assertIsDefined(document.getElementById('value-pc'));
-    const pc_value = document.getElementById('value-pc') as HTMLElement;
-    pc_value.textContent = `PC : ${this.psw.getPC().toString(16)}`;
-
-    assertIsDefined(document.getElementById('reg-list'));
-    const reg_list = document.getElementById('reg-list') as HTMLUListElement;
-
-    for (let i = 0; i <= 15; i++) {
-      const reg_text = reg_list.children[i];
-      if (reg_text !== null) {
-        const decimal = this.cpu.readReg(i).toString(10);
-        const hex = this.cpu.readReg(i).toString(16);
-        const text = `${regNumToString(i)} : 0x${hex} (${decimal})`;
-
-        reg_text.textContent = text;
-      }
-    }
+    (document.getElementById('reg-value-G0') as HTMLElement).innerText = '0x' + this.register.read(0).toString(16);
+    (document.getElementById('reg-value-G1') as HTMLElement).innerText = '0x' + this.register.read(1).toString(16);
+    (document.getElementById('reg-value-G2') as HTMLElement).innerText = '0x' + this.register.read(2).toString(16);
+    (document.getElementById('reg-value-G3') as HTMLElement).innerText = '0x' + this.register.read(3).toString(16);
+    (document.getElementById('reg-value-G4') as HTMLElement).innerText = '0x' + this.register.read(4).toString(16);
+    (document.getElementById('reg-value-G5') as HTMLElement).innerText = '0x' + this.register.read(5).toString(16);
+    (document.getElementById('reg-value-G6') as HTMLElement).innerText = '0x' + this.register.read(6).toString(16);
+    (document.getElementById('reg-value-G7') as HTMLElement).innerText = '0x' + this.register.read(7).toString(16);
+    (document.getElementById('reg-value-G8') as HTMLElement).innerText = '0x' + this.register.read(8).toString(16);
+    (document.getElementById('reg-value-G9') as HTMLElement).innerText = '0x' + this.register.read(9).toString(16);
+    (document.getElementById('reg-value-G10') as HTMLElement).innerText = '0x' + this.register.read(10).toString(16);
+    (document.getElementById('reg-value-G11') as HTMLElement).innerText = '0x' + this.register.read(11).toString(16);
+    (document.getElementById('reg-value-FP') as HTMLElement).innerText = '0x' + this.register.read(12).toString(16);
+    (document.getElementById('reg-value-SP') as HTMLElement).innerText = '0x' + this.register.read(13).toString(16);
+    (document.getElementById('reg-value-PC') as HTMLElement).innerText = '0x' + this.psw.getPC().toString(16);
+    (document.getElementById('reg-value-FLAG') as HTMLElement).innerText = '0x' + this.psw.getFlags().toString(16);
+    (document.getElementById('reg-value-MD') as HTMLElement).innerText = '0x' + this.console['memData'].toString(16);
+    (document.getElementById('reg-value-MA') as HTMLElement).innerText = '0x' + this.console['memAddr'].toString(16);
   }
 
   reset() {
