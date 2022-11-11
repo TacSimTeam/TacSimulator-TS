@@ -402,14 +402,6 @@ export class Cpu {
     } else if (inst.addrMode === 0x04) {
       /* RETI命令 */
       /**
-       * MMUが有効な場合にSPが無駄に加算されることを防ぐために
-       * リターン先のPCが格納されているメモリにアクセスする
-       *
-       * これにより予めTLBMiss例外を発生させる
-       */
-      this.memory.read16(this.readReg(REGISTER_SP) + 2);
-
-      /**
        * 先にフラグを変化させるとスタックが切り替わる可能性があるため
        * PCとフラグは同時に取得する必要がある
        */
@@ -461,8 +453,13 @@ export class Cpu {
   }
 
   private pushVal(val: number) {
+    /**
+     * MMU有効の場合はTLBMiss例外が発生する必要があり
+     * その際にはSPの値が変化してほしくないため
+     * SPへの加算・減算より先にメモリアクセスを行うことでこれを防ぐ
+     */
+    this.memory.write16(this.readReg(REGISTER_SP) - 2, val);
     this.writeReg(REGISTER_SP, this.readReg(REGISTER_SP) - 2);
-    this.memory.write16(this.readReg(REGISTER_SP), val);
   }
 
   private popVal() {
