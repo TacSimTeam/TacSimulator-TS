@@ -28,7 +28,6 @@ export class IOHostController implements IIOHostController {
   input(addr: number): number {
     let val = 0;
 
-    // console.log(`MEMORY <- IO[0x${addr.toString(16)}]`);
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
         return this.timer0.getCounter();

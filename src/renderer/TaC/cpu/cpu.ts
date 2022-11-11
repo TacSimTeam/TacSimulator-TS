@@ -87,8 +87,6 @@ export class Cpu {
     /* 実効アドレス計算 */
     inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
 
-    // this.debugPrint(inst);
-
     /* 命令実行(TLBミスが発生する可能性有り) */
     try {
       this.execInstruction(inst);
@@ -402,15 +400,21 @@ export class Cpu {
       /* RET命令 */
       this.psw.setPC(this.popVal());
     } else if (inst.addrMode === 0x04) {
-      /* RETI命令*/
+      /* RETI命令 */
+      /**
+       * 先にフラグを変化させるとスタックが切り替わる可能性があるため
+       * PCとフラグは同時に取得する必要がある
+       */
+      const flag = this.popVal();
+      const pc = this.popVal();
+
       if (this.psw.evalFlag(FLAG_P)) {
-        this.psw.setFlags(this.popVal());
+        this.psw.setFlags(flag);
       } else {
         /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
-        const f = (0xf0 & this.psw.getFlags()) | (0x0f & this.popVal());
-        this.psw.setFlags(f);
+        this.psw.setFlags((0xf0 & this.psw.getFlags()) | (0x0f & flag));
       }
-      this.psw.setPC(this.popVal());
+      this.psw.setPC(pc);
     }
   }
 
