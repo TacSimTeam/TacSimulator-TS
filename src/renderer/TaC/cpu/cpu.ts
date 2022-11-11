@@ -73,7 +73,7 @@ export class Cpu {
     /* 命令フェッチ(TLBミスが発生する可能性有り) */
     let data = 0;
     try {
-      data = this.memory.read16(this.psw.getPC());
+      data = this.memory.fetch(this.psw.getPC());
     } catch (e) {
       if (e instanceof TlbMissError) {
         /* TLBMissが発生したのでPCを進めずに一旦戻す */

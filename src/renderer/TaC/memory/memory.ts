@@ -1,10 +1,9 @@
-import { IDataBus } from '../interface';
 import { IDmaSignal } from '../interface/dmaSignal';
 
 /* Tacのメモリサイズは64KiB */
 const MEMORY_SIZE = 64 * 1024;
 
-export class Memory implements IDmaSignal, IDataBus {
+export class Memory implements IDmaSignal {
   private mem: Uint8Array;
   private size: number;
 

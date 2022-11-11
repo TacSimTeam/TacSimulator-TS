@@ -27,6 +27,19 @@ export interface IDataBus {
   read16(addr: number): number;
 
   /**
+   * 16bitのデータをメモリから読み込む
+   *
+   * read16()関数とほぼ変わらないが
+   * この関数経由でデータを読みだすと、TLBのexecuteフラグがチェックされる
+   *
+   * 以下の状況のときはErrorをthrowするので処理する必要がある
+   * - TLBミスが発生したとき
+   *
+   * @param addr 読み込むデータのアドレス
+   */
+  fetch(pc: number): number;
+
+  /**
    * バイトデータをメモリに書き込む
    *
    * バイト・レジスタインダイレクトモードでしか使わないので

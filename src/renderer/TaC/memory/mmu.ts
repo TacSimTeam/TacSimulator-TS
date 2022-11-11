@@ -191,6 +191,39 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
     return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
   }
 
+  fetch(pc: number): number {
+    if (pc % 2 == 1) {
+      /* メモリ保護違反(奇数アドレス) */
+      this.errorAddr = pc;
+      this.errorCause |= ERROR_CAUSE_BAD_ADDRESS;
+      this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+      return 0;
+    }
+
+    /* MMUが有効かつ特権モード以外ならp-f変換を行う */
+    if (this.mmuMode && !this.privModesignal.getPrivMode()) {
+      const page = (pc & 0xff00) >> 8;
+      const entry = this.searchTlbNum(page);
+      if (entry == -1) {
+        /* TLBミス */
+        this.tlbMissPage = page;
+        this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
+        throw new TlbMissError();
+      } else if (!this.tlbs[entry].executeFlag) {
+        /* メモリ保護違反(Executeフラグが0) */
+        this.errorAddr = pc;
+        this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
+        this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+        return 0;
+      }
+
+      const frame = this.tlbs[entry].frame;
+      pc = (frame << 8) | (pc & 0x00ff);
+    }
+
+    return (this.memory.read8(pc) << 8) | this.memory.read8(pc + 1);
+  }
+
   private searchTlbNum(page: number) {
     for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
       if (this.tlbs[i].validFlag && this.tlbs[i].page == page) {
