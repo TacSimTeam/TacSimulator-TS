@@ -402,6 +402,14 @@ export class Cpu {
     } else if (inst.addrMode === 0x04) {
       /* RETI命令 */
       /**
+       * MMUが有効な場合にSPが無駄に加算されることを防ぐために
+       * リターン先のPCが格納されているメモリにアクセスする
+       *
+       * これにより予めTLBMiss例外を発生させる
+       */
+      this.memory.read16(this.readReg(REGISTER_SP) + 2);
+
+      /**
        * 先にフラグを変化させるとスタックが切り替わる可能性があるため
        * PCとフラグは同時に取得する必要がある
        */
