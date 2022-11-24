@@ -1,7 +1,6 @@
 import { IPrivModeSignal } from '../interface';
 import { IPsw } from '../interface/cpu/psw';
-
-const FLAG_P = 0x40;
+import { PRIV } from './const/flag';
 
 export class Psw implements IPsw {
   private pc: number;
@@ -10,7 +9,7 @@ export class Psw implements IPsw {
 
   constructor(privSig: IPrivModeSignal) {
     this.pc = 0xe000;
-    this.flags = FLAG_P;
+    this.flags = PRIV;
     this.privSig = privSig;
     this.privSig.setPrivMode(true);
   }
@@ -33,7 +32,7 @@ export class Psw implements IPsw {
 
   setFlags(flags: number): void {
     this.flags = flags;
-    this.privSig.setPrivMode(this.evalFlag(FLAG_P));
+    this.privSig.setPrivMode(this.evalFlag(PRIV));
   }
 
   evalFlag(flag: number): boolean {
@@ -42,7 +41,7 @@ export class Psw implements IPsw {
 
   reset(): void {
     this.pc = 0xe000;
-    this.flags = FLAG_P;
+    this.flags = PRIV;
     this.privSig.setPrivMode(true);
   }
 }

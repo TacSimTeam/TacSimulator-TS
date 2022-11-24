@@ -1,5 +1,5 @@
 import { IIntrSignal } from '../interface';
-import * as opcode from './instruction/opcode';
+import * as opcode from './const/opcode';
 import { EXCP_ZERO_DIV } from '../interrupt/interruptNum';
 
 /**

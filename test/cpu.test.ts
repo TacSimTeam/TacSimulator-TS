@@ -4,10 +4,11 @@ import { Psw } from '../src/renderer/TaC/cpu/psw';
 import { PrivModeSignal } from '../src/renderer/TaC/cpu/privModeSignal';
 import { Cpu } from '../src/renderer/TaC/cpu/cpu';
 import { Alu } from '../src/renderer/TaC/cpu/alu';
-import { REGISTER_G0, REGISTER_G1, REGISTER_G2, REGISTER_FP, Register } from '../src/renderer/TaC/cpu/register';
+import { Register } from '../src/renderer/TaC/cpu/register';
 import { Instruction } from '../src/renderer/TaC/cpu/instruction/instruction';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
 import { IIOHostController } from '../src/renderer/TaC/interface';
+import * as regNum from '../src/renderer/TaC/cpu/const/regNum';
 
 const io: IIOHostController = {
   input: (addr: number) => {
@@ -66,25 +67,25 @@ test('CPU effective address calclation test', () => {
 
   /* ダイレクトモード */
   mmu.write16(0x0002, 0x1000);
-  expect(cpu['calcEffectiveAddress'](0, REGISTER_G0)).toBe(0x1000);
+  expect(cpu['calcEffectiveAddress'](0, regNum.G0)).toBe(0x1000);
 
   /* インデクスドモード */
   mmu.write16(0x0002, 0x2000);
-  cpu.writeReg(REGISTER_G1, 0x0002);
-  expect(cpu['calcEffectiveAddress'](1, REGISTER_G1)).toBe(0x2002);
+  cpu.writeReg(regNum.G1, 0x0002);
+  expect(cpu['calcEffectiveAddress'](1, regNum.G1)).toBe(0x2002);
 
   /* FP相対モード */
-  cpu.writeReg(REGISTER_FP, 0x1000);
+  cpu.writeReg(regNum.FP, 0x1000);
   expect(cpu['calcEffectiveAddress'](3, 0b0111)).toBe(0x1000 + 7 * 2);
   expect(cpu['calcEffectiveAddress'](3, 0b1000)).toBe(0x1000 - 8 * 2);
 
   /* レジスタ・インダイレクトモード */
-  cpu.writeReg(REGISTER_G1, 0x4000);
-  expect(cpu['calcEffectiveAddress'](6, REGISTER_G1)).toBe(0x4000);
+  cpu.writeReg(regNum.G1, 0x4000);
+  expect(cpu['calcEffectiveAddress'](6, regNum.G1)).toBe(0x4000);
 
   /* バイトレジスタ・インダイレクトモード */
-  cpu.writeReg(REGISTER_G1, 0x5001);
-  expect(cpu['calcEffectiveAddress'](7, REGISTER_G1)).toBe(0x5001);
+  cpu.writeReg(regNum.G1, 0x5001);
+  expect(cpu['calcEffectiveAddress'](7, regNum.G1)).toBe(0x5001);
 
   /* それ以外 */
   expect(cpu['calcEffectiveAddress'](2, 0)).toBe(0);
@@ -111,8 +112,8 @@ test('CPU loading operand test', () => {
   expect(cpu['loadOperand'](3, 0, 0x4000)).toBe(4);
 
   /* レジスタレジスタモード */
-  cpu.writeReg(REGISTER_G2, 5);
-  expect(cpu['loadOperand'](4, REGISTER_G2, 0)).toBe(5);
+  cpu.writeReg(regNum.G2, 5);
+  expect(cpu['loadOperand'](4, regNum.G2, 0)).toBe(5);
 
   /* ショートイミディエイトモード */
   expect(cpu['loadOperand'](5, 0b0111, 0)).toBe(7);

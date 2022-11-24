@@ -1,28 +1,13 @@
-import { REGISTER_FLAG, REGISTER_FP, REGISTER_SP } from './register';
 import { IDataBus, IIntrController, IIOHostController, IRegister, IPsw } from '../interface';
 import { Instruction } from './instruction/instruction';
-import * as opcode from './instruction/opcode';
+import * as opcode from './const/opcode';
+import * as addrmode from './const/addrmode';
+import * as regNum from './const/regNum';
+import * as flag from './const/flag';
 import * as intr from '../interrupt/interruptNum';
 import { TlbMissError } from '../error';
 import { opcodeToString, regNumToString } from '../debug/instruction';
 import { Alu } from './alu';
-
-const FLAG_E = 0x80;
-const FLAG_P = 0x40;
-const FLAG_I = 0x20;
-const FLAG_V = 0x08;
-const FLAG_C = 0x04;
-const FLAG_S = 0x02;
-const FLAG_Z = 0x01;
-
-const ADDRMODE_DIRECT = 0;
-const ADDRMODE_INDEXED = 1;
-const ADDRMODE_IMMEDIATE = 2;
-const ADDRMODE_FP_RELATIVE = 3;
-const ADDRMODE_REG_TO_REG = 4;
-const ADDRMODE_SHORT_IMMEDIATE = 5;
-const ADDRMODE_REG_INDIRECT = 6;
-const ADDRMODE_BYTE_REG_INDIRECT = 7;
 
 const INTERRUPT_VECTOR = 0xffe0;
 
@@ -57,7 +42,7 @@ export class Cpu {
     }
 
     /* 割り込み判定 */
-    if (this.psw.evalFlag(FLAG_E) || this.intrHost.isExceptionOccurred()) {
+    if (this.psw.evalFlag(flag.ENABLE_INTR) || this.intrHost.isExceptionOccurred()) {
       const intrNum = this.intrHost.checkIntrNum();
       if (intrNum !== null) {
         this.handleInterrupt(intrNum);
@@ -119,14 +104,14 @@ export class Cpu {
   private calcEffectiveAddress(addrMode: number, rx: number) {
     const data = this.memory.read16(this.psw.getPC() + 2);
     switch (addrMode) {
-      case ADDRMODE_DIRECT:
+      case addrmode.DIRECT:
         return data;
-      case ADDRMODE_INDEXED:
+      case addrmode.INDEXED:
         return data + this.readReg(rx);
-      case ADDRMODE_FP_RELATIVE:
-        return (this.readReg(REGISTER_FP) + this.extSignedInt4(rx) * 2) & 0xffff;
-      case ADDRMODE_REG_INDIRECT:
-      case ADDRMODE_BYTE_REG_INDIRECT:
+      case addrmode.FP_RELATIVE:
+        return (this.readReg(regNum.FP) + this.extSignedInt4(rx) * 2) & 0xffff;
+      case addrmode.REG_INDIRECT:
+      case addrmode.BYTE_REG_INDIRECT:
         return this.readReg(rx);
       default:
         return 0;
@@ -144,21 +129,21 @@ export class Cpu {
    */
   private loadOperand(addrMode: number, rx: number, dsp: number) {
     switch (addrMode) {
-      case ADDRMODE_DIRECT:
+      case addrmode.DIRECT:
         return this.memory.read16(dsp);
-      case ADDRMODE_INDEXED:
+      case addrmode.INDEXED:
         return this.memory.read16(dsp);
-      case ADDRMODE_IMMEDIATE:
+      case addrmode.IMMEDIATE:
         return this.memory.read16(this.psw.getPC() + 2);
-      case ADDRMODE_FP_RELATIVE:
+      case addrmode.FP_RELATIVE:
         return this.memory.read16(dsp);
-      case ADDRMODE_REG_TO_REG:
+      case addrmode.REG_TO_REG:
         return this.readReg(rx);
-      case ADDRMODE_SHORT_IMMEDIATE:
+      case addrmode.SHORT_IMMEDIATE:
         return this.extSignedInt4(rx);
-      case ADDRMODE_REG_INDIRECT:
+      case addrmode.REG_INDIRECT:
         return this.memory.read16(dsp);
-      case ADDRMODE_BYTE_REG_INDIRECT:
+      case addrmode.BYTE_REG_INDIRECT:
         return this.memory.read8(dsp);
     }
     return 0;
@@ -242,7 +227,7 @@ export class Cpu {
     /* ST命令ではrdがディスティネーションではなくソースとなる */
     const data = this.readReg(inst.rd);
 
-    if (inst.addrMode == ADDRMODE_BYTE_REG_INDIRECT) {
+    if (inst.addrMode == addrmode.BYTE_REG_INDIRECT) {
       this.memory.write8(inst.ea, 0x00ff & data);
     } else {
       this.memory.write16(inst.ea, data);
@@ -272,10 +257,10 @@ export class Cpu {
   }
 
   private instrJump(inst: Instruction) {
-    const zFlag = this.psw.evalFlag(FLAG_Z);
-    const cFlag = this.psw.evalFlag(FLAG_C);
-    const sFlag = this.psw.evalFlag(FLAG_S);
-    const vFlag = this.psw.evalFlag(FLAG_V);
+    const zFlag = this.psw.evalFlag(flag.ZERO);
+    const cFlag = this.psw.evalFlag(flag.CARRY);
+    const sFlag = this.psw.evalFlag(flag.SIGN);
+    const vFlag = this.psw.evalFlag(flag.OVERFLOW);
 
     switch (inst.rd) {
       case opcode.JMP_JZ:
@@ -399,21 +384,21 @@ export class Cpu {
        * 先にフラグを変化させるとスタックが切り替わる可能性があるため
        * PCとフラグは同時に取得する必要がある
        */
-      const flag = this.popVal();
+      const f = this.popVal();
       const pc = this.popVal();
 
-      if (this.psw.evalFlag(FLAG_P)) {
-        this.psw.setFlags(flag);
+      if (this.psw.evalFlag(flag.PRIV)) {
+        this.psw.setFlags(f);
       } else {
         /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
-        this.psw.setFlags((0xf0 & this.psw.getFlags()) | (0x0f & flag));
+        this.psw.setFlags((0xf0 & this.psw.getFlags()) | (0x0f & f));
       }
       this.psw.jumpTo(pc);
     }
   }
 
   private instrIn(inst: Instruction) {
-    if (this.psw.evalFlag(FLAG_P) || this.psw.evalFlag(FLAG_I)) {
+    if (this.psw.evalFlag(flag.PRIV) || this.psw.evalFlag(flag.IO_PRIV)) {
       this.writeReg(inst.rd, this.ioHost.input(inst.ea));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
@@ -426,7 +411,7 @@ export class Cpu {
   }
 
   private instrOut(inst: Instruction) {
-    if (this.psw.evalFlag(FLAG_P) || this.psw.evalFlag(FLAG_I)) {
+    if (this.psw.evalFlag(flag.PRIV) || this.psw.evalFlag(flag.IO_PRIV)) {
       this.ioHost.output(inst.ea, this.readReg(inst.rd));
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
@@ -439,7 +424,7 @@ export class Cpu {
   }
 
   private instrHalt() {
-    if (this.psw.evalFlag(FLAG_P)) {
+    if (this.psw.evalFlag(flag.PRIV)) {
       this.isHalt = true;
     } else {
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
@@ -452,13 +437,13 @@ export class Cpu {
      * その際にはSPの値が変化してほしくないため
      * SPへの加算・減算より先にメモリアクセスを行うことでこれを防ぐ
      */
-    this.memory.write16(this.readReg(REGISTER_SP) - 2, val);
-    this.writeReg(REGISTER_SP, this.readReg(REGISTER_SP) - 2);
+    this.memory.write16(this.readReg(regNum.SP) - 2, val);
+    this.writeReg(regNum.SP, this.readReg(regNum.SP) - 2);
   }
 
   private popVal() {
-    const val = this.memory.read16(this.readReg(REGISTER_SP));
-    this.writeReg(REGISTER_SP, this.readReg(REGISTER_SP) + 2);
+    const val = this.memory.read16(this.readReg(regNum.SP));
+    this.writeReg(regNum.SP, this.readReg(regNum.SP) + 2);
     return val;
   }
 
@@ -473,31 +458,31 @@ export class Cpu {
 
     if (op === opcode.ADD) {
       if (v1Msb === v2Msb && ansMsb !== v1Msb) {
-        flags |= FLAG_V;
+        flags |= flag.OVERFLOW;
       }
     } else if (op === opcode.SUB || op === opcode.CMP) {
       if (v1Msb !== v2Msb && ansMsb !== v1Msb) {
-        flags |= FLAG_V;
+        flags |= flag.OVERFLOW;
       }
     }
 
     if (opcode.ADD <= op && op <= opcode.CMP) {
       if ((ans & 0x10000) !== 0) {
-        flags |= FLAG_C;
+        flags |= flag.CARRY;
       }
     } else if (opcode.SHLA <= op && op <= opcode.SHRL && v2 === 1) {
       /* シフト命令は1ビットシフトのときだけCフラグを変化させる */
       if ((ans & 0x10000) !== 0) {
-        flags |= FLAG_C;
+        flags |= flag.CARRY;
       }
     }
 
     if (ansMsb !== 0) {
-      flags |= FLAG_S;
+      flags |= flag.SIGN;
     }
 
     if ((ans & 0xffff) == 0) {
-      flags |= FLAG_Z;
+      flags |= flag.ZERO;
     }
 
     this.psw.setFlags(flags);
@@ -513,14 +498,14 @@ export class Cpu {
 
   /* 2ワード命令ならTrue */
   private isTwoWordInstruction(addrMode: number) {
-    return ADDRMODE_DIRECT <= addrMode && addrMode <= ADDRMODE_IMMEDIATE;
+    return addrmode.DIRECT <= addrMode && addrMode <= addrmode.IMMEDIATE;
   }
 
   private handleInterrupt(intrNum: number): void {
     const tmp = this.psw.getFlags();
 
     /* 割込み禁止、特権モードの状態にする */
-    this.psw.setFlags((tmp & ~FLAG_E) | FLAG_P);
+    this.psw.setFlags((tmp & ~flag.ENABLE_INTR) | flag.PRIV);
 
     this.pushVal(this.psw.getPC());
     this.pushVal(tmp);
@@ -528,8 +513,8 @@ export class Cpu {
   }
 
   writeReg(num: number, val: number) {
-    if (num == REGISTER_FLAG) {
-      if (this.psw.evalFlag(FLAG_P)) {
+    if (num == regNum.FLAG) {
+      if (this.psw.evalFlag(flag.PRIV)) {
         this.psw.setFlags((0xff00 & this.psw.getFlags()) | (0x00ff & val));
       } else {
         /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
@@ -541,7 +526,7 @@ export class Cpu {
   }
 
   readReg(num: number) {
-    if (num == REGISTER_FLAG) {
+    if (num == regNum.FLAG) {
       return this.psw.getFlags();
     }
     return this.register.read(num);

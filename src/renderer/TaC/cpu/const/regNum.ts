@@ -1,0 +1,16 @@
+export const G0 = 0;
+export const G1 = 1;
+export const G2 = 2;
+export const G3 = 3;
+export const G4 = 4;
+export const G5 = 5;
+export const G6 = 6;
+export const G7 = 7;
+export const G8 = 8;
+export const G9 = 9;
+export const G10 = 10;
+export const G11 = 11;
+export const FP = 12;
+export const SP = 13;
+export const USP = 14;
+export const FLAG = 15;

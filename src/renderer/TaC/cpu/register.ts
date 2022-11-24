@@ -1,24 +1,5 @@
 import { IPrivModeSignal, IRegister } from '../interface';
 
-export const REGISTER_G0 = 0;
-export const REGISTER_G1 = 1;
-export const REGISTER_G2 = 2;
-export const REGISTER_G3 = 3;
-export const REGISTER_G4 = 4;
-export const REGISTER_G5 = 5;
-export const REGISTER_G6 = 6;
-export const REGISTER_G7 = 7;
-export const REGISTER_G8 = 8;
-export const REGISTER_G9 = 9;
-export const REGISTER_G10 = 10;
-export const REGISTER_G11 = 11;
-export const REGISTER_FP = 12;
-export const REGISTER_SP = 13;
-export const REGISTER_USP = 14;
-
-/* フラグ(15番のレジスタ)はCPU側が保持する */
-export const REGISTER_FLAG = 15;
-
 export class Register implements IRegister {
   private generals: Uint16Array;
   private fp: number;

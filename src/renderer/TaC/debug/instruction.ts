@@ -1,6 +1,6 @@
 import { Instruction } from '../cpu/instruction/instruction';
-import * as inst from '../cpu/instruction/opcode';
-import { REGISTER_FLAG } from '../cpu/register';
+import * as inst from '../cpu/const/opcode';
+import * as regNum from '../cpu/const/regNum';
 
 export function printInstruction(inst: Instruction, pc: number) {
   const op = opcodeToString(inst.opcode, inst.addrMode, inst.rd);
@@ -98,57 +98,41 @@ export function opcodeToString(opcode: number, addrMode: number, rd: number) {
   }
 }
 
-const REGISTER_G0 = 0;
-const REGISTER_G1 = 1;
-const REGISTER_G2 = 2;
-const REGISTER_G3 = 3;
-const REGISTER_G4 = 4;
-const REGISTER_G5 = 5;
-const REGISTER_G6 = 6;
-const REGISTER_G7 = 7;
-const REGISTER_G8 = 8;
-const REGISTER_G9 = 9;
-const REGISTER_G10 = 10;
-const REGISTER_G11 = 11;
-const REGISTER_FP = 12;
-const REGISTER_SP = 13;
-const REGISTER_USP = 14;
-
-export function regNumToString(regNum: number) {
-  switch (regNum) {
-    case REGISTER_G0:
+export function regNumToString(num: number) {
+  switch (num) {
+    case regNum.G0:
       return 'G0';
-    case REGISTER_G1:
+    case regNum.G1:
       return 'G1';
-    case REGISTER_G2:
+    case regNum.G2:
       return 'G2';
-    case REGISTER_G3:
+    case regNum.G3:
       return 'G3';
-    case REGISTER_G4:
+    case regNum.G4:
       return 'G4';
-    case REGISTER_G5:
+    case regNum.G5:
       return 'G5';
-    case REGISTER_G6:
+    case regNum.G6:
       return 'G6';
-    case REGISTER_G7:
+    case regNum.G7:
       return 'G7';
-    case REGISTER_G8:
+    case regNum.G8:
       return 'G8';
-    case REGISTER_G9:
+    case regNum.G9:
       return 'G9';
-    case REGISTER_G10:
+    case regNum.G10:
       return 'G10';
-    case REGISTER_G11:
+    case regNum.G11:
       return 'G11';
-    case REGISTER_FP:
+    case regNum.FP:
       return 'FP';
-    case REGISTER_SP:
+    case regNum.SP:
       return 'SSP';
-    case REGISTER_USP:
+    case regNum.USP:
       return 'USP';
-    case REGISTER_FLAG:
+    case regNum.FLAG:
       return 'FLAG';
     default:
-      return '???(' + regNum.toString() + ')';
+      return '???(' + num.toString() + ')';
   }
 }
