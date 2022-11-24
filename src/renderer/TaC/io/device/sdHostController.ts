@@ -43,7 +43,7 @@ export class SdHostController implements IIOSdHostController {
     return this.idleFlag;
   }
 
-  isOccurredError(): boolean {
+  isErrorOccurred(): boolean {
     return this.errorFlag;
   }
 

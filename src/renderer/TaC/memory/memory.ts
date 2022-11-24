@@ -1,4 +1,4 @@
-import { IDmaSignal } from '../interface/dmaSignal';
+import { IDmaSignal } from '../interface';
 
 /* Tacのメモリサイズは64KiB */
 const MEMORY_SIZE = 64 * 1024;

@@ -3,7 +3,7 @@
  */
 export interface IIOTimer {
   /**
-   * タイマーのカウンタの現在地を取得する
+   * タイマーのカウンタの現在値を取得する
    */
   getCounter(): number;
 
@@ -18,14 +18,14 @@ export interface IIOTimer {
   /**
    * タイマーの周期を設定する
    *
-   * @param cycle
+   * @param cycle 周期
    */
   setCycle(cycle: number): void;
 
   /**
    * タイマー割り込みを許可するかどうかのフラグを設定する
    *
-   * @param flag
+   * @param flag フラグの値
    */
   setIntrFlag(flag: boolean): void;
 

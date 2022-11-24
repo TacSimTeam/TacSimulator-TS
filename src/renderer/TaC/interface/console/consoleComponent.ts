@@ -9,6 +9,9 @@ export interface IConsoleComponent {
 
   /**
    * クリックされた時の動作を指定する
+   *
+   * @param clickPosX クリックしたx座標
+   * @param clickPosY クリックしたy座標
    */
   onClick(clickPosX: number, clickPosY: number): void;
 }

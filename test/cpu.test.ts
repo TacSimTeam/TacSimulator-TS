@@ -24,7 +24,7 @@ const mmu = new Mmu(new Memory(), intrController, privSig);
 const psw = new Psw(privSig);
 const register = new Register(privSig);
 const alu = new Alu(intrController);
-const cpu = new Cpu(mmu, psw, register, alu, intrController, io);
+const cpu = new Cpu(mmu, psw, register, intrController, io);
 
 test('CPU instruction decode test', () => {
   /* LD G0, Addr */
@@ -62,7 +62,7 @@ test('Sign extension Test', () => {
 });
 
 test('CPU effective address calclation test', () => {
-  psw.setPC(0);
+  psw.jumpTo(0);
 
   /* ダイレクトモード */
   mmu.write16(0x0002, 0x1000);
@@ -91,7 +91,7 @@ test('CPU effective address calclation test', () => {
 });
 
 test('CPU loading operand test', () => {
-  psw.setPC(0);
+  psw.jumpTo(0);
 
   /* ダイレクトモード */
   mmu.write16(0x1000, 1);
@@ -102,7 +102,7 @@ test('CPU loading operand test', () => {
   expect(cpu['loadOperand'](1, 0, 0x2000)).toBe(2);
 
   /* イミディエイトモード */
-  psw.setPC(0x3000);
+  psw.jumpTo(0x3000);
   mmu.write16(0x3000 + 2, 3);
   expect(cpu['loadOperand'](2, 0, 0)).toBe(3);
 

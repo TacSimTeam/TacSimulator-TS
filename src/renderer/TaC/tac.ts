@@ -20,7 +20,6 @@ export class Tac {
   private memory: Memory;
   private register: Register;
   private psw: Psw;
-  private alu: Alu;
   private cpu: Cpu;
   private intrController: IntrController;
   private io: IOHostController;
@@ -53,8 +52,7 @@ export class Tac {
 
     this.io = new IOHostController(this.timer0, this.timer1, this.serialIO, this.sd, this.mmu, this.console);
 
-    this.alu = new Alu(this.intrController);
-    this.cpu = new Cpu(this.mmu, this.psw, this.register, this.alu, this.intrController, this.io);
+    this.cpu = new Cpu(this.mmu, this.psw, this.register, this.intrController, this.io);
 
     this.cpuEventId = null;
     this.terminal = terminal;
@@ -79,10 +77,6 @@ export class Tac {
 
     this.terminal.onkeydown = (e) => {
       this.serialIO.inputKeyDown(e);
-    };
-
-    this.terminal.onkeyup = (e) => {
-      this.serialIO.inputKeyUp(e);
     };
 
     this.console.drawAll();
@@ -180,7 +174,7 @@ export class Tac {
 
   test() {
     this.mmu.loadIpl();
-    this.psw.setPC(0xe000);
+    this.psw.jumpTo(0xe000);
 
     const start = new Date();
     for (let i = 0; i < 10000; i++) {

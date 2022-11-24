@@ -13,8 +13,7 @@ export interface IIOConsole {
   getMemAddrLEDValue(): number;
 
   /**
-   * ロータリSWの位置を取得する
-   * (G0=0, G1=1, ..., MA=17)
+   * ロータリSWの位置を整数値で取得する(G0=0, G1=1, ..., MA=17)
    */
   getRotSwitchValue(): number;
 
@@ -26,7 +25,7 @@ export interface IIOConsole {
   /**
    * アドレス・データランプのON/OFFを設定する
    *
-   * @param val
+   * @param val 設定したい値
    */
-  setLEDValue(val: number): void;
+  setLEDLamps(val: number): void;
 }

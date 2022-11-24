@@ -7,11 +7,8 @@
 export interface IKeyboardDriver {
   /**
    * キーが押された時の動作
+   *
+   * @param e this.terminal.onkeydownで取得する入力情報
    */
   inputKeyDown(e: KeyboardEvent): void;
-
-  /**
-   * キーが離された時の動作
-   */
-  inputKeyUp(e: KeyboardEvent): void;
 }

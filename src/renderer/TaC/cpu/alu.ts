@@ -1,8 +1,17 @@
-import { IAlu, IIntrSignal } from '../interface';
+import { IIntrSignal } from '../interface';
 import * as opcode from './instruction/opcode';
 import { EXCP_ZERO_DIV } from '../interrupt/interruptNum';
 
-export class Alu implements IAlu {
+/**
+ * opの値に応じてv1とv2に何らかの演算をして結果を返す
+ * opがopcode.ADDの場合は(v1 + v2)
+ *
+ * @param op 演算の種類を表すオペコード
+ * @param v1 16bit整数
+ * @param v2 16bit整数
+ * @return 演算結果(16bitに正規化せずに返すことに注意)
+ */
+export class Alu {
   private intrSignal: IIntrSignal;
 
   constructor(intrSignal: IIntrSignal) {

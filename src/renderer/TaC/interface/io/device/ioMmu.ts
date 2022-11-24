@@ -5,32 +5,32 @@ export interface IIOMmu {
   /**
    * TLBエントリの上位8ビットを設定する
    *
-   * @param idx TLBエントリの番号(0~7)
-   * @param val
+   * @param entryNum TLBエントリの番号
+   * @param val 設定したい値
    */
-  setTlbHigh8(idx: number, val: number): void;
+  setTlbHigh8(entryNum: number, val: number): void;
 
   /**
    * TLBエントリの下位16ビットを設定する
    *
-   * @param idx TLBエントリの番号(0~7)
-   * @param val
+   * @param entryNum TLBエントリの番号
+   * @param val 設定したい値
    */
-  setTlbLow16(idx: number, val: number): void;
+  setTlbLow16(entryNum: number, val: number): void;
 
   /**
    * TLBエントリの上位8ビットを取得する
    *
-   * @param idx TLBエントリの番号(0~7)
+   * @param entryNum TLBエントリの番号
    */
-  getTlbHigh8(idx: number): number;
+  getTlbHigh8(entryNum: number): number;
 
   /**
    * TLBエントリの下位16ビットを取得する
    *
-   * @param idx TLBエントリの番号(0~7)
+   * @param entryNum TLBエントリの番号
    */
-  getTlbLow16(idx: number): number;
+  getTlbLow16(entryNum: number): number;
 
   /**
    * メモリ保護違反が発生したときに原因となった論理アドレスを取得する
@@ -40,7 +40,7 @@ export interface IIOMmu {
   /**
    * メモリ保護違反の原因を取得する
    *
-   * @return
+   * 返り値の説明
    * - 0x01 : 奇数アドレスへのアクセス
    * - 0x02 : ページの保護モード違反
    */
@@ -49,7 +49,7 @@ export interface IIOMmu {
   /**
    * TLBミス例外の原因となったページ番号を取得する
    */
-  getTlbMissPage(): number;
+  getErrorPage(): number;
 
   /**
    * MMUを有効にする

@@ -34,7 +34,7 @@ export class IntrController implements IIntrController {
     return null;
   }
 
-  isOccurredException(): boolean {
+  isExceptionOccurred(): boolean {
     for (let i = intr.EXCP_TLB_MISS; i <= intr.EXCP_SVC; i++) {
       if (this.intrFlags[i]) {
         return true;

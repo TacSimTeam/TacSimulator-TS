@@ -13,9 +13,11 @@ export interface IPsw {
   getPC(): number;
 
   /**
-   * PCの値を設定する
+   * 引数に指定した番地にジャンプする
+   *
+   * @param pc ジャンプ先アドレス
    */
-  setPC(pc: number): void;
+  jumpTo(addr: number): void;
 
   /**
    * フラグの値を取得する
@@ -24,11 +26,15 @@ export interface IPsw {
 
   /**
    * フラグの値を設定する
+   *
+   * @param flags フラグの値
    */
   setFlags(flags: number): void;
 
   /**
    * 引数に指定したフラグが立っているかを確認する
+   *
+   * @param flag 確認したいフラグのビットが1の値
    */
   evalFlag(flag: number): boolean;
 

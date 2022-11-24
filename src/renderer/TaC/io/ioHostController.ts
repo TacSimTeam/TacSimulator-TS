@@ -57,7 +57,7 @@ export class IOHostController implements IIOHostController {
         if (this.sd.isIdle()) {
           val |= 0x0080;
         }
-        if (this.sd.isOccurredError()) {
+        if (this.sd.isErrorOccurred()) {
           val |= 0x0040;
         }
         if (!window.electronAPI.isSDImgLoaded()) {
@@ -114,7 +114,7 @@ export class IOHostController implements IIOHostController {
       case io.MMU_ERRORCAUSE_00:
         return this.mmu.getErrorCause();
       case io.MMU_PAGE_00:
-        return this.mmu.getTlbMissPage();
+        return this.mmu.getErrorPage();
       case io.CONSOLE_DATASW_DATAREG:
         return this.console.getDataSwitchValue();
       case io.CONSOLE_ADDRREG_00:
@@ -241,7 +241,7 @@ export class IOHostController implements IIOHostController {
         }
         break;
       case io.CONSOLE_DATASW_DATAREG:
-        this.console.setLEDValue(val);
+        this.console.setLEDLamps(val);
         break;
     }
   }

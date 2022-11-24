@@ -1,4 +1,4 @@
-import { IDataBus, IDmaSignal, IIplLoader, IIntrSignal, IIOMmu, IPrivModeSignal } from '../interface';
+import { IDataBus, IDmaSignal, IIntrSignal, IIOMmu, IPrivModeSignal } from '../interface';
 import { TlbEntry, tlbNumToObj, tlbObjToNum } from './tlb';
 import { ipl } from '../ipl';
 import * as intr from '../interrupt/interruptNum';
@@ -9,7 +9,7 @@ const TLB_ENTRY_SIZE = 8;
 const ERROR_CAUSE_BAD_ADDRESS = 0x02;
 const ERROR_CAUSE_MEMORY_VIOLATION = 0x01;
 
-export class Mmu implements IDataBus, IIOMmu, IIplLoader {
+export class Mmu implements IDataBus, IIOMmu {
   private memory: IDmaSignal;
   private intrSignal: IIntrSignal;
 
@@ -251,25 +251,25 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
     }
   }
 
-  setTlbHigh8(idx: number, val: number): void {
+  setTlbHigh8(entryNum: number, val: number): void {
     /* TLBエントリの上位8ビットはページ番号なのでそのまま代入 */
-    this.tlbs[idx].page = val & 0xff;
+    this.tlbs[entryNum].page = val & 0xff;
   }
 
-  setTlbLow16(idx: number, val: number): void {
-    /* tlbs[idx]の上位8ビット(ページ番号)だけ取り出す */
-    const page = this.tlbs[idx].page & 0xff;
+  setTlbLow16(entryNum: number, val: number): void {
+    /* tlbs[entryNum]の上位8ビット(ページ番号)だけ取り出す */
+    const page = this.tlbs[entryNum].page & 0xff;
 
     /* ページ番号とvalを元にTlbEntry型に変換し代入 */
-    this.tlbs[idx] = tlbNumToObj((page << 16) | val);
+    this.tlbs[entryNum] = tlbNumToObj((page << 16) | val);
   }
 
-  getTlbHigh8(idx: number): number {
-    return this.tlbs[idx].page & 0xff;
+  getTlbHigh8(entryNum: number): number {
+    return this.tlbs[entryNum].page & 0xff;
   }
 
-  getTlbLow16(idx: number): number {
-    return tlbObjToNum(this.tlbs[idx]) & 0x0000ffff;
+  getTlbLow16(entryNum: number): number {
+    return tlbObjToNum(this.tlbs[entryNum]) & 0x0000ffff;
   }
 
   getErrorAddr(): number {
@@ -284,7 +284,7 @@ export class Mmu implements IDataBus, IIOMmu, IIplLoader {
     return cause;
   }
 
-  getTlbMissPage(): number {
+  getErrorPage(): number {
     return this.tlbMissPage;
   }
 

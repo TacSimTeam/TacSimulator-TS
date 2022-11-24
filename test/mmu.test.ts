@@ -82,14 +82,14 @@ test('MMU read 1byte data test', () => {
   expect(() => {
     mmu.read8(0x2033); /* p : 0x20 -> f : 0xaa(ただしエラーになる) */
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0x20);
+  expect(mmu.getErrorPage()).toBe(0x20);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
     mmu.read8(0x3055); /* p : 0x30(存在しない) -> ? */
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0x30);
+  expect(mmu.getErrorPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Readフラグが0) */
@@ -135,14 +135,14 @@ test('MMU read 2byte data test', () => {
   expect(() => {
     mmu.read16(0x2044); /* p : 0x20 -> f : 0xaa(ただしエラーになる) */
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0x20);
+  expect(mmu.getErrorPage()).toBe(0x20);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
     mmu.read16(0x3066); /* p : 0x30(存在しない) -> ? */
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0x30);
+  expect(mmu.getErrorPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Readフラグが0) */
@@ -199,14 +199,14 @@ test('MMU write 1byte data test', () => {
     mmu.write8(0x2033, 2); /* p : 0x20 -> f : 0xaa(ただしエラーになる) */
   }).toThrowError('TLB miss error');
   expect(memory.read8(0xaa33)).not.toBe(2);
-  expect(mmu.getTlbMissPage()).toBe(0x20);
+  expect(mmu.getErrorPage()).toBe(0x20);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
     mmu.write8(0x3055, 3); /* p : 0x30(存在しない) -> ? */
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0x30);
+  expect(mmu.getErrorPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Writeフラグが0) */
@@ -253,14 +253,14 @@ test('MMU write 2byte data test', () => {
     mmu.write16(0x2044, 2); /* p : 0x20 -> f : 0xaa(ただしエラーになる) */
   }).toThrowError('TLB miss error');
   expect(memory.read16(0xaa44)).not.toBe(2);
-  expect(mmu.getTlbMissPage()).toBe(0x20);
+  expect(mmu.getErrorPage()).toBe(0x20);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
     mmu.write16(0x3066, 3); /* p : 0x30(存在しない) -> ? */
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0x30);
+  expect(mmu.getErrorPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Writeフラグが0) */
@@ -318,14 +318,14 @@ test('MMU instruction fetch test', () => {
   expect(() => {
     mmu.fetch(0x2044); /* p : 0x20 -> f : 0xaa(ただしエラーになる) */
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0x20);
+  expect(mmu.getErrorPage()).toBe(0x20);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* TLBエントリが存在しないときTLBミスになる */
   expect(() => {
     mmu.fetch(0x3066); /* p : 0x30(存在しない) -> ? */
   }).toThrowError('TLB miss error');
-  expect(mmu.getTlbMissPage()).toBe(0x30);
+  expect(mmu.getErrorPage()).toBe(0x30);
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_TLB_MISS);
 
   /* メモリ保護違反(Executeフラグが0) */

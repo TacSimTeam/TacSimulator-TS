@@ -10,12 +10,12 @@ export interface IIOSdHostController {
   /**
    * エラーが発生したかどうか
    */
-  isOccurredError(): boolean;
+  isErrorOccurred(): boolean;
 
   /**
    * 処理終了時の割り込みを許可するかどうかのフラグを設定する
    *
-   * @param flag
+   * @param flag フラグの値
    */
   setIntrFlag(flag: boolean): void;
 
@@ -42,21 +42,21 @@ export interface IIOSdHostController {
   /**
    * MicroSDとのデータのやり取りに使用するバッファのアドレスを取得する
    *
-   * @param addr
+   * @param addr バッファのアドレス
    */
   setMemAddr(addr: number): void;
 
   /**
    * データを読み書きするセクタのLBA方式の32ビットのアドレスの上位16ビットを設定する
    *
-   * @param addrH
+   * @param addrH セクタアドレス上位16ビット
    */
   setSecAddrH(addrH: number): void;
 
   /**
    * データを読み書きするセクタのLBA方式の32ビットのアドレスの下位16ビットを設定する
    *
-   * @param addrL
+   * @param addrL セクタアドレス下位16ビット
    */
   setSecAddrL(addrL: number): void;
 

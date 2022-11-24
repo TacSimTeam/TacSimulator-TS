@@ -45,7 +45,7 @@ export interface IDataBus {
    * バイト・レジスタインダイレクトモードでしか使わないので
    * 基本的にはwrite16()を使ってください
    *
-   * @param addr
+   * @param addr 書き込み先のアドレス
    * @param val  書き込みたいデータ(8bit)
    */
   write8(addr: number, val: number): void;
@@ -56,7 +56,7 @@ export interface IDataBus {
    * バイト・レジスタインダイレクトモードでしか使わないので
    * 基本的にはread16()を使ってください
    *
-   * @param addr
+   * @param addr 書き込み先のアドレス
    */
   read8(addr: number): number;
 }

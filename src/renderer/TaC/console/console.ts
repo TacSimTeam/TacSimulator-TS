@@ -278,7 +278,7 @@ export class Console implements IIOConsole {
     const regVal = this.readReg();
     switch (this.rotSwCur) {
       case 14:
-        this.psw.setPC(((this.psw.getPC() & 0x00ff) << 8) | (val & 0x00ff));
+        this.psw.jumpTo(((this.psw.getPC() & 0x00ff) << 8) | (val & 0x00ff));
         break;
       case 15:
         this.psw.setFlags(((this.psw.getFlags() & 0x00ff) << 8) | (val & 0x00ff));
@@ -346,7 +346,7 @@ export class Console implements IIOConsole {
     return 0;
   }
 
-  setLEDValue(val: number): void {
+  setLEDLamps(val: number): void {
     return;
   }
 

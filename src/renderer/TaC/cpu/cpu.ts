@@ -1,10 +1,11 @@
 import { REGISTER_FLAG, REGISTER_FP, REGISTER_SP } from './register';
-import { IDataBus, IIntrController, IIOHostController, IRegister, IPsw, IAlu } from '../interface';
+import { IDataBus, IIntrController, IIOHostController, IRegister, IPsw } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './instruction/opcode';
 import * as intr from '../interrupt/interruptNum';
 import { TlbMissError } from '../error';
 import { opcodeToString, regNumToString } from '../debug/instruction';
+import { Alu } from './alu';
 
 const FLAG_E = 0x80;
 const FLAG_P = 0x40;
@@ -31,22 +32,15 @@ export class Cpu {
   private memory: IDataBus;
   private psw: IPsw;
   private register: IRegister;
-  private alu: IAlu;
+  private alu: Alu;
   private intrHost: IIntrController;
   private ioHost: IIOHostController;
 
-  constructor(
-    memory: IDataBus,
-    psw: IPsw,
-    register: IRegister,
-    alu: IAlu,
-    intrHost: IIntrController,
-    ioHost: IIOHostController
-  ) {
+  constructor(memory: IDataBus, psw: IPsw, register: IRegister, intrHost: IIntrController, ioHost: IIOHostController) {
     this.memory = memory;
     this.psw = psw;
     this.register = register;
-    this.alu = alu;
+    this.alu = new Alu(intrHost);
 
     this.intrHost = intrHost;
     this.ioHost = ioHost;
@@ -63,7 +57,7 @@ export class Cpu {
     }
 
     /* 割り込み判定 */
-    if (this.psw.evalFlag(FLAG_E) || this.intrHost.isOccurredException()) {
+    if (this.psw.evalFlag(FLAG_E) || this.intrHost.isExceptionOccurred()) {
       const intrNum = this.intrHost.checkIntrNum();
       if (intrNum !== null) {
         this.handleInterrupt(intrNum);
@@ -286,90 +280,90 @@ export class Cpu {
     switch (inst.rd) {
       case opcode.JMP_JZ:
         if (zFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JC:
         if (cFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JM:
         if (sFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JO:
         if (vFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JGT:
         if (!(zFlag || (!sFlag && vFlag) || (sFlag && !vFlag))) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JGE:
         if (!((!sFlag && vFlag) || (sFlag && !vFlag))) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JLE:
         if (zFlag || (!sFlag && vFlag) || (sFlag && !vFlag)) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JLT:
         if ((!sFlag && vFlag) || (sFlag && !vFlag)) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JNZ:
         if (!zFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JNC:
         if (!cFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JNM:
         if (!sFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JNO:
         if (!vFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JHI:
         if (!(zFlag || cFlag)) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JLS:
         if (zFlag || cFlag) {
-          this.psw.setPC(inst.ea);
+          this.psw.jumpTo(inst.ea);
           return;
         }
         break;
       case opcode.JMP_JMP:
-        this.psw.setPC(inst.ea);
+        this.psw.jumpTo(inst.ea);
         return;
     }
 
@@ -380,7 +374,7 @@ export class Cpu {
 
   private instrCall(inst: Instruction) {
     this.pushVal(this.psw.getPC() + 4);
-    this.psw.setPC(inst.ea);
+    this.psw.jumpTo(inst.ea);
   }
 
   private instrPushPop(inst: Instruction) {
@@ -398,7 +392,7 @@ export class Cpu {
   private instrReturn(inst: Instruction) {
     if (inst.addrMode === 0x00) {
       /* RET命令 */
-      this.psw.setPC(this.popVal());
+      this.psw.jumpTo(this.popVal());
     } else if (inst.addrMode === 0x04) {
       /* RETI命令 */
       /**
@@ -414,7 +408,7 @@ export class Cpu {
         /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
         this.psw.setFlags((0xf0 & this.psw.getFlags()) | (0x0f & flag));
       }
-      this.psw.setPC(pc);
+      this.psw.jumpTo(pc);
     }
   }
 
@@ -530,7 +524,7 @@ export class Cpu {
 
     this.pushVal(this.psw.getPC());
     this.pushVal(tmp);
-    this.psw.setPC(this.memory.read16(INTERRUPT_VECTOR + intrNum * 2));
+    this.psw.jumpTo(this.memory.read16(INTERRUPT_VECTOR + intrNum * 2));
   }
 
   writeReg(num: number, val: number) {

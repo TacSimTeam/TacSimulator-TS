@@ -99,11 +99,6 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     return this.buf;
   }
 
-  inputKeyUp(e: KeyboardEvent): void {
-    /* 現時点では実装する必要は無いが、Ctrlキーなどの対応させるなら必要なはず */
-    return;
-  }
-
   inputKeyDown(e: KeyboardEvent): void {
     this.buf = this.keyToAscii(e.key);
 

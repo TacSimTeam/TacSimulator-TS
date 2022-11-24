@@ -1,13 +1,22 @@
 /**
  * CPUが特権モードであるべきかを知る必要がある機器が参照するインターフェース
  *
- * MEMO(2022/08/17):
  * MMUがCPUの実行モードによってページングを使用するか変える挙動を
  * プログラム上で実現するためにこのようなインターフェースを持つクラスを
- * 実装する必要があると考えた
- * MMU側にsetPrivMode()が公開されているのは良くないが、後で直せれば直す
+ * 実装する必要がある
  */
 export interface IPrivModeSignal {
+  /**
+   * 現在のPフラグの値を取得する
+   *
+   * @return 現在のPフラグの値(1=true, 0=false)
+   */
   getPrivMode(): boolean;
+
+  /**
+   * Pフラグの値を書き換える
+   *
+   * @param flag Pフラグの値(1=true, 0=false)
+   */
   setPrivMode(flag: boolean): void;
 }

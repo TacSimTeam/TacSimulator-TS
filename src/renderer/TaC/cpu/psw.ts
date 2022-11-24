@@ -23,7 +23,7 @@ export class Psw implements IPsw {
     return this.pc;
   }
 
-  setPC(pc: number) {
+  jumpTo(pc: number) {
     this.pc = pc;
   }
 

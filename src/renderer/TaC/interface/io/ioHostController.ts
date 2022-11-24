@@ -13,7 +13,7 @@ export interface IIOHostController {
    * I/O空間にデータを書き込む
    *
    * @param addr 書き込み先のアドレス
-   * @param val  書き込みたいデータ(16bit)
+   * @param val  書き込みたいデータ
    */
   output(addr: number, val: number): void;
 }
