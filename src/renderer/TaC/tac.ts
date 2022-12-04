@@ -5,7 +5,6 @@ import { Cpu } from './cpu/cpu';
 import { Register } from './cpu/register';
 import { Alu } from './cpu/alu';
 import { Psw } from './cpu/psw';
-import { PrivModeSignal } from './cpu/privModeSignal';
 import { IntrController } from './interrupt/intrController';
 import { IOHostController } from './io/ioHostController';
 import { Timer } from './io/device/timer';
@@ -27,7 +26,6 @@ export class Tac {
   private timer1: Timer;
   private serialIO: Ft232rl;
   private sd: SdHostController;
-  private privModeSignal: PrivModeSignal;
 
   private cpuEventId: NodeJS.Timeout | null;
 
@@ -38,21 +36,20 @@ export class Tac {
   constructor(canvas: HTMLCanvasElement, terminal: HTMLTextAreaElement) {
     this.memory = new Memory();
     this.intrController = new IntrController();
-    this.privModeSignal = new PrivModeSignal();
 
-    this.register = new Register(this.privModeSignal);
-    this.psw = new Psw(this.privModeSignal);
+    this.psw = new Psw();
+    this.register = new Register(this.psw);
 
     this.console = new Console(canvas, this.memory, this.psw, this.register);
     this.timer0 = new Timer(0, this.intrController);
     this.timer1 = new Timer(1, this.intrController);
     this.serialIO = new Ft232rl(terminal, this.intrController);
     this.sd = new SdHostController(this.memory, this.intrController);
-    this.mmu = new Mmu(this.memory, this.intrController, this.privModeSignal);
+    this.mmu = new Mmu(this.memory, this.intrController, this.psw);
 
     this.io = new IOHostController(this.timer0, this.timer1, this.serialIO, this.sd, this.mmu, this.console);
 
-    this.cpu = new Cpu(this.mmu, this.psw, this.register, this.intrController, this.io);
+    this.cpu = new Cpu(this.mmu, this.psw, this.psw, this.register, this.intrController, this.io);
 
     this.cpuEventId = null;
     this.terminal = terminal;

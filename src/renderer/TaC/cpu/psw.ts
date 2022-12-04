@@ -2,19 +2,19 @@ import { IPrivModeSignal } from '../interface';
 import { IPsw } from '../interface/cpu/psw';
 import { PRIV } from './const/flag';
 
-export class Psw implements IPsw {
+export class Psw implements IPsw, IPrivModeSignal {
   private pc: number;
   private flags: number;
-  private privSig: IPrivModeSignal;
 
-  constructor(privSig: IPrivModeSignal) {
+  constructor() {
     this.pc = 0xe000;
     this.flags = PRIV;
-    this.privSig = privSig;
-    this.privSig.setPrivMode(true);
   }
 
   nextPC() {
+    if (this.pc >= 0xfffe) {
+      console.warn('このnextPC()呼び出しによって、PCの値が0xffffを超えてしまいます');
+    }
     this.pc += 2;
   }
 
@@ -22,8 +22,13 @@ export class Psw implements IPsw {
     return this.pc;
   }
 
-  jumpTo(pc: number) {
-    this.pc = pc;
+  jumpTo(addr: number) {
+    if (!(0x0000 <= addr && addr <= 0xffff)) {
+      console.warn('TaCのメモリの範囲外にジャンプしようとしています');
+    } else if ((addr & 0x0001) !== 0) {
+      console.warn('奇数番地にジャンプしようとしています');
+    }
+    this.pc = addr;
   }
 
   getFlags(): number {
@@ -31,8 +36,13 @@ export class Psw implements IPsw {
   }
 
   setFlags(flags: number): void {
-    this.flags = flags;
-    this.privSig.setPrivMode(this.evalFlag(PRIV));
+    if (this.evalFlag(PRIV)) {
+      this.flags = flags;
+      return;
+    }
+
+    /* I/O特権モードかユーザモードのときは、EPIフラグ(0x00e0の箇所)を変化させない */
+    this.flags = (0x00e0 & this.flags) | (0xff1f & flags);
   }
 
   evalFlag(flag: number): boolean {
@@ -42,6 +52,17 @@ export class Psw implements IPsw {
   reset(): void {
     this.pc = 0xe000;
     this.flags = PRIV;
-    this.privSig.setPrivMode(true);
+  }
+
+  getPrivFlag(): boolean {
+    return this.evalFlag(PRIV);
+  }
+
+  setPrivFlag(flag: boolean): void {
+    if (flag) {
+      this.flags = this.flags | PRIV;
+    } else {
+      this.flags = this.flags & (~PRIV & 0xffff);
+    }
   }
 }

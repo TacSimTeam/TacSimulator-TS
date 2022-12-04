@@ -1,12 +1,12 @@
 import { Register } from '../src/renderer/TaC/cpu/register';
-import { PrivModeSignal } from '../src/renderer/TaC/cpu/privModeSignal';
 import * as regNum from '../src/renderer/TaC/cpu/const/regNum';
+import { Psw } from '../src/renderer/TaC/cpu/psw';
 
 test('Register read/write test', () => {
-  const privsig = new PrivModeSignal();
-  const register = new Register(privsig);
+  const psw = new Psw();
+  const register = new Register(psw);
 
-  privsig.setPrivMode(false);
+  psw.setPrivFlag(false);
 
   register.write(regNum.G0, 1);
   expect(register.read(regNum.G0)).toBe(1);
@@ -44,11 +44,11 @@ test('Register read/write test', () => {
   expect(register.read(regNum.SP)).toBe(2);
   expect(register.read(regNum.USP)).toBe(2);
 
-  privsig.setPrivMode(true);
+  psw.setPrivFlag(true);
   register.write(regNum.SP, 3);
   expect(register.read(regNum.SP)).toBe(3);
   expect(register.read(regNum.USP)).toBe(2);
 
-  privsig.setPrivMode(false);
+  psw.setPrivFlag(false);
   expect(register.read(regNum.SP)).toBe(2);
 });

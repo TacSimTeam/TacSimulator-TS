@@ -30,7 +30,7 @@ export class Register implements IRegister {
       case 12:
         return this.fp;
       case 13:
-        if (this.privSig.getPrivMode()) {
+        if (this.privSig.getPrivFlag()) {
           return this.ssp;
         } else {
           return this.usp;
@@ -48,7 +48,7 @@ export class Register implements IRegister {
         this.fp = val & 0xffff;
         break;
       case 13:
-        if (this.privSig.getPrivMode()) {
+        if (this.privSig.getPrivFlag()) {
           this.ssp = val & 0xffff;
         } else {
           this.usp = val & 0xffff;

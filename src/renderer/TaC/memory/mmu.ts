@@ -14,7 +14,7 @@ export class Mmu implements IDataBus, IIOMmu {
   private intrSignal: IIntrSignal;
 
   /* 特権モードであるかどうか */
-  private privModesignal: IPrivModeSignal;
+  private privSig: IPrivModeSignal;
 
   /* TLBエントリ */
   private tlbs: TlbEntry[];
@@ -34,10 +34,10 @@ export class Mmu implements IDataBus, IIOMmu {
   /* TLBミス例外の原因となったページ番号 */
   private tlbMissPage: number;
 
-  constructor(memory: IDmaSignal, intrController: IIntrSignal, privModeSignal: IPrivModeSignal) {
+  constructor(memory: IDmaSignal, intrController: IIntrSignal, privSig: IPrivModeSignal) {
     this.memory = memory;
     this.intrSignal = intrController;
-    this.privModesignal = privModeSignal;
+    this.privSig = privSig;
     this.tlbs = [];
     this.initTlbs();
 
@@ -73,7 +73,7 @@ export class Mmu implements IDataBus, IIOMmu {
     }
 
     /* MMUが有効かつ特権モード以外ならp-f変換を行う */
-    if (this.mmuMode && !this.privModesignal.getPrivMode()) {
+    if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
@@ -98,7 +98,7 @@ export class Mmu implements IDataBus, IIOMmu {
 
   read8(addr: number) {
     /* MMUが有効かつ特権モード以外ならp-f変換を行う */
-    if (this.mmuMode && !this.privModesignal.getPrivMode()) {
+    if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
@@ -134,7 +134,7 @@ export class Mmu implements IDataBus, IIOMmu {
     }
 
     /* MMUが有効かつ特権モード以外ならp-f変換を行う */
-    if (this.mmuMode && !this.privModesignal.getPrivMode()) {
+    if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
@@ -168,7 +168,7 @@ export class Mmu implements IDataBus, IIOMmu {
     }
 
     /* MMUが有効かつ特権モード以外ならp-f変換を行う */
-    if (this.mmuMode && !this.privModesignal.getPrivMode()) {
+    if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {
@@ -201,7 +201,7 @@ export class Mmu implements IDataBus, IIOMmu {
     }
 
     /* MMUが有効かつ特権モード以外ならp-f変換を行う */
-    if (this.mmuMode && !this.privModesignal.getPrivMode()) {
+    if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (pc & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
       if (entry == -1) {

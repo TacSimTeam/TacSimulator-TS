@@ -11,12 +11,12 @@ export interface IPrivModeSignal {
    *
    * @return 現在のPフラグの値(1=true, 0=false)
    */
-  getPrivMode(): boolean;
+  getPrivFlag(): boolean;
 
   /**
    * Pフラグの値を書き換える
    *
    * @param flag Pフラグの値(1=true, 0=false)
    */
-  setPrivMode(flag: boolean): void;
+  setPrivFlag(flag: boolean): void;
 }

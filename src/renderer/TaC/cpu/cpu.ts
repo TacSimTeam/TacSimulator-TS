@@ -1,4 +1,4 @@
-import { IDataBus, IIntrController, IIOHostController, IRegister, IPsw } from '../interface';
+import { IDataBus, IIntrController, IIOHostController, IRegister, IPsw, IPrivModeSignal } from '../interface';
 import { Instruction } from './instruction/instruction';
 import * as opcode from './const/opcode';
 import * as addrmode from './const/addrmode';
@@ -18,12 +18,21 @@ export class Cpu {
   private psw: IPsw;
   private register: IRegister;
   private alu: Alu;
+  private privSig: IPrivModeSignal;
   private intrHost: IIntrController;
   private ioHost: IIOHostController;
 
-  constructor(memory: IDataBus, psw: IPsw, register: IRegister, intrHost: IIntrController, ioHost: IIOHostController) {
+  constructor(
+    memory: IDataBus,
+    psw: IPsw,
+    privSig: IPrivModeSignal,
+    register: IRegister,
+    intrHost: IIntrController,
+    ioHost: IIOHostController
+  ) {
     this.memory = memory;
     this.psw = psw;
+    this.privSig = privSig;
     this.register = register;
     this.alu = new Alu(intrHost);
 
@@ -505,6 +514,7 @@ export class Cpu {
     const tmp = this.psw.getFlags();
 
     /* 割込み禁止、特権モードの状態にする */
+    this.privSig.setPrivFlag(true);
     this.psw.setFlags((tmp & ~flag.ENABLE_INTR) | flag.PRIV);
 
     this.pushVal(this.psw.getPC());
@@ -514,12 +524,7 @@ export class Cpu {
 
   writeReg(num: number, val: number) {
     if (num == regNum.FLAG) {
-      if (this.psw.evalFlag(flag.PRIV)) {
-        this.psw.setFlags((0xff00 & this.psw.getFlags()) | (0x00ff & val));
-      } else {
-        /* I/O特権モードかユーザモードのときは、EPIフラグは変化させない */
-        this.psw.setFlags((0xffe0 & this.psw.getFlags()) | (0x001f & val));
-      }
+      this.psw.setFlags(val);
     } else {
       this.register.write(num, val);
     }

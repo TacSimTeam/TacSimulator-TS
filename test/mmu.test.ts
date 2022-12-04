@@ -1,6 +1,6 @@
 import { Memory } from '../src/renderer/TaC/memory/memory';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
-import { PrivModeSignal } from '../src/renderer/TaC/cpu/privModeSignal';
+import { Psw } from '../src/renderer/TaC/cpu/psw';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
 import * as intr from '../src/renderer/TaC/interrupt/interruptNum';
 
@@ -21,8 +21,8 @@ test('Memory read/write test', () => {
 test('IPL loading test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
-  const privSig = new PrivModeSignal();
-  const mmu = new Mmu(memory, intrController, privSig);
+  const psw = new Psw();
+  const mmu = new Mmu(memory, intrController, psw);
 
   mmu.loadIpl();
 
@@ -49,8 +49,8 @@ test('IPL loading test', () => {
 test('Setting TLB entries test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
-  const privSig = new PrivModeSignal();
-  const mmu = new Mmu(memory, intrController, privSig);
+  const psw = new Psw();
+  const mmu = new Mmu(memory, intrController, psw);
 
   /* TLBエントリの設定が正しくできるか */
   mmu.setTlbHigh8(1, 0xff);
@@ -62,9 +62,9 @@ test('Setting TLB entries test', () => {
 test('MMU read 1byte data test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
-  const privSig = new PrivModeSignal();
-  const mmu = new Mmu(memory, intrController, privSig);
-  privSig.setPrivMode(false);
+  const psw = new Psw();
+  const mmu = new Mmu(memory, intrController, psw);
+  psw.setPrivFlag(false);
   mmu.enable();
 
   /* 正常な動作 */
@@ -103,7 +103,7 @@ test('MMU read 1byte data test', () => {
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
 
   /* MMUが有効でも特権モードのときはp-f変換しない */
-  privSig.setPrivMode(true);
+  psw.setPrivFlag(true);
 
   mmu.setTlbHigh8(0, 0x50); /* Page : 0x50 */
   mmu.setTlbLow16(0, 0x8755); /* Frame : 0x55, Valid, RWX = 1 */
@@ -115,9 +115,9 @@ test('MMU read 1byte data test', () => {
 test('MMU read 2byte data test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
-  const privSig = new PrivModeSignal();
-  const mmu = new Mmu(memory, intrController, privSig);
-  privSig.setPrivMode(false);
+  const psw = new Psw();
+  const mmu = new Mmu(memory, intrController, psw);
+  psw.setPrivFlag(false);
   mmu.enable();
 
   /* 正常な動作 */
@@ -167,7 +167,7 @@ test('MMU read 2byte data test', () => {
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
 
   /* MMUが有効でも特権モードのときはp-f変換しない */
-  privSig.setPrivMode(true);
+  psw.setPrivFlag(true);
 
   mmu.setTlbHigh8(0, 0x10); /* Page : 0x10 */
   mmu.setTlbLow16(0, 0x8755); /* Frame : 0x55, Valid, RWX = 1 */
@@ -179,9 +179,9 @@ test('MMU read 2byte data test', () => {
 test('MMU write 1byte data test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
-  const privSig = new PrivModeSignal();
-  const mmu = new Mmu(memory, intrController, privSig);
-  privSig.setPrivMode(false);
+  const psw = new Psw();
+  const mmu = new Mmu(memory, intrController, psw);
+  psw.setPrivFlag(false);
   mmu.enable();
 
   /* 正常な動作 */
@@ -220,7 +220,7 @@ test('MMU write 1byte data test', () => {
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
 
   /* MMUが有効でも特権モードのときはp-f変換しない */
-  privSig.setPrivMode(true);
+  psw.setPrivFlag(true);
 
   mmu.setTlbHigh8(0, 0x50); /* Page : 0x50 */
   mmu.setTlbLow16(0, 0x87cc); /* Frame : 0xcc, Valid, RWX = 1 */
@@ -233,9 +233,9 @@ test('MMU write 1byte data test', () => {
 test('MMU write 2byte data test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
-  const privSig = new PrivModeSignal();
-  const mmu = new Mmu(memory, intrController, privSig);
-  privSig.setPrivMode(false);
+  const psw = new Psw();
+  const mmu = new Mmu(memory, intrController, psw);
+  psw.setPrivFlag(false);
   mmu.enable();
 
   /* 正常な動作 */
@@ -285,7 +285,7 @@ test('MMU write 2byte data test', () => {
   expect(intrController.checkIntrNum()).toBe(intr.EXCP_MEMORY_ERROR);
 
   /* MMUが有効でも特権モードのときはp-f変換しない */
-  privSig.setPrivMode(true);
+  psw.setPrivFlag(true);
 
   mmu.setTlbHigh8(0, 0x10); /* Page : 0x10 */
   mmu.setTlbLow16(0, 0x8755); /* Frame : 0x55, Valid, RWX = 1 */
@@ -298,9 +298,9 @@ test('MMU write 2byte data test', () => {
 test('MMU instruction fetch test', () => {
   const memory = new Memory();
   const intrController = new IntrController();
-  const privSig = new PrivModeSignal();
-  const mmu = new Mmu(memory, intrController, privSig);
-  privSig.setPrivMode(false);
+  const psw = new Psw();
+  const mmu = new Mmu(memory, intrController, psw);
+  psw.setPrivFlag(false);
   mmu.enable();
 
   /* 正常な動作 */

@@ -1,7 +1,6 @@
 import { Memory } from '../src/renderer/TaC/memory/memory';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
 import { Psw } from '../src/renderer/TaC/cpu/psw';
-import { PrivModeSignal } from '../src/renderer/TaC/cpu/privModeSignal';
 import { Cpu } from '../src/renderer/TaC/cpu/cpu';
 import { Alu } from '../src/renderer/TaC/cpu/alu';
 import { Register } from '../src/renderer/TaC/cpu/register';
@@ -20,12 +19,11 @@ const io: IIOHostController = {
 };
 
 const intrController = new IntrController();
-const privSig = new PrivModeSignal();
-const mmu = new Mmu(new Memory(), intrController, privSig);
-const psw = new Psw(privSig);
-const register = new Register(privSig);
+const psw = new Psw();
+const mmu = new Mmu(new Memory(), intrController, psw);
+const register = new Register(psw);
 const alu = new Alu(intrController);
-const cpu = new Cpu(mmu, psw, register, intrController, io);
+const cpu = new Cpu(mmu, psw, psw, register, intrController, io);
 
 test('CPU instruction decode test', () => {
   /* LD G0, Addr */
