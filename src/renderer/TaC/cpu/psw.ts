@@ -11,15 +11,15 @@ export class Psw implements IPsw, IPrivModeSignal {
     this.flags = PRIV;
   }
 
+  getPC(): number {
+    return this.pc;
+  }
+
   nextPC() {
     if (this.pc >= 0xfffe) {
       console.warn('このnextPC()呼び出しによって、PCの値が0xffffを超えてしまいます');
     }
     this.pc += 2;
-  }
-
-  getPC(): number {
-    return this.pc;
   }
 
   jumpTo(addr: number) {
@@ -49,11 +49,6 @@ export class Psw implements IPsw, IPrivModeSignal {
     return (this.flags & flag) !== 0;
   }
 
-  reset(): void {
-    this.pc = 0xe000;
-    this.flags = PRIV;
-  }
-
   getPrivFlag(): boolean {
     return this.evalFlag(PRIV);
   }
@@ -64,5 +59,10 @@ export class Psw implements IPsw, IPrivModeSignal {
     } else {
       this.flags = this.flags & (~PRIV & 0xffff);
     }
+  }
+
+  reset(): void {
+    this.pc = 0xe000;
+    this.flags = PRIV;
   }
 }
