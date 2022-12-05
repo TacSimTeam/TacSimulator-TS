@@ -49,7 +49,7 @@ export class Tac {
 
     this.io = new IOHostController(this.timer0, this.timer1, this.serialIO, this.sd, this.mmu, this.console);
 
-    this.cpu = new Cpu(this.mmu, this.psw, this.psw, this.register, this.intrController, this.io);
+    this.cpu = new Cpu(this.mmu, this.register, this.psw, this.psw, this.intrController, this.io);
 
     this.cpuEventId = null;
     this.terminal = terminal;
