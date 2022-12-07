@@ -109,6 +109,38 @@ export class IOHostController implements IIOHostController {
         return this.mmu.getTlbHigh8(7);
       case io.MMU_TLB7_LOW:
         return this.mmu.getTlbLow16(7);
+      case io.MMU_TLB8_HIGH:
+        return this.mmu.getTlbHigh8(8);
+      case io.MMU_TLB8_LOW:
+        return this.mmu.getTlbLow16(8);
+      case io.MMU_TLB9_HIGH:
+        return this.mmu.getTlbHigh8(9);
+      case io.MMU_TLB9_LOW:
+        return this.mmu.getTlbLow16(9);
+      case io.MMU_TLB10_HIGH:
+        return this.mmu.getTlbHigh8(10);
+      case io.MMU_TLB10_LOW:
+        return this.mmu.getTlbLow16(10);
+      case io.MMU_TLB11_HIGH:
+        return this.mmu.getTlbHigh8(11);
+      case io.MMU_TLB11_LOW:
+        return this.mmu.getTlbLow16(11);
+      case io.MMU_TLB12_HIGH:
+        return this.mmu.getTlbHigh8(12);
+      case io.MMU_TLB12_LOW:
+        return this.mmu.getTlbLow16(12);
+      case io.MMU_TLB13_HIGH:
+        return this.mmu.getTlbHigh8(13);
+      case io.MMU_TLB13_LOW:
+        return this.mmu.getTlbLow16(13);
+      case io.MMU_TLB14_HIGH:
+        return this.mmu.getTlbHigh8(14);
+      case io.MMU_TLB14_LOW:
+        return this.mmu.getTlbLow16(14);
+      case io.MMU_TLB15_HIGH:
+        return this.mmu.getTlbHigh8(15);
+      case io.MMU_TLB15_LOW:
+        return this.mmu.getTlbLow16(15);
       case io.MMU_ERRORADDR_MMUON:
         return this.mmu.getErrorAddr();
       case io.MMU_ERRORCAUSE_00:
@@ -229,6 +261,54 @@ export class IOHostController implements IIOHostController {
         break;
       case io.MMU_TLB7_LOW:
         this.mmu.setTlbLow16(7, val);
+        break;
+      case io.MMU_TLB8_HIGH:
+        this.mmu.setTlbHigh8(8, val);
+        break;
+      case io.MMU_TLB8_LOW:
+        this.mmu.setTlbLow16(8, val);
+        break;
+      case io.MMU_TLB9_HIGH:
+        this.mmu.setTlbHigh8(9, val);
+        break;
+      case io.MMU_TLB9_LOW:
+        this.mmu.setTlbLow16(9, val);
+        break;
+      case io.MMU_TLB10_HIGH:
+        this.mmu.setTlbHigh8(10, val);
+        break;
+      case io.MMU_TLB10_LOW:
+        this.mmu.setTlbLow16(10, val);
+        break;
+      case io.MMU_TLB11_HIGH:
+        this.mmu.setTlbHigh8(11, val);
+        break;
+      case io.MMU_TLB11_LOW:
+        this.mmu.setTlbLow16(11, val);
+        break;
+      case io.MMU_TLB12_HIGH:
+        this.mmu.setTlbHigh8(12, val);
+        break;
+      case io.MMU_TLB12_LOW:
+        this.mmu.setTlbLow16(12, val);
+        break;
+      case io.MMU_TLB13_HIGH:
+        this.mmu.setTlbHigh8(13, val);
+        break;
+      case io.MMU_TLB13_LOW:
+        this.mmu.setTlbLow16(13, val);
+        break;
+      case io.MMU_TLB14_HIGH:
+        this.mmu.setTlbHigh8(14, val);
+        break;
+      case io.MMU_TLB14_LOW:
+        this.mmu.setTlbLow16(14, val);
+        break;
+      case io.MMU_TLB15_HIGH:
+        this.mmu.setTlbHigh8(15, val);
+        break;
+      case io.MMU_TLB15_LOW:
+        this.mmu.setTlbLow16(15, val);
         break;
       case io.MMU_00_IPLBANK:
         if ((val & 0x0001) != 0) {

@@ -4,7 +4,7 @@ import { ipl } from '../ipl';
 import * as intr from '../interrupt/interruptNum';
 import { TlbMissError, ReadonlyError } from '../error';
 
-const TLB_ENTRY_SIZE = 8;
+const TLB_ENTRY_SIZE = 16;
 
 const ERROR_CAUSE_BAD_ADDRESS = 0x02;
 const ERROR_CAUSE_MEMORY_VIOLATION = 0x01;
