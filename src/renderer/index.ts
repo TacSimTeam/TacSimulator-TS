@@ -1,46 +1,42 @@
-import { assertIsDefined } from './utils';
 import { Tac } from './TaC/tac';
+import { querySelector } from './util/dom.result';
 
-assertIsDefined(document.getElementById('console'));
-const canvas = document.getElementById('console') as HTMLCanvasElement;
+const console = querySelector<HTMLCanvasElement>('#console').unwrap();
+const terminal = querySelector<HTMLTextAreaElement>('#terminal').unwrap();
 
-assertIsDefined(document.getElementById('terminal'));
-const terminal = document.getElementById('terminal') as HTMLTextAreaElement;
-
-const tac = new Tac(canvas, terminal);
+const tac = new Tac(console, terminal);
 
 /* TaCコンソールがクリックされた時の動作 */
-canvas.addEventListener('mousedown', (e) => {
-  const x = e.clientX - canvas.getBoundingClientRect().left;
-  const y = e.clientY - canvas.getBoundingClientRect().top;
+console.addEventListener('mousedown', (e) => {
+  const x = e.clientX - console.getBoundingClientRect().left;
+  const y = e.clientY - console.getBoundingClientRect().top;
 
   tac.onClick(x, y);
 });
 
-const openBtn = document.getElementById('btn-openFile');
-assertIsDefined(openBtn);
+const btnOpen = querySelector<HTMLButtonElement>('#btn-openFile').unwrap();
 
 /* 「Open a File」ボタンが押された時の動作 */
-openBtn.addEventListener('click', async () => {
-  const filePathElement = document.getElementById('filePath');
-  assertIsDefined(filePathElement);
+btnOpen.addEventListener('click', () => {
+  const filePathElement = querySelector<HTMLElement>('#filePath').unwrap();
 
-  const filePath = await window.electronAPI.getSDImgPath();
+  window.electronAPI
+    .getSDImgPath()
+    .then((filePath) => {
+      if (filePath === undefined) {
+        return;
+      }
 
-  if (filePath === undefined) {
-    if (window.electronAPI.isSDImgLoaded()) {
-      return;
-    }
-    filePathElement.innerText = 'ファイルが選択されていません';
-  } else {
-    /* ファイルの読み込みが完了するまで「しばらくお待ちください」を表示する */
-    window.electronAPI
-      .openFile(filePath)
-      .then(() => {
-        filePathElement.innerText = filePath;
-      })
-      .catch(() => {
-        alert('ファイルが正常に読み込まれませんでした');
-      });
-  }
+      window.electronAPI
+        .openFile(filePath)
+        .then(() => {
+          filePathElement.innerText = filePath;
+        })
+        .catch(() => {
+          alert('ファイルが正常に読み込まれませんでした');
+        });
+    })
+    .catch(() => {
+      alert('ファイルが正常に読み込まれませんでした');
+    });
 });
