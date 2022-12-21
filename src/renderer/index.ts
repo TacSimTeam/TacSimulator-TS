@@ -1,18 +1,10 @@
 import { Tac } from './TaC/tac';
 import { querySelector } from './util/dom.result';
 
-const console = querySelector<HTMLCanvasElement>('#console').unwrap();
+const canvas = querySelector<HTMLCanvasElement>('#console').unwrap();
 const terminal = querySelector<HTMLTextAreaElement>('#terminal').unwrap();
 
-const tac = new Tac(console, terminal);
-
-/* TaCコンソールがクリックされた時の動作 */
-console.addEventListener('mousedown', (e) => {
-  const x = e.clientX - console.getBoundingClientRect().left;
-  const y = e.clientY - console.getBoundingClientRect().top;
-
-  tac.onClick(x, y);
-});
+const tac = new Tac(canvas, terminal);
 
 const btnOpen = querySelector<HTMLButtonElement>('#btn-openFile').unwrap();
 
