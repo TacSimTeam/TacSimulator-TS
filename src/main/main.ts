@@ -9,7 +9,7 @@ const WINDOW_HEIGHT = 800;
 /**
  * ウィンドウを生成し, HTMLを読み込んで表示する
  */
-function createWindow() {
+function createWindow(): void {
   const options: Electron.BrowserWindowConstructorOptions = {
     width: WINDOW_WIDTH,
     height: WINDOW_HEIGHT,
@@ -23,7 +23,7 @@ function createWindow() {
   mainWindow = new BrowserWindow(options);
   mainWindow.loadFile('public/index.html');
 
-  /* レンダリング終了後にウィンドウを表示する */
+  // レンダリング終了後にウィンドウを表示する
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
@@ -37,7 +37,9 @@ app.whenReady().then(() => {
 
 /* ウィンドウが全て閉じられたときアプリが終了させる(macOS以外) */
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 
 /**

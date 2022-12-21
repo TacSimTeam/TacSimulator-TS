@@ -6,6 +6,7 @@
  * contextBridge.exposeInMainWorldの第2引数のオブジェクトに追加する
  * (コード補完を効かせるためにはsrc/renderer/types/renderer.d.tsに型定義を追記する)
  */
+
 import { contextBridge, ipcRenderer } from 'electron';
 import { SDImgIOAsync } from './sdImgIOAsync';
 

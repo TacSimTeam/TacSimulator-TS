@@ -55,7 +55,7 @@ export class SDImgIOAsync {
   /**
    * イメージファイルが読み込まれているかどうか
    */
-  isLoaded() {
+  isLoaded(): boolean {
     return this.fHandle !== null;
   }
 
