@@ -3,15 +3,14 @@ import { Memory } from './memory/memory';
 import { Mmu } from './memory/mmu';
 import { Cpu } from './cpu/cpu';
 import { Register } from './cpu/register';
-import { Alu } from './cpu/alu';
 import { Psw } from './cpu/psw';
 import { IntrController } from './interrupt/intrController';
 import { IOHostController } from './io/ioHostController';
 import { Timer } from './io/device/timer';
 import { Ft232rl } from './io/device/ft232rl';
 import { SdHostController } from './io/device/sdHostController';
-import { regNumToString } from './debug/instruction';
-import { assertIsDefined } from '../utils';
+import { querySelector } from '../util/dom.result';
+import { toHexString } from '../utils';
 
 export class Tac {
   private console: Console;
@@ -86,11 +85,11 @@ export class Tac {
    * @param x x座標
    * @param y y座標
    */
-  onClick(x: number, y: number) {
+  onClick(x: number, y: number): void {
     this.console.onClick(x, y);
   }
 
-  run() {
+  run(): void {
     const start = new Date();
     for (;;) {
       if (this.console.getBreakSwitchValue() && this.psw.getPC() === this.breakAddr) {
@@ -120,32 +119,32 @@ export class Tac {
     }
   }
 
-  update() {
-    (document.getElementById('reg-value-G0') as HTMLElement).innerText = '0x' + this.register.read(0).toString(16);
-    (document.getElementById('reg-value-G1') as HTMLElement).innerText = '0x' + this.register.read(1).toString(16);
-    (document.getElementById('reg-value-G2') as HTMLElement).innerText = '0x' + this.register.read(2).toString(16);
-    (document.getElementById('reg-value-G3') as HTMLElement).innerText = '0x' + this.register.read(3).toString(16);
-    (document.getElementById('reg-value-G4') as HTMLElement).innerText = '0x' + this.register.read(4).toString(16);
-    (document.getElementById('reg-value-G5') as HTMLElement).innerText = '0x' + this.register.read(5).toString(16);
-    (document.getElementById('reg-value-G6') as HTMLElement).innerText = '0x' + this.register.read(6).toString(16);
-    (document.getElementById('reg-value-G7') as HTMLElement).innerText = '0x' + this.register.read(7).toString(16);
-    (document.getElementById('reg-value-G8') as HTMLElement).innerText = '0x' + this.register.read(8).toString(16);
-    (document.getElementById('reg-value-G9') as HTMLElement).innerText = '0x' + this.register.read(9).toString(16);
-    (document.getElementById('reg-value-G10') as HTMLElement).innerText = '0x' + this.register.read(10).toString(16);
-    (document.getElementById('reg-value-G11') as HTMLElement).innerText = '0x' + this.register.read(11).toString(16);
-    (document.getElementById('reg-value-FP') as HTMLElement).innerText = '0x' + this.register.read(12).toString(16);
-    (document.getElementById('reg-value-SP') as HTMLElement).innerText = '0x' + this.register.read(13).toString(16);
-    (document.getElementById('reg-value-PC') as HTMLElement).innerText = '0x' + this.psw.getPC().toString(16);
-    (document.getElementById('reg-value-FLAG') as HTMLElement).innerText = '0x' + this.psw.getFlags().toString(16);
-    (document.getElementById('reg-value-MD') as HTMLElement).innerText = '0x' + this.console['memData'].toString(16);
-    (document.getElementById('reg-value-MA') as HTMLElement).innerText = '0x' + this.console['memAddr'].toString(16);
+  private update(): void {
+    querySelector('#reg-value-G0').unwrap().innerText = toHexString(this.register.read(0));
+    querySelector('#reg-value-G1').unwrap().innerText = toHexString(this.register.read(1));
+    querySelector('#reg-value-G2').unwrap().innerText = toHexString(this.register.read(2));
+    querySelector('#reg-value-G3').unwrap().innerText = toHexString(this.register.read(3));
+    querySelector('#reg-value-G4').unwrap().innerText = toHexString(this.register.read(4));
+    querySelector('#reg-value-G5').unwrap().innerText = toHexString(this.register.read(5));
+    querySelector('#reg-value-G6').unwrap().innerText = toHexString(this.register.read(6));
+    querySelector('#reg-value-G7').unwrap().innerText = toHexString(this.register.read(7));
+    querySelector('#reg-value-G8').unwrap().innerText = toHexString(this.register.read(8));
+    querySelector('#reg-value-G9').unwrap().innerText = toHexString(this.register.read(9));
+    querySelector('#reg-value-G10').unwrap().innerText = toHexString(this.register.read(10));
+    querySelector('#reg-value-G11').unwrap().innerText = toHexString(this.register.read(11));
+    querySelector('#reg-value-FP').unwrap().innerText = toHexString(this.register.read(12));
+    querySelector('#reg-value-SP').unwrap().innerText = toHexString(this.register.read(13));
+    querySelector('#reg-value-PC').unwrap().innerText = toHexString(this.psw.getPC());
+    querySelector('#reg-value-FLAG').unwrap().innerText = toHexString(this.psw.getFlags());
+    querySelector('#reg-value-MD').unwrap().innerText = toHexString(this.console['memData']);
+    querySelector('#reg-value-MA').unwrap().innerText = toHexString(this.console['memAddr']);
   }
 
-  reset() {
+  private reset(): void {
     this.stop();
 
     /* ターミナルの文字消去 */
-    this.terminal.value = ' ';
+    this.terminal.value = '';
 
     this.cpu.reset();
     this.psw.reset();
@@ -162,14 +161,14 @@ export class Tac {
     this.update();
   }
 
-  stop() {
+  private stop(): void {
     console.log(this.memory);
     if (this.cpuEventId !== null) {
       clearTimeout(this.cpuEventId);
     }
   }
 
-  test() {
+  private test(): void {
     this.mmu.loadIpl();
     this.psw.jumpTo(0xe000);
 
