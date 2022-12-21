@@ -375,4 +375,12 @@ export class Console implements IIOConsole {
     this.updateLED();
     this.drawAll();
   }
+
+  getMemData(): number {
+    return this.memData;
+  }
+
+  getMemAddr(): number {
+    return this.memAddr;
+  }
 }

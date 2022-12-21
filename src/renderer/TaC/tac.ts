@@ -61,7 +61,7 @@ export class Tac {
   }
 
   /**
-   * コンソールの動作の初期化
+   * コンソールの初期化
    *
    * @param canvas コンソールが描画されるCanvas
    */
@@ -160,8 +160,8 @@ export class Tac {
     querySelector('#reg-value-SP').unwrap().innerText = toHexString(this.register.read(13));
     querySelector('#reg-value-PC').unwrap().innerText = toHexString(this.psw.getPC());
     querySelector('#reg-value-FLAG').unwrap().innerText = toHexString(this.psw.getFlags());
-    querySelector('#reg-value-MD').unwrap().innerText = toHexString(this.console['memData']);
-    querySelector('#reg-value-MA').unwrap().innerText = toHexString(this.console['memAddr']);
+    querySelector('#reg-value-MD').unwrap().innerText = toHexString(this.console.getMemData());
+    querySelector('#reg-value-MA').unwrap().innerText = toHexString(this.console.getMemAddr());
   }
 
   /**
