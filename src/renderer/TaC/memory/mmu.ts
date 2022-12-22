@@ -10,29 +10,17 @@ const ERROR_CAUSE_BAD_ADDRESS = 0x02;
 const ERROR_CAUSE_MEMORY_VIOLATION = 0x01;
 
 export class Mmu implements IDataBus, IIOMmu {
-  private memory: IDmaSignal;
-  private intrSignal: IIntrSignal;
+  private readonly memory: IDmaSignal;
+  private readonly intrSignal: IIntrSignal;
+  private readonly privSig: IPrivModeSignal;
 
-  /* 特権モードであるかどうか */
-  private privSig: IPrivModeSignal;
+  private tlbs: TlbEntry[]; // TLBエントリ
 
-  /* TLBエントリ */
-  private tlbs: TlbEntry[];
-
-  /* IPLロード中ならtrue */
-  private iplMode: boolean;
-
-  /* trueなら特権モード以外でp-f変換を行う */
-  private mmuMode: boolean;
-
-  /* メモリ保護違反が発生したときに原因となった論理アドレス */
-  private errorAddr: number;
-
-  /* メモリ保護違反の原因 */
-  private errorCause: number;
-
-  /* TLBミス例外の原因となったページ番号 */
-  private tlbMissPage: number;
+  private iplMode: boolean; // IPLロード中ならtrue
+  private mmuMode: boolean; // trueなら特権モード以外でp-f変換を行う
+  private errorAddr: number; // メモリ保護違反が発生したときに原因となった論理アドレス
+  private errorCause: number; // メモリ保護違反の原因
+  private tlbMissPage: number; // TLBミス例外の原因となったページ番号
 
   constructor(memory: IDmaSignal, intrController: IIntrSignal, privSig: IPrivModeSignal) {
     this.memory = memory;
@@ -48,7 +36,7 @@ export class Mmu implements IDataBus, IIOMmu {
     this.tlbMissPage = 0;
   }
 
-  private initTlbs() {
+  private initTlbs(): void {
     for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
       this.tlbs.push({
         page: 0,
@@ -65,7 +53,7 @@ export class Mmu implements IDataBus, IIOMmu {
     }
   }
 
-  write8(addr: number, val: number) {
+  write8(addr: number, val: number): void {
     if (this.iplMode) {
       if (addr >= 0xe000) {
         throw new ReadonlyError();
@@ -76,7 +64,7 @@ export class Mmu implements IDataBus, IIOMmu {
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry == -1) {
+      if (entry === -1) {
         /* TLBミス */
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
@@ -96,12 +84,12 @@ export class Mmu implements IDataBus, IIOMmu {
     this.memory.write8(addr, val);
   }
 
-  read8(addr: number) {
+  read8(addr: number): number {
     /* MMUが有効かつ特権モード以外ならp-f変換を行う */
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry == -1) {
+      if (entry === -1) {
         /* TLBミス */
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
@@ -121,8 +109,8 @@ export class Mmu implements IDataBus, IIOMmu {
     return this.memory.read8(addr);
   }
 
-  write16(addr: number, val: number) {
-    if (addr % 2 == 1) {
+  write16(addr: number, val: number): void {
+    if (addr % 2 === 1) {
       this.errorAddr = addr;
       this.errorCause = ERROR_CAUSE_BAD_ADDRESS;
       this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
@@ -137,7 +125,7 @@ export class Mmu implements IDataBus, IIOMmu {
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry == -1) {
+      if (entry === -1) {
         /* TLBミス */
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
@@ -158,8 +146,8 @@ export class Mmu implements IDataBus, IIOMmu {
     this.memory.write8(addr + 1, val & 0x00ff);
   }
 
-  read16(addr: number) {
-    if (addr % 2 == 1) {
+  read16(addr: number): number {
+    if (addr % 2 === 1) {
       /* メモリ保護違反(奇数アドレス) */
       this.errorAddr = addr;
       this.errorCause |= ERROR_CAUSE_BAD_ADDRESS;
@@ -171,7 +159,7 @@ export class Mmu implements IDataBus, IIOMmu {
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry == -1) {
+      if (entry === -1) {
         /* TLBミス */
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
@@ -192,7 +180,7 @@ export class Mmu implements IDataBus, IIOMmu {
   }
 
   fetch(pc: number): number {
-    if (pc % 2 == 1) {
+    if (pc % 2 === 1) {
       /* メモリ保護違反(奇数アドレス) */
       this.errorAddr = pc;
       this.errorCause |= ERROR_CAUSE_BAD_ADDRESS;
@@ -204,7 +192,7 @@ export class Mmu implements IDataBus, IIOMmu {
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (pc & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry == -1) {
+      if (entry === -1) {
         /* TLBミス */
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
@@ -224,16 +212,16 @@ export class Mmu implements IDataBus, IIOMmu {
     return (this.memory.read8(pc) << 8) | this.memory.read8(pc + 1);
   }
 
-  private searchTlbNum(page: number) {
+  private searchTlbNum(page: number): number {
     for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
-      if (this.tlbs[i].validFlag && this.tlbs[i].page == page) {
+      if (this.tlbs[i].validFlag && this.tlbs[i].page === page) {
         return i;
       }
     }
     return -1;
   }
 
-  loadIpl() {
+  loadIpl(): void {
     if (this.iplMode) {
       return;
     }
@@ -244,7 +232,7 @@ export class Mmu implements IDataBus, IIOMmu {
     this.iplMode = true;
   }
 
-  detachIpl() {
+  detachIpl(): void {
     this.iplMode = false;
     for (let i = 0xe000; i <= 0xffff; i++) {
       this.memory.write8(i, 0);
@@ -292,7 +280,7 @@ export class Mmu implements IDataBus, IIOMmu {
     this.mmuMode = true;
   }
 
-  reset() {
+  reset(): void {
     this.clearMemory();
     this.tlbs.splice(0);
     this.initTlbs();
@@ -304,7 +292,7 @@ export class Mmu implements IDataBus, IIOMmu {
     this.tlbMissPage = 0;
   }
 
-  private clearMemory() {
+  private clearMemory(): void {
     for (let i = 0; i <= 0xffff; i++) {
       this.memory.write8(i, 0);
     }
