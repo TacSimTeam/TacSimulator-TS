@@ -23,6 +23,7 @@
     ],
     "rules": {
         "@typescript-eslint/no-empty-function": "off",
-        "@typescript-eslint/method-signature-style": ["error", "method"]
+        "@typescript-eslint/method-signature-style": ["error", "method"],
+        "@typescript-eslint/no-inferrable-types": ["error", { "ignoreParameters": true }]
     }
 }
