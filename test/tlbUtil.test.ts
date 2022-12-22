@@ -1,53 +1,26 @@
-import { TlbEntry, tlbObjToNum, tlbNumToObj } from '../src/renderer/TaC/memory/tlb';
+import { TlbEntry } from '../src/renderer/TaC/memory/tlb';
 
-test('tlbObjToNum() Test', () => {
-  let entryObj: TlbEntry = {
-    page: 0x22,
-    frame: 0xcc,
-    validFlag: true,
-    undefinedFlag1: true,
-    undefinedFlag2: false,
-    referenceFlag: false,
-    dirtyFlag: true,
-    readFlag: false,
-    writeFlag: true,
-    executeFlag: false,
-  };
-  let entryNum = 0x0022cacc;
+test('TLB utility function test', () => {
+  const entry = new TlbEntry(0x00aaffbb);
 
-  expect(tlbObjToNum(entryObj)).toBe(entryNum);
+  expect(entry.getHigh8()).toBe(0xaa);
+  expect(entry.getLow16()).toBe(0xffbb);
 
-  entryObj = {
-    page: 0xaa,
-    frame: 0xdd,
-    validFlag: false,
-    undefinedFlag1: false,
-    undefinedFlag2: true,
-    referenceFlag: true,
-    dirtyFlag: false,
-    readFlag: true,
-    writeFlag: false,
-    executeFlag: true,
-  };
-  entryNum = 0x00aa35dd;
+  entry.setHigh8(0x22);
+  expect(entry.getHigh8()).toBe(0x22);
 
-  expect(tlbObjToNum(entryObj)).toBe(entryNum);
-});
+  entry.setLow16(0xff44);
+  expect(entry.getLow16()).toBe(0xff44);
 
-test('tlbNumToObj() Test', () => {
-  const entryNum = 0x00aa75ee;
-  const entryObj: TlbEntry = {
-    page: 0xaa,
-    frame: 0xee,
-    validFlag: false,
-    undefinedFlag1: true,
-    undefinedFlag2: true,
-    referenceFlag: true,
-    dirtyFlag: false,
-    readFlag: true,
-    writeFlag: false,
-    executeFlag: true,
-  };
+  entry.setHigh8(0xaa);
+  entry.setLow16(0xffbb);
+  expect(entry.getPage()).toBe(0xaa);
+  expect(entry.getFrame()).toBe(0xbb);
 
-  expect(tlbNumToObj(entryNum)).toStrictEqual(entryObj);
+  expect(entry.isValid()).toBe(true);
+  expect(entry.isRefered()).toBe(true);
+  expect(entry.isDirty()).toBe(true);
+  expect(entry.isReadable()).toBe(true);
+  expect(entry.isWritable()).toBe(true);
+  expect(entry.isExecutable()).toBe(true);
 });
