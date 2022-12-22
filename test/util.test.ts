@@ -1,4 +1,4 @@
-import { toHexString } from '../src/renderer/utils';
+import { toHexString } from '../src/renderer/util/lib';
 
 test('Convert number to hex string test', () => {
   expect(toHexString(0x0001)).toBe('0x0001');
