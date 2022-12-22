@@ -43,23 +43,20 @@ export class Mmu implements IDataBus, IIOMmu {
   }
 
   write8(addr: number, val: number): void {
-    if (this.iplMode) {
-      if (addr >= 0xe000) {
-        throw new ReadonlyError();
-      }
+    if (this.iplMode && addr >= 0xe000) {
+      // IPL実行中0xe000~0xffffはReadonlyとなる
+      throw new ReadonlyError();
     }
 
-    /* MMUが有効かつ特権モード以外ならp-f変換を行う */
+    // MMUが有効かつ特権モード以外ならp-f変換を行う
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry === -1) {
-        /* TLBミス */
-        this.tlbMissPage = page;
-        this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
+
+      if (entry === null) {
+        this.reportTlbMissError(page);
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isWritable()) {
-        /* メモリ保護違反(Writeフラグが0) */
         this.reportMemVioError(addr);
         return;
       }
@@ -72,17 +69,15 @@ export class Mmu implements IDataBus, IIOMmu {
   }
 
   read8(addr: number): number {
-    /* MMUが有効かつ特権モード以外ならp-f変換を行う */
+    // MMUが有効かつ特権モード以外ならp-f変換を行う
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry === -1) {
-        /* TLBミス */
-        this.tlbMissPage = page;
-        this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
+
+      if (entry === null) {
+        this.reportTlbMissError(page);
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isReadable()) {
-        /* メモリ保護違反(Readフラグが0) */
         this.reportMemVioError(addr);
         return 0;
       }
@@ -98,23 +93,21 @@ export class Mmu implements IDataBus, IIOMmu {
     if (addr % 2 === 1) {
       this.reportBadAddrError(addr);
       return;
-    } else if (this.iplMode) {
-      if (addr >= 0xe000) {
-        throw new ReadonlyError();
-      }
     }
 
-    /* MMUが有効かつ特権モード以外ならp-f変換を行う */
+    if (this.iplMode && addr >= 0xe000) {
+      throw new ReadonlyError();
+    }
+
+    // MMUが有効かつ特権モード以外ならp-f変換を行う
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry === -1) {
-        /* TLBミス */
-        this.tlbMissPage = page;
-        this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
+
+      if (entry === null) {
+        this.reportTlbMissError(page);
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isWritable()) {
-        /* メモリ保護違反(Writeフラグが0) */
         this.reportMemVioError(addr);
         return;
       }
@@ -129,22 +122,19 @@ export class Mmu implements IDataBus, IIOMmu {
 
   read16(addr: number): number {
     if (addr % 2 === 1) {
-      /* メモリ保護違反(奇数アドレス) */
       this.reportBadAddrError(addr);
       return 0;
     }
 
-    /* MMUが有効かつ特権モード以外ならp-f変換を行う */
+    // MMUが有効かつ特権モード以外ならp-f変換を行う
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry === -1) {
-        /* TLBミス */
-        this.tlbMissPage = page;
-        this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
+
+      if (entry === null) {
+        this.reportTlbMissError(page);
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isReadable()) {
-        /* メモリ保護違反(Readフラグが0) */
         this.reportMemVioError(addr);
         return 0;
       }
@@ -158,22 +148,19 @@ export class Mmu implements IDataBus, IIOMmu {
 
   fetch(pc: number): number {
     if (pc % 2 === 1) {
-      /* メモリ保護違反(奇数アドレス) */
       this.reportBadAddrError(pc);
       return 0;
     }
 
-    /* MMUが有効かつ特権モード以外ならp-f変換を行う */
+    // MMUが有効かつ特権モード以外ならp-f変換を行う
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (pc & 0xff00) >> 8;
       const entry = this.searchTlbNum(page);
-      if (entry === -1) {
-        /* TLBミス */
-        this.tlbMissPage = page;
-        this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
+
+      if (entry === null) {
+        this.reportTlbMissError(page);
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isExecutable()) {
-        /* メモリ保護違反(Executeフラグが0) */
         this.reportMemVioError(pc);
         return 0;
       }
@@ -185,13 +172,18 @@ export class Mmu implements IDataBus, IIOMmu {
     return (this.memory.read8(pc) << 8) | this.memory.read8(pc + 1);
   }
 
-  private searchTlbNum(page: number): number {
+  private searchTlbNum(page: number): number | null {
     for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
       if (this.tlbs[i].isValid() && this.tlbs[i].getPage() === page) {
         return i;
       }
     }
-    return -1;
+    return null;
+  }
+
+  private reportTlbMissError(page: number): void {
+    this.tlbMissPage = page;
+    this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
   }
 
   private reportBadAddrError(addr: number): void {

@@ -1,3 +1,6 @@
+/**
+ * TLBの1エントリを表現するクラス
+ */
 export class TlbEntry {
   private value: number;
 
