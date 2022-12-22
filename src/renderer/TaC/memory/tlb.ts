@@ -52,4 +52,8 @@ export class TlbEntry {
   isExecutable(): boolean {
     return (this.value & (1 << 8)) !== 0;
   }
+
+  reset(): void {
+    this.value = 0;
+  }
 }

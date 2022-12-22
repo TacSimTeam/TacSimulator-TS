@@ -2,6 +2,7 @@ import { IDataBus, IDmaSignal, IIntrSignal, IIOMmu, IPrivModeSignal } from '../i
 import { ipl } from '../ipl';
 import * as intr from '../interrupt/interruptNum';
 import { TlbMissError, ReadonlyError } from '../error';
+import { TlbEntry } from './tlb';
 
 const TLB_ENTRY_SIZE = 16;
 
@@ -13,7 +14,7 @@ export class Mmu implements IDataBus, IIOMmu {
   private readonly intrSignal: IIntrSignal;
   private readonly privSig: IPrivModeSignal;
 
-  private tlbs: number[]; // TLBエントリ
+  private readonly tlbs: TlbEntry[]; // TLBエントリ
 
   private iplMode: boolean; // IPLロード中ならtrue
   private mmuMode: boolean; // trueなら特権モード以外でp-f変換を行う
@@ -26,12 +27,19 @@ export class Mmu implements IDataBus, IIOMmu {
     this.intrSignal = intrController;
     this.privSig = privSig;
     this.tlbs = new Array(TLB_ENTRY_SIZE);
+    this.initTlbEntries();
 
     this.iplMode = false;
     this.mmuMode = false;
     this.errorAddr = 0;
     this.errorCause = 0;
     this.tlbMissPage = 0;
+  }
+
+  initTlbEntries(): void {
+    for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
+      this.tlbs[i] = new TlbEntry(0);
+    }
   }
 
   write8(addr: number, val: number): void {
@@ -50,7 +58,7 @@ export class Mmu implements IDataBus, IIOMmu {
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
-      } else if (!this.tlbs[entry].writeFlag) {
+      } else if (!this.tlbs[entry].isWritable()) {
         /* メモリ保護違反(Writeフラグが0) */
         this.errorAddr = addr;
         this.errorCause = ERROR_CAUSE_MEMORY_VIOLATION;
@@ -58,7 +66,7 @@ export class Mmu implements IDataBus, IIOMmu {
         return;
       }
 
-      const frame = this.tlbs[entry].frame;
+      const frame = this.tlbs[entry].getFrame();
       addr = (frame << 8) | (addr & 0x00ff);
     }
 
@@ -75,7 +83,7 @@ export class Mmu implements IDataBus, IIOMmu {
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
-      } else if (!this.tlbs[entry].readFlag) {
+      } else if (!this.tlbs[entry].isReadable()) {
         /* メモリ保護違反(Readフラグが0) */
         this.errorAddr = addr;
         this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
@@ -83,7 +91,7 @@ export class Mmu implements IDataBus, IIOMmu {
         return 0;
       }
 
-      const frame = this.tlbs[entry].frame;
+      const frame = this.tlbs[entry].getFrame();
       addr = (frame << 8) | (addr & 0x00ff);
     }
 
@@ -111,7 +119,7 @@ export class Mmu implements IDataBus, IIOMmu {
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
-      } else if (!this.tlbs[entry].writeFlag) {
+      } else if (!this.tlbs[entry].isWritable()) {
         /* メモリ保護違反(Writeフラグが0) */
         this.errorAddr = addr;
         this.errorCause = ERROR_CAUSE_MEMORY_VIOLATION;
@@ -119,7 +127,7 @@ export class Mmu implements IDataBus, IIOMmu {
         return;
       }
 
-      const frame = this.tlbs[entry].frame;
+      const frame = this.tlbs[entry].getFrame();
       addr = (frame << 8) | (addr & 0x00ff);
     }
 
@@ -145,7 +153,7 @@ export class Mmu implements IDataBus, IIOMmu {
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
-      } else if (!this.tlbs[entry].readFlag) {
+      } else if (!this.tlbs[entry].isReadable()) {
         /* メモリ保護違反(Readフラグが0) */
         this.errorAddr = addr;
         this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
@@ -153,7 +161,7 @@ export class Mmu implements IDataBus, IIOMmu {
         return 0;
       }
 
-      const frame = this.tlbs[entry].frame;
+      const frame = this.tlbs[entry].getFrame();
       addr = (frame << 8) | (addr & 0x00ff);
     }
 
@@ -178,7 +186,7 @@ export class Mmu implements IDataBus, IIOMmu {
         this.tlbMissPage = page;
         this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
         throw new TlbMissError();
-      } else if (!this.tlbs[entry].executeFlag) {
+      } else if (!this.tlbs[entry].isExecutable()) {
         /* メモリ保護違反(Executeフラグが0) */
         this.errorAddr = pc;
         this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
@@ -186,7 +194,7 @@ export class Mmu implements IDataBus, IIOMmu {
         return 0;
       }
 
-      const frame = this.tlbs[entry].frame;
+      const frame = this.tlbs[entry].getFrame();
       pc = (frame << 8) | (pc & 0x00ff);
     }
 
@@ -195,7 +203,7 @@ export class Mmu implements IDataBus, IIOMmu {
 
   private searchTlbNum(page: number): number {
     for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
-      if (this.tlbs[i].validFlag && this.tlbs[i].page === page) {
+      if (this.tlbs[i].isValid() && this.tlbs[i].getPage() === page) {
         return i;
       }
     }
@@ -221,21 +229,19 @@ export class Mmu implements IDataBus, IIOMmu {
   }
 
   setTlbHigh8(entryNum: number, val: number): void {
-    const low = this.tlbs[entryNum] & 0x0000ffff;
-    this.tlbs[entryNum] = val | low;
+    this.tlbs[entryNum].setHigh8(val);
   }
 
   setTlbLow16(entryNum: number, val: number): void {
-    const high = this.tlbs[entryNum] & 0x00ff0000;
-    this.tlbs[entryNum] = high | val;
+    this.tlbs[entryNum].setLow16(val);
   }
 
   getTlbHigh8(entryNum: number): number {
-    return (this.tlbs[entryNum] & 0x00ff0000) >> 16;
+    return this.tlbs[entryNum].getHigh8();
   }
 
   getTlbLow16(entryNum: number): number {
-    return this.tlbs[entryNum] & 0x0000ffff;
+    return this.tlbs[entryNum].getLow16();
   }
 
   getErrorAddr(): number {
@@ -260,7 +266,9 @@ export class Mmu implements IDataBus, IIOMmu {
 
   reset(): void {
     this.clearMemory();
-    this.tlbs.fill(0);
+    this.tlbs.forEach((entry) => {
+      entry.reset();
+    });
 
     this.iplMode = false;
     this.mmuMode = false;
