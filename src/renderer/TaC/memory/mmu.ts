@@ -60,9 +60,7 @@ export class Mmu implements IDataBus, IIOMmu {
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isWritable()) {
         /* メモリ保護違反(Writeフラグが0) */
-        this.errorAddr = addr;
-        this.errorCause = ERROR_CAUSE_MEMORY_VIOLATION;
-        this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+        this.reportMemVioError(addr);
         return;
       }
 
@@ -85,9 +83,7 @@ export class Mmu implements IDataBus, IIOMmu {
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isReadable()) {
         /* メモリ保護違反(Readフラグが0) */
-        this.errorAddr = addr;
-        this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
-        this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+        this.reportMemVioError(addr);
         return 0;
       }
 
@@ -100,9 +96,7 @@ export class Mmu implements IDataBus, IIOMmu {
 
   write16(addr: number, val: number): void {
     if (addr % 2 === 1) {
-      this.errorAddr = addr;
-      this.errorCause = ERROR_CAUSE_BAD_ADDRESS;
-      this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+      this.reportBadAddrError(addr);
       return;
     } else if (this.iplMode) {
       if (addr >= 0xe000) {
@@ -121,9 +115,7 @@ export class Mmu implements IDataBus, IIOMmu {
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isWritable()) {
         /* メモリ保護違反(Writeフラグが0) */
-        this.errorAddr = addr;
-        this.errorCause = ERROR_CAUSE_MEMORY_VIOLATION;
-        this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+        this.reportMemVioError(addr);
         return;
       }
 
@@ -138,9 +130,7 @@ export class Mmu implements IDataBus, IIOMmu {
   read16(addr: number): number {
     if (addr % 2 === 1) {
       /* メモリ保護違反(奇数アドレス) */
-      this.errorAddr = addr;
-      this.errorCause |= ERROR_CAUSE_BAD_ADDRESS;
-      this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+      this.reportBadAddrError(addr);
       return 0;
     }
 
@@ -155,9 +145,7 @@ export class Mmu implements IDataBus, IIOMmu {
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isReadable()) {
         /* メモリ保護違反(Readフラグが0) */
-        this.errorAddr = addr;
-        this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
-        this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+        this.reportMemVioError(addr);
         return 0;
       }
 
@@ -171,9 +159,7 @@ export class Mmu implements IDataBus, IIOMmu {
   fetch(pc: number): number {
     if (pc % 2 === 1) {
       /* メモリ保護違反(奇数アドレス) */
-      this.errorAddr = pc;
-      this.errorCause |= ERROR_CAUSE_BAD_ADDRESS;
-      this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+      this.reportBadAddrError(pc);
       return 0;
     }
 
@@ -188,9 +174,7 @@ export class Mmu implements IDataBus, IIOMmu {
         throw new TlbMissError();
       } else if (!this.tlbs[entry].isExecutable()) {
         /* メモリ保護違反(Executeフラグが0) */
-        this.errorAddr = pc;
-        this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
-        this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+        this.reportMemVioError(pc);
         return 0;
       }
 
@@ -208,6 +192,18 @@ export class Mmu implements IDataBus, IIOMmu {
       }
     }
     return -1;
+  }
+
+  private reportBadAddrError(addr: number): void {
+    this.errorAddr = addr;
+    this.errorCause |= ERROR_CAUSE_BAD_ADDRESS;
+    this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+  }
+
+  private reportMemVioError(addr: number): void {
+    this.errorAddr = addr;
+    this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
+    this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
   }
 
   loadIpl(): void {
@@ -249,8 +245,9 @@ export class Mmu implements IDataBus, IIOMmu {
   }
 
   getErrorCause(): number {
-    // IN命令でエラー原因を読むと0にクリアされる
     const cause = this.errorCause;
+
+    // IN命令でエラー原因を読むと0にクリアされる
     this.errorCause = 0;
 
     return cause;
