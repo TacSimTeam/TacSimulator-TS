@@ -1,8 +1,8 @@
 import { IDataBus, IDmaSignal, IIntrSignal, IIOMmu, IPrivModeSignal } from '../interface';
 import { ipl } from '../ipl';
-import * as intr from '../interrupt/interruptNum';
-import { TlbMissError, ReadonlyError } from '../error';
 import { TlbEntry } from './tlb';
+import { TlbMissError, ReadonlyError } from '../error';
+import * as intr from '../interrupt/interruptNum';
 
 const TLB_ENTRY_SIZE = 16;
 
@@ -172,6 +172,12 @@ export class Mmu implements IDataBus, IIOMmu {
     return (this.memory.read8(pc) << 8) | this.memory.read8(pc + 1);
   }
 
+  /**
+   * TLBエントリの逆引き
+   *
+   * @param page ページ番号
+   * @return 有効なTLBエントリが存在するならそのインデックス, 無いならnull
+   */
   private searchTlbNum(page: number): number | null {
     for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
       if (this.tlbs[i].isValid() && this.tlbs[i].getPage() === page) {
