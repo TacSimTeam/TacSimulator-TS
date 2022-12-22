@@ -54,7 +54,7 @@ export class Tac {
     this.mmu.loadIpl();
 
     this.initConsole(canvas);
-    this.initButtons();
+    this.initButtonEvent();
     this.initTerminal();
 
     this.reset();
@@ -79,7 +79,7 @@ export class Tac {
   /**
    * ボタンが押された時の動作の初期化
    */
-  private initButtons(): void {
+  private initButtonEvent(): void {
     this.console.setRunBtnFunc(() => {
       this.breakAddr = parseInt((document.getElementById('break-address') as HTMLInputElement).value, 16);
       this.console.setRunLED(true);
