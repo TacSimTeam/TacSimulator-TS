@@ -10,11 +10,11 @@ const ERROR_CAUSE_MEMORY_VIOLATION = 0x01;
 const ERROR_CAUSE_BAD_ADDRESS = 0x02;
 
 export class Mmu implements IDataBus, IIOMmu {
-  private readonly memory: IDmaSignal;
-  private readonly intrSignal: IIntrSignal;
-  private readonly privSig: IPrivModeSignal;
+  private memory: IDmaSignal;
+  private intrSignal: IIntrSignal;
+  private privSig: IPrivModeSignal;
 
-  private readonly tlbs: TlbEntry[]; // TLBエントリ
+  private tlbs: TlbEntry[]; // TLBエントリ
 
   private iplMode: boolean; // IPLロード中ならtrue
   private mmuMode: boolean; // trueなら特権モード以外でp-f変換を行う

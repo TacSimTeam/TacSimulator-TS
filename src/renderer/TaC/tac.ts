@@ -13,18 +13,18 @@ import { toHexString } from '../util/lib';
 import { querySelector } from '../util/dom.result';
 
 export class Tac {
-  private readonly memory: Memory;
-  private readonly mmu: Mmu;
-  private readonly intrController: IntrController;
-  private readonly cpu: Cpu;
-  private readonly psw: Psw;
-  private readonly register: Register;
-  private readonly ioHost: IOHostController;
-  private readonly timer0: Timer;
-  private readonly timer1: Timer;
-  private readonly serialIO: Ft232rl;
-  private readonly sdHost: SdHostController;
-  private readonly console: Console;
+  private memory: Memory;
+  private mmu: Mmu;
+  private intrController: IntrController;
+  private cpu: Cpu;
+  private psw: Psw;
+  private register: Register;
+  private ioHost: IOHostController;
+  private timer0: Timer;
+  private timer1: Timer;
+  private serialIO: Ft232rl;
+  private sdHost: SdHostController;
+  private console: Console;
 
   private cpuEventId: NodeJS.Timeout | null;
   private terminal: HTMLTextAreaElement;
