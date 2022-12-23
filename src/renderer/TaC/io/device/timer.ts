@@ -1,5 +1,5 @@
 import { IIOTimer, IIntrSignal } from '../../interface';
-import * as intr from '../../interrupt/interruptNum';
+import * as intr from '../../interrupt/interruptKind';
 
 export class Timer implements IIOTimer {
   /* カウンタ */

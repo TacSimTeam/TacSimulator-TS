@@ -2,7 +2,7 @@ import { IDataBus, IDmaSignal, IIntrSignal, IIOMmu, IPrivModeSignal } from '../i
 import { ipl } from '../ipl';
 import { TlbEntry } from './tlb';
 import { TlbMissError, ReadonlyError } from '../error';
-import * as intr from '../interrupt/interruptNum';
+import * as intr from '../interrupt/interruptKind';
 
 const TLB_ENTRY_SIZE = 16;
 

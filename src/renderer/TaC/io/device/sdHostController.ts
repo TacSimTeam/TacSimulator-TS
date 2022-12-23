@@ -1,5 +1,5 @@
 import { IDmaSignal, IIOSdHostController, IIntrSignal } from '../../interface';
-import * as intr from '../../interrupt/interruptNum';
+import * as intr from '../../interrupt/interruptKind';
 
 const SECTOR_SIZE = 512;
 

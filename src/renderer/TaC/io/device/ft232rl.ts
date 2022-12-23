@@ -1,6 +1,6 @@
 import { IKeyboardDriver } from '../../../interface/keyboardDriver';
 import { IIOSerial, IIntrSignal } from '../../interface';
-import * as intr from '../../interrupt/interruptNum';
+import * as intr from '../../interrupt/interruptKind';
 
 /**
  * TaCのUSBシリアル変換IC(FT232RL)を再現したもの

@@ -6,7 +6,7 @@ import * as opcode from './const/opcode';
 import * as addrmode from './const/addrmode';
 import * as regNum from './const/regNum';
 import * as flag from './const/flag';
-import * as intr from '../interrupt/interruptNum';
+import * as intr from '../interrupt/interruptKind';
 
 const INTERRUPT_VECTOR = 0xffe0;
 
