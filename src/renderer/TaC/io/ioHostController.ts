@@ -61,85 +61,82 @@ export class IOHostController implements IIOHostController {
           val |= 0x0040;
         }
         if (!window.electronAPI.isSDImgLoaded()) {
-          /**
-           * SDカードが挿入されていないことを通知する
-           * 挿入されていなければLSBを1にして返す
-           */
+          // SDカードが挿入されていなければLSBを1にして返す
           val |= 0x0001;
         }
         return val;
       case io.MICROSD_MEMADDR:
         return this.sd.getMemAddr();
-      case io.MICROSD_SECTOR_HIGH:
+      case io.MICROSD_SECTORHIGH:
         return this.sd.getSecAddrH();
-      case io.MICROSD_SECTOR_LOW:
+      case io.MICROSD_SECTORLOW:
         return this.sd.getSecAddrL();
       case io.PIO_MODE_00:
-        /* 本当はジャンパから取得するが強制的にTaCモードで実行する */
+        // 本当はジャンパから取得するが強制的にTaCモードで実行する
         return 0x01;
-      case io.MMU_TLB0_HIGH:
+      case io.MMU_TLB0HIGH:
         return this.mmu.getTlbHigh8(0);
-      case io.MMU_TLB0_LOW:
+      case io.MMU_TLB0LOW:
         return this.mmu.getTlbLow16(0);
-      case io.MMU_TLB1_HIGH:
+      case io.MMU_TLB1HIGH:
         return this.mmu.getTlbHigh8(1);
-      case io.MMU_TLB1_LOW:
+      case io.MMU_TLB1LOW:
         return this.mmu.getTlbLow16(1);
-      case io.MMU_TLB2_HIGH:
+      case io.MMU_TLB2HIGH:
         return this.mmu.getTlbHigh8(2);
-      case io.MMU_TLB2_LOW:
+      case io.MMU_TLB2LOW:
         return this.mmu.getTlbLow16(2);
-      case io.MMU_TLB3_HIGH:
+      case io.MMU_TLB3HIGH:
         return this.mmu.getTlbHigh8(3);
-      case io.MMU_TLB3_LOW:
+      case io.MMU_TLB3LOW:
         return this.mmu.getTlbLow16(3);
-      case io.MMU_TLB4_HIGH:
+      case io.MMU_TLB4HIGH:
         return this.mmu.getTlbHigh8(4);
-      case io.MMU_TLB4_LOW:
+      case io.MMU_TLB4LOW:
         return this.mmu.getTlbLow16(4);
-      case io.MMU_TLB5_HIGH:
+      case io.MMU_TLB5HIGH:
         return this.mmu.getTlbHigh8(5);
-      case io.MMU_TLB5_LOW:
+      case io.MMU_TLB5LOW:
         return this.mmu.getTlbLow16(5);
-      case io.MMU_TLB6_HIGH:
+      case io.MMU_TLB6HIGH:
         return this.mmu.getTlbHigh8(6);
-      case io.MMU_TLB6_LOW:
+      case io.MMU_TLB6LOW:
         return this.mmu.getTlbLow16(6);
-      case io.MMU_TLB7_HIGH:
+      case io.MMU_TLB7HIGH:
         return this.mmu.getTlbHigh8(7);
-      case io.MMU_TLB7_LOW:
+      case io.MMU_TLB7LOW:
         return this.mmu.getTlbLow16(7);
-      case io.MMU_TLB8_HIGH:
+      case io.MMU_TLB8HIGH:
         return this.mmu.getTlbHigh8(8);
-      case io.MMU_TLB8_LOW:
+      case io.MMU_TLB8LOW:
         return this.mmu.getTlbLow16(8);
-      case io.MMU_TLB9_HIGH:
+      case io.MMU_TLB9HIGH:
         return this.mmu.getTlbHigh8(9);
-      case io.MMU_TLB9_LOW:
+      case io.MMU_TLB9LOW:
         return this.mmu.getTlbLow16(9);
-      case io.MMU_TLB10_HIGH:
+      case io.MMU_TLB10HIGH:
         return this.mmu.getTlbHigh8(10);
-      case io.MMU_TLB10_LOW:
+      case io.MMU_TLB10LOW:
         return this.mmu.getTlbLow16(10);
-      case io.MMU_TLB11_HIGH:
+      case io.MMU_TLB11HIGH:
         return this.mmu.getTlbHigh8(11);
-      case io.MMU_TLB11_LOW:
+      case io.MMU_TLB11LOW:
         return this.mmu.getTlbLow16(11);
-      case io.MMU_TLB12_HIGH:
+      case io.MMU_TLB12HIGH:
         return this.mmu.getTlbHigh8(12);
-      case io.MMU_TLB12_LOW:
+      case io.MMU_TLB12LOW:
         return this.mmu.getTlbLow16(12);
-      case io.MMU_TLB13_HIGH:
+      case io.MMU_TLB13HIGH:
         return this.mmu.getTlbHigh8(13);
-      case io.MMU_TLB13_LOW:
+      case io.MMU_TLB13LOW:
         return this.mmu.getTlbLow16(13);
-      case io.MMU_TLB14_HIGH:
+      case io.MMU_TLB14HIGH:
         return this.mmu.getTlbHigh8(14);
-      case io.MMU_TLB14_LOW:
+      case io.MMU_TLB14LOW:
         return this.mmu.getTlbLow16(14);
-      case io.MMU_TLB15_HIGH:
+      case io.MMU_TLB15HIGH:
         return this.mmu.getTlbHigh8(15);
-      case io.MMU_TLB15_LOW:
+      case io.MMU_TLB15LOW:
         return this.mmu.getTlbLow16(15);
       case io.MMU_ERRORADDR_MMUON:
         return this.mmu.getErrorAddr();
@@ -156,20 +153,19 @@ export class IOHostController implements IIOHostController {
       case io.CONSOLE_FUNCREG_00:
         return this.console.getFuncSwitchValue();
       default:
-        /* 対応していないアドレスの場合は0を返す */
+        // 対応していないアドレスの場合は0を返す
         return 0;
     }
   }
 
   output(addr: number, val: number): void {
-    // console.log(`IO[0x${addr.toString(16)}] <- 0x${val.toString(16)}`);
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
         this.timer0.setCycle(val);
         break;
       case io.TIMER0_FLAG_CTRL:
-        this.timer0.setIntrFlag(!!(val & 0x8000));
-        if ((val & 0x0001) != 0) {
+        this.timer0.setIntrFlag((val & 0x8000) !== 0);
+        if ((val & 0x0001) !== 0) {
           this.timer0.start();
         } else {
           this.timer0.stop();
@@ -179,8 +175,8 @@ export class IOHostController implements IIOHostController {
         this.timer1.setCycle(val);
         break;
       case io.TIMER1_FLAG_CTRL:
-        this.timer1.setIntrFlag(!!(val & 0x8000));
-        if ((val & 0x0001) != 0) {
+        this.timer1.setIntrFlag((val & 0x8000) !== 0);
+        if ((val & 0x0001) !== 0) {
           this.timer1.start();
         } else {
           this.timer1.stop();
@@ -190,133 +186,133 @@ export class IOHostController implements IIOHostController {
         this.ft232rl.send(val);
         break;
       case io.FT232RL_STAT_CTRL:
-        this.ft232rl.setSendableIntrFlag(!!(val & 0x0080));
-        this.ft232rl.setReceivableIntrFlag(!!(val & 0x0040));
+        this.ft232rl.setSendableIntrFlag((val & 0x0080) !== 0);
+        this.ft232rl.setReceivableIntrFlag((val & 0x0040) !== 0);
         break;
       case io.MICROSD_STAT_CTRL:
-        this.sd.setIntrFlag(!!(val & 0x80));
-        if ((val & 0x04) != 0) {
+        this.sd.setIntrFlag((val & 0x80) !== 0);
+        if ((val & 0x04) !== 0) {
           this.sd.init();
         }
-        if ((val & 0x02) != 0) {
+        if ((val & 0x02) !== 0) {
           this.sd.startReading();
         }
-        if ((val & 0x01) != 0) {
+        if ((val & 0x01) !== 0) {
           this.sd.startWriting();
         }
         break;
       case io.MICROSD_MEMADDR:
         this.sd.setMemAddr(val);
         break;
-      case io.MICROSD_SECTOR_HIGH:
+      case io.MICROSD_SECTORHIGH:
         this.sd.setSecAddrH(val);
         break;
-      case io.MICROSD_SECTOR_LOW:
+      case io.MICROSD_SECTORLOW:
         this.sd.setSecAddrL(val);
         break;
-      case io.MMU_TLB0_HIGH:
+      case io.MMU_TLB0HIGH:
         this.mmu.setTlbHigh8(0, val);
         break;
-      case io.MMU_TLB0_LOW:
+      case io.MMU_TLB0LOW:
         this.mmu.setTlbLow16(0, val);
         break;
-      case io.MMU_TLB1_HIGH:
+      case io.MMU_TLB1HIGH:
         this.mmu.setTlbHigh8(1, val);
         break;
-      case io.MMU_TLB1_LOW:
+      case io.MMU_TLB1LOW:
         this.mmu.setTlbLow16(1, val);
         break;
-      case io.MMU_TLB2_HIGH:
+      case io.MMU_TLB2HIGH:
         this.mmu.setTlbHigh8(2, val);
         break;
-      case io.MMU_TLB2_LOW:
+      case io.MMU_TLB2LOW:
         this.mmu.setTlbLow16(2, val);
         break;
-      case io.MMU_TLB3_HIGH:
+      case io.MMU_TLB3HIGH:
         this.mmu.setTlbHigh8(3, val);
         break;
-      case io.MMU_TLB3_LOW:
+      case io.MMU_TLB3LOW:
         this.mmu.setTlbLow16(3, val);
         break;
-      case io.MMU_TLB4_HIGH:
+      case io.MMU_TLB4HIGH:
         this.mmu.setTlbHigh8(4, val);
         break;
-      case io.MMU_TLB4_LOW:
+      case io.MMU_TLB4LOW:
         this.mmu.setTlbLow16(4, val);
         break;
-      case io.MMU_TLB5_HIGH:
+      case io.MMU_TLB5HIGH:
         this.mmu.setTlbHigh8(5, val);
         break;
-      case io.MMU_TLB5_LOW:
+      case io.MMU_TLB5LOW:
         this.mmu.setTlbLow16(5, val);
         break;
-      case io.MMU_TLB6_HIGH:
+      case io.MMU_TLB6HIGH:
         this.mmu.setTlbHigh8(6, val);
         break;
-      case io.MMU_TLB6_LOW:
+      case io.MMU_TLB6LOW:
         this.mmu.setTlbLow16(6, val);
         break;
-      case io.MMU_TLB7_HIGH:
+      case io.MMU_TLB7HIGH:
         this.mmu.setTlbHigh8(7, val);
         break;
-      case io.MMU_TLB7_LOW:
+      case io.MMU_TLB7LOW:
         this.mmu.setTlbLow16(7, val);
         break;
-      case io.MMU_TLB8_HIGH:
+      case io.MMU_TLB8HIGH:
         this.mmu.setTlbHigh8(8, val);
         break;
-      case io.MMU_TLB8_LOW:
+      case io.MMU_TLB8LOW:
         this.mmu.setTlbLow16(8, val);
         break;
-      case io.MMU_TLB9_HIGH:
+      case io.MMU_TLB9HIGH:
         this.mmu.setTlbHigh8(9, val);
         break;
-      case io.MMU_TLB9_LOW:
+      case io.MMU_TLB9LOW:
         this.mmu.setTlbLow16(9, val);
         break;
-      case io.MMU_TLB10_HIGH:
+      case io.MMU_TLB10HIGH:
         this.mmu.setTlbHigh8(10, val);
         break;
-      case io.MMU_TLB10_LOW:
+      case io.MMU_TLB10LOW:
         this.mmu.setTlbLow16(10, val);
         break;
-      case io.MMU_TLB11_HIGH:
+      case io.MMU_TLB11HIGH:
         this.mmu.setTlbHigh8(11, val);
         break;
-      case io.MMU_TLB11_LOW:
+      case io.MMU_TLB11LOW:
         this.mmu.setTlbLow16(11, val);
         break;
-      case io.MMU_TLB12_HIGH:
+      case io.MMU_TLB12HIGH:
         this.mmu.setTlbHigh8(12, val);
         break;
-      case io.MMU_TLB12_LOW:
+      case io.MMU_TLB12LOW:
         this.mmu.setTlbLow16(12, val);
         break;
-      case io.MMU_TLB13_HIGH:
+      case io.MMU_TLB13HIGH:
         this.mmu.setTlbHigh8(13, val);
         break;
-      case io.MMU_TLB13_LOW:
+      case io.MMU_TLB13LOW:
         this.mmu.setTlbLow16(13, val);
         break;
-      case io.MMU_TLB14_HIGH:
+      case io.MMU_TLB14HIGH:
         this.mmu.setTlbHigh8(14, val);
         break;
-      case io.MMU_TLB14_LOW:
+      case io.MMU_TLB14LOW:
         this.mmu.setTlbLow16(14, val);
         break;
-      case io.MMU_TLB15_HIGH:
+      case io.MMU_TLB15HIGH:
         this.mmu.setTlbHigh8(15, val);
         break;
-      case io.MMU_TLB15_LOW:
+      case io.MMU_TLB15LOW:
         this.mmu.setTlbLow16(15, val);
         break;
       case io.MMU_00_IPLBANK:
-        if ((val & 0x0001) != 0) {
+        if ((val & 0x0001) !== 0) {
           this.mmu.detachIpl();
         }
         break;
       case io.MMU_ERRORADDR_MMUON:
-        if ((val & 0x0001) != 0) {
+        if ((val & 0x0001) !== 0) {
           this.mmu.enable();
         }
         break;
