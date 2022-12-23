@@ -9,7 +9,7 @@ export interface IDmaSignal {
    * 8bitのデータをメモリに書き込む
    *
    * @param addr 書き込み先のアドレス
-   * @param val  書き込みたいデータ(8bit)
+   * @param val  書き込みたい8bitデータ
    */
   write8(addr: number, val: number): void;
 
@@ -17,6 +17,7 @@ export interface IDmaSignal {
    * 8bitのデータをメモリから読み込む
    *
    * @param addr 読み込むデータのアドレス
+   * @return 8bitデータ
    */
   read8(addr: number): number;
 }

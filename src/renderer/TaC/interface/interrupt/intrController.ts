@@ -13,8 +13,7 @@ export interface IIntrController extends IIntrSignal {
 
   /**
    * 例外が発生しているか確認する
-   *
-   * 例外は割り込み許可フラグが0でも
+   * 例外は割込み許可フラグが0でもCPU内で処理される
    *
    * @return 例外が発生していればtrue, そうでなければfalse
    */

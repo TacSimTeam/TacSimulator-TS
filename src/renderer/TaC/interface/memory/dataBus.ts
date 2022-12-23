@@ -12,7 +12,7 @@ export interface IDataBus {
    * - TLBミスが発生したとき
    *
    * @param addr 書き込み先のアドレス
-   * @param val  書き込みたいデータ(16bit)
+   * @param val  書き込みたい16bitデータ
    */
   write16(addr: number, val: number): void;
 
@@ -23,6 +23,7 @@ export interface IDataBus {
    * - TLBミスが発生したとき
    *
    * @param addr 読み込むデータのアドレス
+   * @return 16bitデータ
    */
   read16(addr: number): number;
 
@@ -36,6 +37,7 @@ export interface IDataBus {
    * - TLBミスが発生したとき
    *
    * @param addr 読み込むデータのアドレス
+   * @return 16bitデータ
    */
   fetch(pc: number): number;
 
@@ -46,7 +48,7 @@ export interface IDataBus {
    * 基本的にはwrite16()を使ってください
    *
    * @param addr 書き込み先のアドレス
-   * @param val  書き込みたいデータ(8bit)
+   * @param val  書き込みたい8bitデータ
    */
   write8(addr: number, val: number): void;
 
@@ -56,7 +58,8 @@ export interface IDataBus {
    * バイト・レジスタインダイレクトモードでしか使わないので
    * 基本的にはread16()を使ってください
    *
-   * @param addr 書き込み先のアドレス
+   * @param addr 読み込むデータのアドレス
+   * @return 8bitデータ
    */
   read8(addr: number): number;
 }

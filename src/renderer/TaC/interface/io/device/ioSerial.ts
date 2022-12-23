@@ -3,38 +3,44 @@
  */
 export interface IIOSerial {
   /**
-   * 1バイトのデータを送信する
+   * 1byteデータを送信する
    *
-   * @param val 送信したいデータ(1バイト)
+   * @param val 送信したい1byteデータ
    */
   send(val: number): void;
 
   /**
-   * 1バイトのデータを受信する
+   * 1byteデータを受信する
+   *
+   * @return 1byteデータ
    */
   receive(): number;
 
   /**
-   * 送信データが書き込み可能であるかどうか
+   * 送信可能か確認する
+   *
+   * @return 送信データが書込み可能ならtrue
    */
   isWriteable(): boolean;
 
   /**
-   * 受信データが読み込み可能であるかどうか
+   * 受信可能か確認する
+   *
+   * @return 受信データが読込み可能ならtrue
    */
   isReadable(): boolean;
 
   /**
    * 次のデータが送信可能になるときに割込み可能とするフラグを設定する
    *
-   * @param flag フラグの値
+   * @param flag 送信可能時の割込み可能フラグ
    */
   setSendableIntrFlag(flag: boolean): void;
 
   /**
    * 次のデータが受信可能になるときに割込み可能とするフラグを設定する
    *
-   * @param flag フラグの値
+   * @param flag 受信可能時の割込み可能フラグ
    */
   setReceivableIntrFlag(flag: boolean): void;
 }

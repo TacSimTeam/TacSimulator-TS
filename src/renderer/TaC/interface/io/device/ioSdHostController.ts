@@ -3,19 +3,23 @@
  */
 export interface IIOSdHostController {
   /**
-   * アイドル状態かどうか
+   * アイドル状態かどうか確認する
+   *
+   * @return アイドル状態ならtrue
    */
   isIdle(): boolean;
 
   /**
-   * エラーが発生したかどうか
+   * エラーが発生したかどうか確認する
+   *
+   * @return エラーが発生しているならtrue
    */
   isErrorOccurred(): boolean;
 
   /**
-   * 処理終了時の割り込みを許可するかどうかのフラグを設定する
+   * 処理終了時の割込みを許可するかどうかのフラグを設定する
    *
-   * @param flag フラグの値
+   * @param flag 割込み許可フラグ
    */
   setIntrFlag(flag: boolean): void;
 
@@ -36,37 +40,39 @@ export interface IIOSdHostController {
 
   /**
    * MicroSDとのデータのやり取りに使用するバッファのアドレスを取得する
+   *
+   * @return バッファ領域の先頭アドレス
    */
   getMemAddr(): number;
 
   /**
    * MicroSDとのデータのやり取りに使用するバッファのアドレスを取得する
    *
-   * @param addr バッファのアドレス
+   * @param addr バッファ領域の先頭アドレス
    */
   setMemAddr(addr: number): void;
 
   /**
-   * データを読み書きするセクタのLBA方式の32ビットのアドレスの上位16ビットを設定する
+   * データを読み書きするセクタのLBA方式の32bitのアドレスの上位16bitを設定する
    *
-   * @param addrH セクタアドレス上位16ビット
+   * @param addrH セクタアドレス上位16bit
    */
   setSecAddrH(addrH: number): void;
 
   /**
-   * データを読み書きするセクタのLBA方式の32ビットのアドレスの下位16ビットを設定する
+   * データを読み書きするセクタのLBA方式の32bitのアドレスの下位16bitを設定する
    *
-   * @param addrL セクタアドレス下位16ビット
+   * @param addrL セクタアドレス下位16bit
    */
   setSecAddrL(addrL: number): void;
 
   /**
-   * データを読み書きするセクタのLBA方式の32ビットのアドレスの上位16ビットを取得する
+   * データを読み書きするセクタのLBA方式の32bitのアドレスの上位16bitを取得する
    */
   getSecAddrH(): number;
 
   /**
-   * データを読み書きするセクタのLBA方式の32ビットのアドレスの下位16ビットを取得する
+   * データを読み書きするセクタのLBA方式の32bitのアドレスの下位16bitを取得する
    */
   getSecAddrL(): number;
 }

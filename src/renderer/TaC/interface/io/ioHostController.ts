@@ -6,6 +6,7 @@ export interface IIOHostController {
    * I/O空間からデータを読み込む
    *
    * @param addr 読み込むデータのアドレス
+   * @return I/O空間から読み込んだ16bitデータ
    */
   input(addr: number): number;
 
