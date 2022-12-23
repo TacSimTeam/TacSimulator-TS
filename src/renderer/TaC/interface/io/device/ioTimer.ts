@@ -17,7 +17,7 @@ export interface IIOTimer {
    *
    * @return カウンタの値と周期の値が一致したならtrue
    */
-  getMatchFlag(): boolean;
+  isMatched(): boolean;
 
   /**
    * タイマーの周期を設定する

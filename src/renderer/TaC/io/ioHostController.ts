@@ -32,14 +32,14 @@ export class IOHostController implements IIOHostController {
       case io.TIMER0_COUNTER_CYCLE:
         return this.timer0.getCounter();
       case io.TIMER0_FLAG_CTRL:
-        if (this.timer0.getMatchFlag()) {
+        if (this.timer0.isMatched()) {
           val |= 0x8000;
         }
         return val;
       case io.TIMER1_COUNTER_CYCLE:
         return this.timer1.getCounter();
       case io.TIMER1_FLAG_CTRL:
-        if (this.timer1.getMatchFlag()) {
+        if (this.timer1.isMatched()) {
           val |= 0x8000;
         }
         return val;
