@@ -43,14 +43,14 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
       }
     }
 
-    // bufのデータを送信したのでemptyをtrueにする
-    this.emptyFlag = true;
     if (this.sendableIntrFlag) {
       this.intrSignal.interrupt(FT232RL_SENT);
     }
   }
 
   receive(): number {
+    // bufのデータを受信し終えたのでbufを空として扱っていい
+    this.emptyFlag = true;
     return this.buf;
   }
 
