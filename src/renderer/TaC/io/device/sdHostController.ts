@@ -4,37 +4,23 @@ import * as intr from '../../interrupt/interruptKind';
 const SECTOR_SIZE = 512;
 
 export class SdHostController implements IIOSdHostController {
-  /* アイドル状態かどうか(falseなら処理中) */
-  private idleFlag: boolean;
+  private idleFlag: boolean; // アイドル状態かどうか(falseなら処理中)
+  private errorFlag: boolean; // エラーが発生しているかどうか
+  private intrFlag: boolean; // trueであれば処理終了後に割り込みを発生させる
+  private memAddr: number; // 読み書きするデータを格納するバッファのアドレス
+  private secAddrH: number; // セクタのアドレス(LBA方式)の上位16ビット
+  private secAddrL: number; // セクタのアドレス(LBA方式)の下位16ビット
 
-  /* エラーが発生しているかどうか */
-  private errorFlag: boolean;
-
-  /* セクタから読み込んだ、または書き込むデータを格納するバッファのアドレス */
-  private memAddr: number;
-
-  /* セクタのアドレス(LBA方式)の上位16ビット */
-  private secAddrH: number;
-
-  /* セクタのアドレス(LBA方式)の下位16ビット */
-  private secAddrL: number;
-
-  /* DMA方式で接続されているメモリ */
-  private memory: IDmaSignal;
-
-  /* trueであれば処理終了後に割り込みを発生させる */
-  private intrFlag: boolean;
-
-  /* 割込み信号 */
-  private intrSignal: IIntrSignal;
+  private memory: IDmaSignal; // DMA方式で接続されているメモリ
+  private intrSignal: IIntrSignal; // 割込み信号
 
   constructor(memory: IDmaSignal, intrSignal: IIntrSignal) {
     this.idleFlag = true;
     this.errorFlag = false;
     this.intrFlag = false;
+    this.memAddr = 0;
     this.secAddrH = 0;
     this.secAddrL = 0;
-    this.memAddr = 0;
     this.memory = memory;
     this.intrSignal = intrSignal;
   }
@@ -55,6 +41,7 @@ export class SdHostController implements IIOSdHostController {
     this.idleFlag = true;
     this.errorFlag = false;
     this.intrFlag = false;
+    this.memAddr = 0;
     this.secAddrH = 0;
     this.secAddrL = 0;
   }
@@ -65,33 +52,22 @@ export class SdHostController implements IIOSdHostController {
     }
     this.idleFlag = false;
 
-    console.log('Start reading microSD');
-
     window.electronAPI
       .readSct(this.secAddr())
       .then((data) => {
-        /* 読み込んだ値をメモリにコピーする */
+        // 読み込んだ値をメモリにコピーする
         for (let i = 0; i < SECTOR_SIZE; i++) {
           this.memory.write8(this.memAddr + i, data[i]);
         }
 
-        // console.log(
-        //   'Memory address : 0x' + this.memAddr.toString(16) + ' ~ 0x' + (this.memAddr + SECTOR_SIZE - 1).toString(16)
-        // );
-        // console.log('Sector address : 0x' + this.secAddr().toString(16) + '(' + this.secAddr() + ')');
-        // console.log(data);
-      })
-      .then(() => {
         this.idleFlag = true;
         if (this.intrFlag) {
           this.intrSignal.interrupt(intr.MICRO_SD);
         }
       })
       .catch(() => {
-        /**
-         * もし読み込みでエラーが発生したらフラグを立てる
-         * エラーが発生しているときアイドル状態はfalseになる(TeC7/tac_spi.vhd参考)
-         */
+        // もし読み込みでエラーが発生したらerrorFlagをtrueにする
+        // エラーが発生しているときidleFlagはfalseになる(TeC7/tac_spi.vhd参考)
         this.errorFlag = true;
         this.idleFlag = false;
       });
@@ -103,27 +79,24 @@ export class SdHostController implements IIOSdHostController {
     }
     this.idleFlag = false;
 
-    new Promise<void>(() => {
-      const data = new Uint8Array(SECTOR_SIZE);
+    // 書き込む値をメモリからコピーしてくる
+    const data = new Uint8Array(SECTOR_SIZE);
+    for (let i = 0; i < SECTOR_SIZE; i++) {
+      data[i] = this.memory.read8(this.memAddr + i);
+    }
 
-      /* 書き込む値をメモリからコピーしてくる */
-      for (let i = 0; i < SECTOR_SIZE; i++) {
-        data[i] = this.memory.read8(this.memAddr + i);
-      }
-
-      window.electronAPI
-        .writeSct(this.secAddr(), data)
-        .then(() => {
-          this.idleFlag = true;
-          if (this.intrFlag) {
-            this.intrSignal.interrupt(intr.MICRO_SD);
-          }
-        })
-        .catch(() => {
-          this.errorFlag = true;
-          this.idleFlag = false;
-        });
-    });
+    window.electronAPI
+      .writeSct(this.secAddr(), data)
+      .then(() => {
+        this.idleFlag = true;
+        if (this.intrFlag) {
+          this.intrSignal.interrupt(intr.MICRO_SD);
+        }
+      })
+      .catch(() => {
+        this.errorFlag = true;
+        this.idleFlag = false;
+      });
   }
 
   getMemAddr(): number {
@@ -150,16 +123,16 @@ export class SdHostController implements IIOSdHostController {
     return this.secAddrL;
   }
 
-  private secAddr() {
-    return (this.secAddrH << 16) + this.secAddrL;
+  /**
+   * セクタアドレスの上位ビットと下位ビットを結合する
+   *
+   * @return secAddrH << 16 | secAddrH
+   */
+  private secAddr(): number {
+    return (this.secAddrH << 16) | this.secAddrL;
   }
 
-  reset() {
-    this.idleFlag = false;
-    this.errorFlag = false;
-    this.intrFlag = false;
-    this.secAddrH = 0;
-    this.secAddrL = 0;
-    this.memAddr = 0;
+  reset(): void {
+    this.init();
   }
 }
