@@ -7,6 +7,7 @@ const LED_COLOR_GREEN_DARK = '#004000';
 const LED_COLOR_YELLOW_LIGHT = '#FFFF00';
 const LED_COLOR_YELLOW_DARK = '#DAA520';
 
+// LEDは赤, 緑, 黄の3色から選択可能
 export type LedType = 'red' | 'green' | 'yellow';
 
 export class Led implements IConsoleComponent {
@@ -46,15 +47,13 @@ export class Led implements IConsoleComponent {
     this.ctx.fill();
   }
 
-  getState() {
+  getState(): boolean {
     return this.state;
   }
 
-  setState(state: boolean) {
+  setState(state: boolean): void {
     this.state = state;
   }
 
-  onClick(clickPosX: number, clickPosY: number): void {
-    return;
-  }
+  onClick(clickPosX: number, clickPosY: number): void {}
 }

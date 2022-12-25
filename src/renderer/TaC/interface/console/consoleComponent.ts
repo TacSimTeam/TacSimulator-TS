@@ -8,7 +8,7 @@ export interface IConsoleComponent {
   draw(): void;
 
   /**
-   * クリックされた時の動作を指定する
+   * クリックされた時の動作を実行する
    *
    * @param clickPosX クリックしたx座標
    * @param clickPosY クリックしたy座標

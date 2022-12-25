@@ -26,13 +26,13 @@ export class Console implements IIOConsole {
   private memData: number;
   private rotSwCur: number;
 
-  private addrLeds: Array<Led>;
-  private dataLeds: Array<Led>;
-  private flagLeds: Array<Led>;
-  private registerLeds: Array<Led>;
+  private addrLeds: Led[];
+  private dataLeds: Led[];
+  private flagLeds: Led[];
+  private registerLeds: Led[];
   private runLed: Led;
 
-  private dataSws: Array<Switch>;
+  private dataSws: Switch[];
   private stepSw: Switch;
   private breakSw: Switch;
 
@@ -69,7 +69,7 @@ export class Console implements IIOConsole {
     this.memData = 0;
     this.rotSwCur = 0;
 
-    /* コンソール部品の初期化 */
+    // コンソール部品の初期化
     this.addrLeds = new Array(8);
     this.dataLeds = new Array(8);
     for (let i = 0; i <= 3; i++) {
@@ -122,7 +122,7 @@ export class Console implements IIOConsole {
     this.drawAll();
   }
 
-  private initComponents() {
+  private initComponents(): void {
     /* 全ての部品をcomponents[]に追加する */
     this.addrLeds.forEach((element) => {
       this.components.push(element);
@@ -160,7 +160,7 @@ export class Console implements IIOConsole {
     this.components.push(this.writeBtn);
   }
 
-  private initButtons() {
+  private initButtons(): void {
     this.leftArrowBtn.setEvent(() => {
       if (this.rotSwCur !== 0) {
         this.rotSwCur--;
@@ -220,7 +220,7 @@ export class Console implements IIOConsole {
     });
   }
 
-  private updateRotSw() {
+  private updateRotSw(): void {
     for (let i = 0; i < 6; i++) {
       if (i === this.rotSwCur % 6) {
         this.registerLeds[i].setState(true);
@@ -238,28 +238,28 @@ export class Console implements IIOConsole {
     }
   }
 
-  updateLED() {
+  updateLED(): void {
     const val = this.readReg();
-    this.addrLeds[7].setState(!!(val & (1 << 15)));
-    this.addrLeds[6].setState(!!(val & (1 << 14)));
-    this.addrLeds[5].setState(!!(val & (1 << 13)));
-    this.addrLeds[4].setState(!!(val & (1 << 12)));
-    this.addrLeds[3].setState(!!(val & (1 << 11)));
-    this.addrLeds[2].setState(!!(val & (1 << 10)));
-    this.addrLeds[1].setState(!!(val & (1 << 9)));
-    this.addrLeds[0].setState(!!(val & (1 << 8)));
-    this.dataLeds[7].setState(!!(val & (1 << 7)));
-    this.dataLeds[6].setState(!!(val & (1 << 6)));
-    this.dataLeds[5].setState(!!(val & (1 << 5)));
-    this.dataLeds[4].setState(!!(val & (1 << 4)));
-    this.dataLeds[3].setState(!!(val & (1 << 3)));
-    this.dataLeds[2].setState(!!(val & (1 << 2)));
-    this.dataLeds[1].setState(!!(val & (1 << 1)));
-    this.dataLeds[0].setState(!!(val & (1 << 0)));
+    this.addrLeds[7].setState((val & (1 << 15)) !== 0);
+    this.addrLeds[6].setState((val & (1 << 14)) !== 0);
+    this.addrLeds[5].setState((val & (1 << 13)) !== 0);
+    this.addrLeds[4].setState((val & (1 << 12)) !== 0);
+    this.addrLeds[3].setState((val & (1 << 11)) !== 0);
+    this.addrLeds[2].setState((val & (1 << 10)) !== 0);
+    this.addrLeds[1].setState((val & (1 << 9)) !== 0);
+    this.addrLeds[0].setState((val & (1 << 8)) !== 0);
+    this.dataLeds[7].setState((val & (1 << 7)) !== 0);
+    this.dataLeds[6].setState((val & (1 << 6)) !== 0);
+    this.dataLeds[5].setState((val & (1 << 5)) !== 0);
+    this.dataLeds[4].setState((val & (1 << 4)) !== 0);
+    this.dataLeds[3].setState((val & (1 << 3)) !== 0);
+    this.dataLeds[2].setState((val & (1 << 2)) !== 0);
+    this.dataLeds[1].setState((val & (1 << 1)) !== 0);
+    this.dataLeds[0].setState((val & (1 << 0)) !== 0);
     this.drawAll();
   }
 
-  readReg() {
+  readReg(): number {
     switch (this.rotSwCur) {
       case 14:
         return this.psw.getPC();
@@ -274,7 +274,7 @@ export class Console implements IIOConsole {
     }
   }
 
-  writeReg(val: number) {
+  writeReg(val: number): void {
     const regVal = this.readReg();
     switch (this.rotSwCur) {
       case 14:
@@ -293,7 +293,7 @@ export class Console implements IIOConsole {
     }
   }
 
-  readSwValue() {
+  readSwValue(): number {
     let val = 0;
     if (this.dataSws[0].getState()) val |= 1 << 0;
     if (this.dataSws[1].getState()) val |= 1 << 1;
@@ -306,11 +306,11 @@ export class Console implements IIOConsole {
     return val;
   }
 
-  clear() {
+  clear(): void {
     this.ctx.clearRect(0, 0, this.width, this.height);
   }
 
-  drawAll() {
+  drawAll(): void {
     this.clear();
 
     const img = document.getElementById('console-image');
@@ -323,7 +323,7 @@ export class Console implements IIOConsole {
     });
   }
 
-  onClick(posX: number, posY: number) {
+  onClick(posX: number, posY: number): void {
     this.components.forEach((element) => {
       element.onClick(posX, posY);
     });
@@ -346,19 +346,17 @@ export class Console implements IIOConsole {
     return 0;
   }
 
-  setLEDLamps(val: number): void {
-    return;
-  }
+  setLEDLamps(val: number): void {}
 
-  setStopBtnFunc(f: () => void) {
+  setStopBtnFunc(f: () => void): void {
     this.stopBtn.setEvent(f);
   }
 
-  setRunBtnFunc(f: () => void) {
+  setRunBtnFunc(f: () => void): void {
     this.runBtn.setEvent(f);
   }
 
-  setResetBtnFunc(f: () => void) {
+  setResetBtnFunc(f: () => void): void {
     this.resetBtn.setEvent(f);
   }
 
@@ -370,7 +368,7 @@ export class Console implements IIOConsole {
     return this.breakSw.getState();
   }
 
-  setRunLED(val: boolean) {
+  setRunLED(val: boolean): void {
     this.runLed.setState(val);
     this.updateLED();
     this.drawAll();

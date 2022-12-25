@@ -34,8 +34,8 @@ export class Switch implements IConsoleComponent {
     this.ctx.fill();
 
     this.ctx.beginPath();
-    if (this.state === true) {
-      /* スイッチがONの時は上 */
+    if (this.state) {
+      // スイッチがONの時は上
       this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 - 4, 8, -22);
       this.ctx.fillStyle = '#f8f8f8';
       this.ctx.fill();
@@ -44,7 +44,7 @@ export class Switch implements IConsoleComponent {
       this.ctx.fillStyle = '#993300';
       this.ctx.fill();
     } else {
-      /* スイッチがOFFの時は下 */
+      // スイッチがOFFの時は下
       this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 - 4, 8, 22);
       this.ctx.fillStyle = '#f8f8f8';
       this.ctx.fill();
@@ -55,7 +55,7 @@ export class Switch implements IConsoleComponent {
     }
   }
 
-  getState() {
+  getState(): boolean {
     return this.state;
   }
 
@@ -65,7 +65,7 @@ export class Switch implements IConsoleComponent {
     }
   }
 
-  private isSwitchClicked(clickPosX: number, clickPosY: number) {
+  private isSwitchClicked(clickPosX: number, clickPosY: number): boolean {
     return (
       this.posX <= clickPosX &&
       clickPosX <= this.posX + SWITCH_WIDTH &&

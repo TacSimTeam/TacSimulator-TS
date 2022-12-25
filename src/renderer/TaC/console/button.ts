@@ -19,34 +19,30 @@ export class Button implements IConsoleComponent {
 
     this.posX = posX;
     this.posY = posY;
-    this.event = () => {
-      return;
-    };
+    this.event = () => {};
   }
 
-  // 30 * 36
-
   draw(): void {
+    // ボタンのふち(黒)の描画
     this.ctx.beginPath();
     this.ctx.arc(
       this.posX + BUTTON_WIDTH / 2,
       this.posY + BUTTON_HEIGHT / 2,
       BUTTON_RADIUS + 2,
       (0 * Math.PI) / 180,
-      (360 * Math.PI) / 180,
-      false
+      (360 * Math.PI) / 180
     );
     this.ctx.fillStyle = '#252525';
     this.ctx.fill();
 
+    // ボタン(白に近い灰色)の描画
     this.ctx.beginPath();
     this.ctx.arc(
       this.posX + BUTTON_WIDTH / 2,
       this.posY + BUTTON_HEIGHT / 2,
       BUTTON_RADIUS,
       (0 * Math.PI) / 180,
-      (360 * Math.PI) / 180,
-      false
+      (360 * Math.PI) / 180
     );
     this.ctx.fillStyle = '#f8f8f8';
     this.ctx.fill();
@@ -59,11 +55,18 @@ export class Button implements IConsoleComponent {
     }
   }
 
-  setEvent(f: () => void) {
+  setEvent(f: () => void): void {
     this.event = f;
   }
 
-  private isButtonClicked(clickPosX: number, clickPosY: number) {
+  /**
+   * 与えられた座標がボタンの範囲内にあるかどうか
+   *
+   * @param clickPosX クリックされた場所のx座標
+   * @param clickPosY クリックされた場所のy座標
+   * @return ボタンが押されていればtrue
+   */
+  private isButtonClicked(clickPosX: number, clickPosY: number): boolean {
     return (
       this.posX <= clickPosX &&
       clickPosX <= this.posX + BUTTON_WIDTH &&
@@ -72,12 +75,15 @@ export class Button implements IConsoleComponent {
     );
   }
 
-  private soundEffect() {
+  /**
+   * TaCのボタンを押されたときの音を出す
+   */
+  private soundEffect(): void {
     const oscil = this.aCtx.createOscillator();
-    oscil.type = 'square'; /* 矩形波 */
-    oscil.frequency.setValueAtTime(670, this.aCtx.currentTime); /* 670Hz */
+    oscil.type = 'square'; // 矩形波
+    oscil.frequency.setValueAtTime(670, this.aCtx.currentTime); // 670Hz
     oscil.connect(this.aCtx.destination);
     oscil.start();
-    oscil.stop(this.aCtx.currentTime + 0.06); /* 0.06sだけ鳴らす */
+    oscil.stop(this.aCtx.currentTime + 0.06); // 0.06sだけ鳴らす
   }
 }
