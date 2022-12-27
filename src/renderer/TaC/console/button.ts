@@ -5,6 +5,9 @@ const BUTTON_WIDTH = 30;
 const BUTTON_HEIGHT = 36;
 const BUTTON_RADIUS = 10;
 
+const BUTTON_COLOR_EDGE = '#252525';
+const BUTTON_COLOR_BODY = '#f8f8f8';
+
 export class Button implements IConsoleComponent {
   private readonly posX: number;
   private readonly posY: number;
@@ -27,13 +30,13 @@ export class Button implements IConsoleComponent {
     // ボタンのふち(黒)の描画
     this.ctx.beginPath();
     this.ctx.arc(this.posX + BUTTON_WIDTH / 2, this.posY + BUTTON_HEIGHT / 2, BUTTON_RADIUS + 2, 0, Math.PI * 2);
-    this.ctx.fillStyle = '#252525';
+    this.ctx.fillStyle = BUTTON_COLOR_EDGE;
     this.ctx.fill();
 
     // ボタン(白に近い灰色)の描画
     this.ctx.beginPath();
     this.ctx.arc(this.posX + BUTTON_WIDTH / 2, this.posY + BUTTON_HEIGHT / 2, BUTTON_RADIUS, 0, Math.PI * 2);
-    this.ctx.fillStyle = '#f8f8f8';
+    this.ctx.fillStyle = BUTTON_COLOR_BODY;
     this.ctx.fill();
   }
 

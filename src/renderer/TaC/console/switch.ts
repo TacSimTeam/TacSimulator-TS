@@ -1,8 +1,19 @@
 import { IConsoleComponent } from '../interface';
 
-const SWITCH_WIDTH = 30;
-const SWITCH_HEIGHT = 36;
-const SWITCH_RADIUS = 12;
+// BASE : スイッチの土台の黒い丸
+// HEAD : スイッチの頭の赤い箇所
+// BODY : スイッチの本体(赤い箇所は除く)
+
+const SWITCH_BASE_WIDTH = 30;
+const SWITCH_BASE_HEIGHT = 36;
+const SWITCH_BASE_RADIUS = 12;
+const SWITCH_BODY_WIDTH = 8;
+const SWITCH_BODY_HEIGHT = 22;
+const SWITCH_HEAD_HEIGHT = 6;
+
+const SWITCH_BASE_COLOR = '#252525';
+const SWITCH_HEAD_COLOR = '#993300';
+const SWITCH_BODY_COLOR = '#f8f8f8';
 
 export class Switch implements IConsoleComponent {
   private readonly posX: number;
@@ -23,34 +34,53 @@ export class Switch implements IConsoleComponent {
   draw(): void {
     this.ctx.beginPath();
     this.ctx.arc(
-      this.posX + SWITCH_WIDTH / 2,
-      this.posY + SWITCH_HEIGHT / 2,
-      SWITCH_RADIUS,
-      (0 * Math.PI) / 180,
-      (360 * Math.PI) / 180,
-      false
+      this.posX + SWITCH_BASE_WIDTH / 2,
+      this.posY + SWITCH_BASE_HEIGHT / 2,
+      SWITCH_BASE_RADIUS,
+      0,
+      Math.PI * 2
     );
-    this.ctx.fillStyle = '#252525';
+    this.ctx.fillStyle = SWITCH_BASE_COLOR;
     this.ctx.fill();
 
     this.ctx.beginPath();
     if (this.state) {
       // スイッチがONの時は上
-      this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 - 4, 8, -22);
-      this.ctx.fillStyle = '#f8f8f8';
+      this.ctx.rect(
+        this.posX + SWITCH_BASE_WIDTH / 2 - SWITCH_BODY_WIDTH / 2,
+        this.posY + SWITCH_BASE_HEIGHT / 2 - SWITCH_BODY_WIDTH / 2,
+        SWITCH_BODY_WIDTH,
+        -SWITCH_BODY_HEIGHT
+      );
+      this.ctx.fillStyle = SWITCH_BODY_COLOR;
       this.ctx.fill();
       this.ctx.beginPath();
-      this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 - 32, 8, 6);
-      this.ctx.fillStyle = '#993300';
+      this.ctx.rect(
+        this.posX + SWITCH_BASE_WIDTH / 2 - SWITCH_BODY_WIDTH / 2,
+        this.posY + SWITCH_BASE_HEIGHT / 2 - SWITCH_BODY_WIDTH / 2 - SWITCH_BODY_HEIGHT - SWITCH_HEAD_HEIGHT,
+        SWITCH_BODY_WIDTH,
+        SWITCH_HEAD_HEIGHT
+      );
+      this.ctx.fillStyle = SWITCH_HEAD_COLOR;
       this.ctx.fill();
     } else {
       // スイッチがOFFの時は下
-      this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 - 4, 8, 22);
-      this.ctx.fillStyle = '#f8f8f8';
+      this.ctx.rect(
+        this.posX + SWITCH_BASE_WIDTH / 2 - SWITCH_BODY_WIDTH / 2,
+        this.posY + SWITCH_BASE_HEIGHT / 2 - SWITCH_BODY_WIDTH / 2,
+        SWITCH_BODY_WIDTH,
+        SWITCH_BODY_HEIGHT
+      );
+      this.ctx.fillStyle = SWITCH_BODY_COLOR;
       this.ctx.fill();
       this.ctx.beginPath();
-      this.ctx.rect(this.posX + SWITCH_WIDTH / 2 - 4, this.posY + SWITCH_HEIGHT / 2 + 18, 8, 6);
-      this.ctx.fillStyle = '#993300';
+      this.ctx.rect(
+        this.posX + SWITCH_BASE_WIDTH / 2 - SWITCH_BODY_WIDTH / 2,
+        this.posY + SWITCH_BASE_HEIGHT / 2 - SWITCH_BODY_WIDTH / 2 + SWITCH_BODY_HEIGHT,
+        SWITCH_BODY_WIDTH,
+        SWITCH_HEAD_HEIGHT
+      );
+      this.ctx.fillStyle = SWITCH_HEAD_COLOR;
       this.ctx.fill();
     }
   }
@@ -68,9 +98,9 @@ export class Switch implements IConsoleComponent {
   private isSwitchClicked(clickPosX: number, clickPosY: number): boolean {
     return (
       this.posX <= clickPosX &&
-      clickPosX <= this.posX + SWITCH_WIDTH &&
+      clickPosX <= this.posX + SWITCH_BASE_WIDTH &&
       this.posY <= clickPosY &&
-      clickPosY <= this.posY + SWITCH_HEIGHT
+      clickPosY <= this.posY + SWITCH_BASE_HEIGHT
     );
   }
 }

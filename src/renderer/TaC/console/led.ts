@@ -1,5 +1,7 @@
 import { IConsoleComponent } from '../interface';
 
+const LED_RADIUS = 10;
+
 const LED_COLOR_RED_LIGHT = '#ff0000';
 const LED_COLOR_RED_DARK = '#400000';
 const LED_COLOR_GREEN_LIGHT = '#00ff00';
@@ -30,7 +32,7 @@ export class Led implements IConsoleComponent {
 
   draw(): void {
     this.ctx.beginPath();
-    this.ctx.arc(this.posX, this.posY, 10, 0, Math.PI * 2);
+    this.ctx.arc(this.posX, this.posY, LED_RADIUS, 0, Math.PI * 2);
 
     switch (this.color) {
       case 'red':
