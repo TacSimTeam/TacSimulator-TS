@@ -2,7 +2,7 @@ import path from 'path';
 import { Configuration } from 'webpack';
 
 // const isDev = process.env.NODE_ENV === 'development';
-const isDev = true;
+const isDev = false;
 
 const option: Configuration = {
   mode: isDev ? 'development' : 'production',
