@@ -8,31 +8,31 @@ const LED_COLOR_YELLOW_LIGHT = '#FFFF00';
 const LED_COLOR_YELLOW_DARK = '#DAA520';
 
 // LEDは赤, 緑, 黄の3色から選択可能
-export type LedType = 'red' | 'green' | 'yellow';
+export type LedColor = 'red' | 'green' | 'yellow';
 
 export class Led implements IConsoleComponent {
   private readonly posX: number;
   private readonly posY: number;
 
-  private state: boolean;
-  private type: LedType;
+  private state: boolean; // 点灯ならtrue
+  private color: LedColor;
 
   private ctx: CanvasRenderingContext2D;
 
-  constructor(ctx: CanvasRenderingContext2D, posX: number, posY: number, type: LedType) {
+  constructor(ctx: CanvasRenderingContext2D, posX: number, posY: number, type: LedColor) {
     this.ctx = ctx;
 
     this.posX = posX;
     this.posY = posY;
     this.state = false;
-    this.type = type;
+    this.color = type;
   }
 
   draw(): void {
     this.ctx.beginPath();
-    this.ctx.arc(this.posX, this.posY, 10, 0, Math.PI * 2, false);
+    this.ctx.arc(this.posX, this.posY, 10, 0, Math.PI * 2);
 
-    switch (this.type) {
+    switch (this.color) {
       case 'red':
         this.ctx.fillStyle = this.state ? LED_COLOR_RED_LIGHT : LED_COLOR_RED_DARK;
         break;
