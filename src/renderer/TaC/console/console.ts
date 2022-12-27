@@ -3,10 +3,11 @@ import { Switch } from './switch';
 import { Led } from './led';
 
 import { IConsoleComponent, IDmaSignal, IIOConsole, IPsw, IRegister } from '../interface';
+import { Speaker } from './speaker';
 
 export class Console implements IIOConsole {
   private ctx: CanvasRenderingContext2D;
-  private aCtx: AudioContext;
+  private speaker: Speaker;
 
   private readonly width: number;
   private readonly height: number;
@@ -20,7 +21,7 @@ export class Console implements IIOConsole {
   /* レジスタのデータを読み書きするので必要 */
   private register: IRegister;
 
-  private components: [...IConsoleComponent[]];
+  private components: IConsoleComponent[];
 
   private memAddr: number;
   private memData: number;
@@ -49,12 +50,11 @@ export class Console implements IIOConsole {
 
   constructor(canvas: HTMLCanvasElement, memory: IDmaSignal, psw: IPsw, register: IRegister) {
     const ctx = canvas.getContext('2d');
-    if (ctx !== null) {
-      this.ctx = ctx;
-    } else {
+    if (ctx === null) {
       throw new Error('Error: Failure getContext()');
     }
-    this.aCtx = new AudioContext();
+    this.ctx = ctx;
+    this.speaker = new Speaker();
 
     this.width = canvas.width;
     this.height = canvas.height;
@@ -104,15 +104,15 @@ export class Console implements IIOConsole {
     this.breakSw = new Switch(this.ctx, 54, 312);
     this.stepSw = new Switch(this.ctx, 96, 312);
 
-    this.leftArrowBtn = new Button(this.ctx, 54, 138);
-    this.rightArrowBtn = new Button(this.ctx, 309, 138);
-    this.resetBtn = new Button(this.ctx, 7, 312);
-    this.runBtn = new Button(this.ctx, 138, 312);
-    this.stopBtn = new Button(this.ctx, 180, 312);
-    this.setaBtn = new Button(this.ctx, 236, 312);
-    this.incaBtn = new Button(this.ctx, 278, 312);
-    this.decaBtn = new Button(this.ctx, 320, 312);
-    this.writeBtn = new Button(this.ctx, 362, 312);
+    this.leftArrowBtn = new Button(this.ctx, this.speaker, 54, 138);
+    this.rightArrowBtn = new Button(this.ctx, this.speaker, 309, 138);
+    this.resetBtn = new Button(this.ctx, this.speaker, 7, 312);
+    this.runBtn = new Button(this.ctx, this.speaker, 138, 312);
+    this.stopBtn = new Button(this.ctx, this.speaker, 180, 312);
+    this.setaBtn = new Button(this.ctx, this.speaker, 236, 312);
+    this.incaBtn = new Button(this.ctx, this.speaker, 278, 312);
+    this.decaBtn = new Button(this.ctx, this.speaker, 320, 312);
+    this.writeBtn = new Button(this.ctx, this.speaker, 362, 312);
 
     this.initComponents();
     this.initButtons();

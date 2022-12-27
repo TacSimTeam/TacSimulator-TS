@@ -1,4 +1,5 @@
 import { IConsoleComponent } from '../interface';
+import { Speaker } from './speaker';
 
 const BUTTON_WIDTH = 30;
 const BUTTON_HEIGHT = 36;
@@ -11,11 +12,11 @@ export class Button implements IConsoleComponent {
   private event: () => void;
 
   private ctx: CanvasRenderingContext2D;
-  private aCtx: AudioContext;
+  private speaker: Speaker;
 
-  constructor(ctx: CanvasRenderingContext2D, posX: number, posY: number) {
+  constructor(ctx: CanvasRenderingContext2D, speaker: Speaker, posX: number, posY: number) {
     this.ctx = ctx;
-    this.aCtx = new AudioContext();
+    this.speaker = speaker;
 
     this.posX = posX;
     this.posY = posY;
@@ -51,7 +52,7 @@ export class Button implements IConsoleComponent {
   onClick(clickPosX: number, clickPosY: number): void {
     if (this.isButtonClicked(clickPosX, clickPosY)) {
       this.event();
-      this.soundEffect();
+      this.speaker.buzzer();
     }
   }
 
@@ -73,17 +74,5 @@ export class Button implements IConsoleComponent {
       this.posY <= clickPosY &&
       clickPosY <= this.posY + BUTTON_HEIGHT
     );
-  }
-
-  /**
-   * TaCのボタンを押されたときの音を出す
-   */
-  private soundEffect(): void {
-    const oscil = this.aCtx.createOscillator();
-    oscil.type = 'square'; // 矩形波
-    oscil.frequency.setValueAtTime(670, this.aCtx.currentTime); // 670Hz
-    oscil.connect(this.aCtx.destination);
-    oscil.start();
-    oscil.stop(this.aCtx.currentTime + 0.06); // 0.06sだけ鳴らす
   }
 }
