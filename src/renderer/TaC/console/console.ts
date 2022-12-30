@@ -4,13 +4,11 @@ import { Led } from './led';
 
 import { IConsoleComponent, IDmaSignal, IIOConsole, IPsw, IRegister } from '../interface';
 import { Speaker } from './speaker';
+import { querySelector } from '../../util/dom.result';
 
 export class Console implements IIOConsole {
   private ctx: CanvasRenderingContext2D;
   private speaker: Speaker;
-
-  private readonly width: number; // コンソール画面の幅
-  private readonly height: number; // コンソール画面の高さ
 
   private memory: IDmaSignal; // コンソールはDMA方式でメモリとアクセスできる
   private psw: IPsw; // PCとフラグを読むために必要
@@ -50,9 +48,6 @@ export class Console implements IIOConsole {
     }
     this.ctx = ctx;
     this.speaker = new Speaker();
-
-    this.width = canvas.width;
-    this.height = canvas.height;
 
     this.memory = memory;
     this.psw = psw;
@@ -245,6 +240,36 @@ export class Console implements IIOConsole {
   }
 
   /**
+   * コンソール画面を描画する
+   */
+  private drawAll(): void {
+    const img = querySelector<HTMLImageElement>('#console-image').unwrap();
+    this.ctx.drawImage(img, 0, 0);
+
+    this.components.forEach((element) => {
+      element.draw();
+    });
+  }
+
+  /**
+   * スイッチの値を1byte(8bit)数値で返す
+   *
+   * @return スイッチの値(MSB : D7, LSB : D0)
+   */
+  private readSwValue(): number {
+    let val = 0;
+    if (this.dataSws[0].getState()) val |= 1 << 0;
+    if (this.dataSws[1].getState()) val |= 1 << 1;
+    if (this.dataSws[2].getState()) val |= 1 << 2;
+    if (this.dataSws[3].getState()) val |= 1 << 3;
+    if (this.dataSws[4].getState()) val |= 1 << 4;
+    if (this.dataSws[5].getState()) val |= 1 << 5;
+    if (this.dataSws[6].getState()) val |= 1 << 6;
+    if (this.dataSws[7].getState()) val |= 1 << 7;
+    return val;
+  }
+
+  /**
    * ロータリースイッチの値を使ってレジスタの値を読み込む
    *
    * @return rotSwCurによって返す値が違う
@@ -296,42 +321,7 @@ export class Console implements IIOConsole {
     }
   }
 
-  private readSwValue(): number {
-    let val = 0;
-    if (this.dataSws[0].getState()) val |= 1 << 0;
-    if (this.dataSws[1].getState()) val |= 1 << 1;
-    if (this.dataSws[2].getState()) val |= 1 << 2;
-    if (this.dataSws[3].getState()) val |= 1 << 3;
-    if (this.dataSws[4].getState()) val |= 1 << 4;
-    if (this.dataSws[5].getState()) val |= 1 << 5;
-    if (this.dataSws[6].getState()) val |= 1 << 6;
-    if (this.dataSws[7].getState()) val |= 1 << 7;
-    return val;
-  }
-
-  private drawAll(): void {
-    this.clear();
-
-    const img = document.getElementById('console-image');
-    if (img !== null) {
-      this.ctx.drawImage(img as HTMLImageElement, 0, 0);
-    }
-
-    this.components.forEach((element) => {
-      element.draw();
-    });
-  }
-
-  private clear(): void {
-    this.ctx.clearRect(0, 0, this.width, this.height);
-  }
-
-  onClick(posX: number, posY: number): void {
-    this.components.forEach((element) => {
-      element.onClick(posX, posY);
-    });
-    this.drawAll();
-  }
+  // I/O機器としてのインターフェース
 
   getDataSwitch(): number {
     return this.readSwValue();
@@ -372,16 +362,13 @@ export class Console implements IIOConsole {
     this.dataLeds[0].setState((val & (1 << 0)) !== 0);
   }
 
-  setStopBtnFunc(f: () => void): void {
-    this.stopBtn.setEvent(f);
-  }
+  // tac.ts側が使用するインターフェース
 
-  setRunBtnFunc(f: () => void): void {
-    this.runBtn.setEvent(f);
-  }
-
-  setResetBtnFunc(f: () => void): void {
-    this.resetBtn.setEvent(f);
+  onClick(posX: number, posY: number): void {
+    this.components.forEach((element) => {
+      element.onClick(posX, posY);
+    });
+    this.drawAll();
   }
 
   getStepSwitchValue(): boolean {
@@ -394,7 +381,18 @@ export class Console implements IIOConsole {
 
   setRunLED(val: boolean): void {
     this.runLed.setState(val);
-    this.updateLED();
-    this.drawAll();
+    this.update();
+  }
+
+  setStopBtnFunc(f: () => void): void {
+    this.stopBtn.setEvent(f);
+  }
+
+  setRunBtnFunc(f: () => void): void {
+    this.runBtn.setEvent(f);
+  }
+
+  setResetBtnFunc(f: () => void): void {
+    this.resetBtn.setEvent(f);
   }
 }
