@@ -145,13 +145,13 @@ export class IOHostController implements IIOHostController {
       case io.MMU_PAGE_00:
         return this.mmu.getErrorPage();
       case io.CONSOLE_DATASW_DATAREG:
-        return this.console.getDataSwitchValue();
+        return this.console.getDataSwitch();
       case io.CONSOLE_ADDRREG_00:
-        return this.console.getMemAddrLEDValue();
+        return this.console.getMemAddr();
       case io.CONSOLE_ROTSW_00:
-        return this.console.getRotSwitchValue();
+        return this.console.getRotSwitch();
       case io.CONSOLE_FUNCREG_00:
-        return this.console.getFuncSwitchValue();
+        return this.console.getFuncSwitch();
       default:
         // 対応していないアドレスの場合は0を返す
         return 0;

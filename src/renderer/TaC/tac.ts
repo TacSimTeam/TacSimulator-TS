@@ -73,7 +73,7 @@ export class Tac {
       this.console.onClick(x, y);
     });
 
-    this.console.drawAll();
+    this.console.update();
   }
 
   /**
