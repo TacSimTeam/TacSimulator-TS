@@ -81,7 +81,7 @@ export class Tac {
    */
   private initButtonEvent(): void {
     this.console.setRunBtnFunc(() => {
-      this.breakAddr = parseInt((document.getElementById('break-address') as HTMLInputElement).value, 16);
+      this.breakAddr = parseInt(querySelector<HTMLInputElement>('#break-address').unwrap().value, 16);
       this.console.setRunLED(true);
       this.run();
     });
