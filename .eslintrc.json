@@ -22,6 +22,7 @@
         "jest"
     ],
     "rules": {
+        "yoda": ["error", "never", { "onlyEquality": true }],
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/prefer-readonly": "off",
         "@typescript-eslint/method-signature-style": ["error", "method"],
