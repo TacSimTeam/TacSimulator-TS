@@ -1,6 +1,6 @@
 import { IIntrSignal } from '../interface';
-import * as opcode from './const/opcode';
 import { EXCP_ZERO_DIV } from '../interrupt/interruptKind';
+import * as opcode from './const/opcode';
 
 export class Alu {
   private intrSignal: IIntrSignal;
@@ -10,49 +10,49 @@ export class Alu {
   }
 
   /**
-   * opの値に応じてv1とv2に何らかの演算をして結果を返す
-   * opがopcode.ADDの場合は(v1 + v2)
+   * opの値に応じてleftとrightに何らかの演算をして結果を返す
+   * opがopcode.SUBの場合は(left - right)
    *
    * @param op 演算の種類を表すオペコード
-   * @param v1 16bit整数
-   * @param v2 16bit整数
+   * @param left 16bit整数
+   * @param right 16bit整数
    * @return 演算結果(16bitに正規化せずに返すことに注意)
    */
-  calc(op: number, v1: number, v2: number): number {
+  calc(op: number, left: number, right: number): number {
     switch (op) {
       case opcode.ADD:
-        return v1 + v2;
+        return left + right;
       case opcode.SUB:
-        return v1 - v2;
+        return left - right;
       case opcode.CMP:
-        return v1 - v2;
+        return left - right;
       case opcode.AND:
-        return v1 & v2;
+        return left & right;
       case opcode.OR:
-        return v1 | v2;
+        return left | right;
       case opcode.XOR:
-        return v1 ^ v2;
+        return left ^ right;
       case opcode.ADDS:
-        return v1 + v2 * 2;
+        return left + right * 2;
       case opcode.MUL:
-        return v1 * v2;
+        return left * right;
       case opcode.DIV:
-        return this.div(v1, v2);
+        return this.div(left, right);
       case opcode.MOD:
-        return this.mod(v1, v2);
+        return this.mod(left, right);
       case opcode.SHLA:
-        return this.shift_left(v1, v2);
+        return this.shift_left(left, right);
       case opcode.SHLL:
-        return this.shift_left(v1, v2);
+        return this.shift_left(left, right);
       case opcode.SHRA:
-        return this.shift_right_arithmetic(v1, v2);
+        return this.shift_right_arithmetic(left, right);
       case opcode.SHRL:
-        return this.shift_right_logical(v1, v2);
+        return this.shift_right_logical(left, right);
     }
     return 0;
   }
 
-  private div(dividend: number, divisor: number) {
+  private div(dividend: number, divisor: number): number {
     if (divisor === 0) {
       this.intrSignal.interrupt(EXCP_ZERO_DIV);
       return 0;
@@ -60,7 +60,7 @@ export class Alu {
     return Math.trunc(dividend / divisor);
   }
 
-  private mod(dividend: number, divisor: number) {
+  private mod(dividend: number, divisor: number): number {
     if (divisor === 0) {
       this.intrSignal.interrupt(EXCP_ZERO_DIV);
       return 0;
@@ -68,22 +68,20 @@ export class Alu {
     return dividend % divisor;
   }
 
-  private shift_left(operand: number, bit: number) {
-    /**
-     * シフト命令ではv2の符号に関わらず下位4bitをシフトするbit数として使用する
-     * そのためにv2と0x0fのANDをとっている
-     */
+  private shift_left(operand: number, bit: number): number {
+    // シフト命令ではrightの符号に関わらず下位4bitをシフトするbit数として使用する
+    // そのためにrightと0x0fのANDをとっている
     return operand << (bit & 0x0f);
   }
 
-  private shift_right_arithmetic(operand: number, bit: number) {
-    if ((operand & 0x8000) != 0) {
+  private shift_right_arithmetic(operand: number, bit: number): number {
+    if ((operand & 0x8000) !== 0) {
       return (operand | ~0xffff) >> (bit & 0x0f);
     }
     return operand >> (bit & 0x0f);
   }
 
-  private shift_right_logical(operand: number, bit: number) {
+  private shift_right_logical(operand: number, bit: number): number {
     return operand >>> (bit & 0x0f);
   }
 }
