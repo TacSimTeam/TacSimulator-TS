@@ -17,7 +17,6 @@ export class Console implements IIOConsole {
   private components: IConsoleComponent[];
 
   private memAddr: number;
-  private memData: number;
 
   private rotSwCur: number;
 
@@ -56,7 +55,6 @@ export class Console implements IIOConsole {
     this.components = [];
 
     this.memAddr = 0;
-    this.memData = 0;
     this.rotSwCur = 0;
 
     // コンソール部品の初期化
@@ -196,6 +194,7 @@ export class Console implements IIOConsole {
     this.writeBtn.setEvent(() => {
       this.writeReg(this.readSwValue());
       this.update();
+      console.log(this.memory);
     });
   }
 
@@ -276,7 +275,7 @@ export class Console implements IIOConsole {
    *         - 0~13 : レジスタの値
    *         - 14 : PCの値
    *         - 15 : フラグの値
-   *         - 16 : MDレジスタの値
+   *         - 16 : MAレジスタが指す番地の内容
    *         - 17 : MAレジスタの値
    */
   private readReg(): number {
@@ -286,7 +285,7 @@ export class Console implements IIOConsole {
       case 15:
         return this.psw.getFlags();
       case 16:
-        return this.memData;
+        return this.readMemData();
       case 17:
         return this.memAddr;
       default:
@@ -295,12 +294,23 @@ export class Console implements IIOConsole {
   }
 
   /**
+   * MAレジスタが指す番地の内容を読み込む
+   * MAの値が奇数だった場合は, LSBを0にしてから読み込む
+   *
+   * @return MAレジスタが指す番地の内容
+   */
+  private readMemData(): number {
+    const addr = this.memAddr & 0xfffe;
+    return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
+  }
+
+  /**
    * ロータリースイッチの値を使ってレジスタに値を書き込む
    * rotSwCurによって書き込む場所が異なる
    *         - 0~13 : レジスタ
    *         - 14 : PC
    *         - 15 : フラグ
-   *         - 16,17 : MDレジスタの値
+   *         - 16,17 : MAレジスタが指す番地の内容
    */
   private writeReg(val: number): void {
     const regVal = this.readReg();
@@ -313,12 +323,22 @@ export class Console implements IIOConsole {
         break;
       case 16:
       case 17:
-        this.memData = ((this.memData & 0x00ff) << 8) | (val & 0x00ff);
+        this.writeMemData(val);
         break;
       default:
         this.register.write(this.rotSwCur, ((regVal & 0x00ff) << 8) | (val & 0x00ff));
         break;
     }
+  }
+
+  /**
+   *
+   * @param val
+   */
+  private writeMemData(val: number): void {
+    const addr = this.memAddr & 0xfffe;
+    this.memory.write8(addr, (val & 0xff00) >> 8);
+    this.memory.write8(addr + 1, val & 0x00ff);
   }
 
   // I/O機器としてのインターフェース
@@ -329,10 +349,6 @@ export class Console implements IIOConsole {
 
   getMemAddr(): number {
     return this.memAddr;
-  }
-
-  getMemData(): number {
-    return this.memData;
   }
 
   getRotSwitch(): number {
@@ -368,7 +384,11 @@ export class Console implements IIOConsole {
     this.components.forEach((element) => {
       element.onClick(posX, posY);
     });
-    this.drawAll();
+    this.update();
+  }
+
+  getMemData(): number {
+    return this.readMemData();
   }
 
   getStepSwitchValue(): boolean {
