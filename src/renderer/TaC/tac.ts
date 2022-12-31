@@ -165,6 +165,15 @@ export class Tac {
   }
 
   /**
+   * TaCの動作を停止する
+   */
+  private stop(): void {
+    if (this.cpuEventId !== null) {
+      clearTimeout(this.cpuEventId);
+    }
+  }
+
+  /**
    * TaCを初期化する
    */
   private reset(): void {
@@ -183,14 +192,5 @@ export class Tac {
     this.mmu.loadIpl();
 
     this.update();
-  }
-
-  /**
-   * TaCの動作を停止する
-   */
-  private stop(): void {
-    if (this.cpuEventId !== null) {
-      clearTimeout(this.cpuEventId);
-    }
   }
 }
