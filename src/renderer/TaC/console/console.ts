@@ -1,10 +1,9 @@
+import { IConsoleComponent, IDmaSignal, IIOConsole, IPsw, IRegister } from '../interface';
+import { querySelector } from '../../util/dom.result';
 import { Button } from './button';
 import { Switch } from './switch';
 import { Led } from './led';
-
-import { IConsoleComponent, IDmaSignal, IIOConsole, IPsw, IRegister } from '../interface';
 import { Speaker } from './speaker';
-import { querySelector } from '../../util/dom.result';
 
 export class Console implements IIOConsole {
   private ctx: CanvasRenderingContext2D;
@@ -192,7 +191,7 @@ export class Console implements IIOConsole {
     });
 
     this.writeBtn.setEvent(() => {
-      this.writeReg(this.readSwValue());
+      this.pushSWValueToReg();
       this.update();
       console.log(this.memory);
     });
@@ -294,26 +293,17 @@ export class Console implements IIOConsole {
   }
 
   /**
-   * MAレジスタが指す番地の内容を読み込む
-   * MAの値が奇数だった場合は, LSBを0にしてから読み込む
+   * 現在のスイッチの値をレジスタの下位8bitに書き込む
+   * レジスタの元の値の下位8bitは上位8bitに押し込む
    *
-   * @return MAレジスタが指す番地の内容
-   */
-  private readMemData(): number {
-    const addr = this.memAddr & 0xfffe;
-    return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
-  }
-
-  /**
-   * ロータリースイッチの値を使ってレジスタに値を書き込む
    * rotSwCurによって書き込む場所が異なる
    *         - 0~13 : レジスタ
    *         - 14 : PC
    *         - 15 : フラグ
    *         - 16,17 : MAレジスタが指す番地の内容
    */
-  private writeReg(val: number): void {
-    const regVal = this.readReg();
+  private pushSWValueToReg(): void {
+    const val = this.readSwValue();
     switch (this.rotSwCur) {
       case 14:
         this.psw.jumpTo(((this.psw.getPC() & 0x00ff) << 8) | (val & 0x00ff));
@@ -326,9 +316,20 @@ export class Console implements IIOConsole {
         this.writeMemData(((this.getMemData() & 0x00ff) << 8) | (val & 0x00ff));
         break;
       default:
-        this.register.write(this.rotSwCur, ((regVal & 0x00ff) << 8) | (val & 0x00ff));
+        this.register.write(this.rotSwCur, ((this.readReg() & 0x00ff) << 8) | (val & 0x00ff));
         break;
     }
+  }
+
+  /**
+   * MAレジスタが指す番地の内容を読み込む
+   * MAの値が奇数だった場合は, LSBを0にしてから読み込む
+   *
+   * @return MAレジスタが指す番地の内容
+   */
+  private readMemData(): number {
+    const addr = this.memAddr & 0xfffe;
+    return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
   }
 
   /**
