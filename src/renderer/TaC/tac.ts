@@ -71,6 +71,7 @@ export class Tac {
       const y = e.clientY - canvas.getBoundingClientRect().top;
 
       this.console.onClick(x, y);
+      this.update();
     });
 
     this.console.update();

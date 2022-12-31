@@ -323,7 +323,7 @@ export class Console implements IIOConsole {
         break;
       case 16:
       case 17:
-        this.writeMemData(val);
+        this.writeMemData(((this.getMemData() & 0x00ff) << 8) | (val & 0x00ff));
         break;
       default:
         this.register.write(this.rotSwCur, ((regVal & 0x00ff) << 8) | (val & 0x00ff));
@@ -332,8 +332,9 @@ export class Console implements IIOConsole {
   }
 
   /**
+   * MAレジスタが指す番地にデータを書き込む
    *
-   * @param val
+   * @param val 16bitデータ
    */
   private writeMemData(val: number): void {
     const addr = this.memAddr & 0xfffe;
