@@ -193,7 +193,6 @@ export class Console implements IIOConsole {
     this.writeBtn.setEvent(() => {
       this.pushSWValueToReg();
       this.update();
-      console.log(this.memory);
     });
   }
 
