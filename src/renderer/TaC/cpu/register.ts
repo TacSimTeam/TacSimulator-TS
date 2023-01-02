@@ -18,14 +18,14 @@ export class Register implements IRegister {
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     this.generals.fill(0);
     this.fp = 0;
     this.ssp = 0;
     this.usp = 0;
   }
 
-  read(num: number) {
+  read(num: number): number {
     switch (num) {
       case 12:
         return this.fp;
@@ -42,7 +42,7 @@ export class Register implements IRegister {
     }
   }
 
-  write(num: number, val: number) {
+  write(num: number, val: number): void {
     switch (num) {
       case 12:
         this.fp = val & 0xffff;
