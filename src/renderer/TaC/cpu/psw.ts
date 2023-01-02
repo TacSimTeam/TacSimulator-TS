@@ -1,5 +1,4 @@
-import { IPrivModeSignal } from '../interface';
-import { IPsw } from '../interface/cpu/psw';
+import { IPrivModeSignal, IPsw } from '../interface';
 import { PRIV } from './const/flag';
 
 export class Psw implements IPsw, IPrivModeSignal {
@@ -15,14 +14,14 @@ export class Psw implements IPsw, IPrivModeSignal {
     return this.pc;
   }
 
-  nextPC() {
+  nextPC(): void {
     if (this.pc >= 0xfffe) {
       console.warn('このnextPC()呼び出しによって、PCの値が0xffffを超えてしまいます');
     }
     this.pc += 2;
   }
 
-  jumpTo(addr: number) {
+  jumpTo(addr: number): void {
     if (!(0x0000 <= addr && addr <= 0xffff)) {
       console.warn('TaCのメモリの範囲外にジャンプしようとしています');
     } else if ((addr & 0x0001) !== 0) {
@@ -41,7 +40,7 @@ export class Psw implements IPsw, IPrivModeSignal {
       return;
     }
 
-    /* I/O特権モードかユーザモードのときは、EPIフラグ(0x00e0の箇所)を変化させない */
+    // I/O特権モードかユーザモードのときは、EPIフラグ(0x00e0の箇所)を変化させない
     this.flags = (0x00e0 & this.flags) | (0xff1f & flags);
   }
 
