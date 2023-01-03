@@ -1,7 +1,7 @@
 import { IDataBus, IIntrController, IIOHostController, IRegister, IPsw, IPrivModeSignal } from '../interface';
+import { TlbMissError } from '../error';
 import { Alu } from './alu';
 import { Instruction } from './instruction/instruction';
-import { TlbMissError } from '../error';
 import * as opcode from './const/opcode';
 import * as addrmode from './const/addrmode';
 import * as regNum from './const/regNum';
@@ -447,6 +447,27 @@ export class Cpu {
     }
   }
 
+  /**
+   * 割込み発生時の処理を行う
+   * 1. FLAGを一時保存する
+   * 2. FLAGを割込み禁止(E=0)、特権モード(P=1)にする
+   * 3. PCと元のFLAGを順にカーネルスタックにPUSHする
+   * 4. PCに割込みハンドラの開始番地をロードする
+   *
+   * @param intrNum 割込み番号
+   */
+  private handleInterrupt(intrNum: number): void {
+    const tmp = this.psw.getFlags();
+
+    // 割込み禁止、特権モードの状態にする
+    this.privSig.setPrivFlag(true);
+    this.psw.setFlags((tmp & ~flag.ENABLE_INTR) | flag.PRIV);
+
+    this.pushVal(this.psw.getPC());
+    this.pushVal(tmp);
+    this.psw.jumpTo(this.memory.read16(INTERRUPT_VECTOR + intrNum * 2));
+  }
+
   private pushVal(val: number): void {
     // MMU有効の場合はTLBMiss例外が発生する必要があり
     // その際にはSPの値が変化してほしくないため
@@ -533,28 +554,8 @@ export class Cpu {
   }
 
   /**
-   * 割込み発生時の処理を行う
-   * 1. FLAGを一時保存する
-   * 2. FLAGを割込み禁止(E=0)、特権モード(P=1)にする
-   * 3. PCと元のFLAGを順にカーネルスタックにPUSHする
-   * 4. PCに割込みハンドラの開始番地をロードする
-   *
-   * @param intrNum 割込み番号
-   */
-  private handleInterrupt(intrNum: number): void {
-    const tmp = this.psw.getFlags();
-
-    // 割込み禁止、特権モードの状態にする
-    this.privSig.setPrivFlag(true);
-    this.psw.setFlags((tmp & ~flag.ENABLE_INTR) | flag.PRIV);
-
-    this.pushVal(this.psw.getPC());
-    this.pushVal(tmp);
-    this.psw.jumpTo(this.memory.read16(INTERRUPT_VECTOR + intrNum * 2));
-  }
-
-  /**
    * レジスタの内容を読み込む
+   * numが15のときはPSWのフラグに書き込む
    *
    * @param num レジスタ番号
    * @return 指定した番号のレジスタの内容
@@ -568,6 +569,7 @@ export class Cpu {
 
   /**
    * レジスタにデータを書き込む
+   * numが15のときはPSWのフラグに書き込む
    *
    * @param num レジスタ番号
    * @param val 書き込みたいデータ
