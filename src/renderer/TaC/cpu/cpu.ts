@@ -17,9 +17,9 @@ export class Cpu {
   private privSig: IPrivModeSignal;
   private intrHost: IIntrController;
   private ioHost: IIOHostController;
+  private alu: Alu;
 
   private isHalt: boolean;
-  private alu: Alu;
 
   constructor(
     memory: IDataBus,
@@ -35,9 +35,9 @@ export class Cpu {
     this.privSig = privSig;
     this.intrHost = intrHost;
     this.ioHost = ioHost;
+    this.alu = new Alu(intrHost);
 
     this.isHalt = false;
-    this.alu = new Alu(intrHost);
   }
 
   /**
@@ -82,6 +82,7 @@ export class Cpu {
     } catch (e) {
       if (e instanceof TlbMissError) {
         // TLBMissが発生したのでPCを進めずに一旦戻す
+        // eslint-disable-next-line
         return;
       }
     }
@@ -91,7 +92,7 @@ export class Cpu {
    * 命令デコード
    *
    * @param data Mem[PC]から取得したデータ
-   * @returns 命令オブジェクト
+   * @return 命令オブジェクト
    */
   private decode(data: number): Instruction {
     const inst: Instruction = {
@@ -110,7 +111,7 @@ export class Cpu {
    *
    * @param addrMode アドレッシングモード
    * @param rx インデクスレジスタ
-   * @returns 対象となるアドレス. 1ワード命令の時は0を返す
+   * @return 対象となるアドレス. 1ワード命令の時は0を返す
    */
   private calcEffectiveAddress(addrMode: number, rx: number): number {
     // 現在のPCから1ワード進んだ箇所のメモリを読み込む
@@ -119,21 +120,16 @@ export class Cpu {
 
     switch (addrMode) {
       case addrmode.DIRECT:
-        // MEM[PC + 2] + rxレジスタの中身の値が実効アドレス
-        return data;
+        return data; // MEM[PC + 2]の値
       case addrmode.INDEXED:
-        // MEM[PC + 2] + rxレジスタの中身の値が実効アドレス
-        return data + this.readReg(rx);
+        return data + this.readReg(rx); // MEM[PC + 2] + rxレジスタの中身の値
       case addrmode.FP_RELATIVE:
-        // FPの値 + rxの値 * 2が実効アドレス
-        return (this.readReg(regNum.FP) + this.extSignedInt4(rx) * 2) & 0xffff;
+        return (this.readReg(regNum.FP) + this.extSignedInt4(rx) * 2) & 0xffff; // FPの値 + rxの値 * 2
       case addrmode.REG_INDIRECT:
       case addrmode.BYTE_REG_INDIRECT:
-        // rxレジスタの中身の値が実効アドレス
-        return this.readReg(rx);
+        return this.readReg(rx); // rxレジスタの中身の値
       default:
-        // 1ワード命令だった
-        return 0;
+        return 0; // 1ワード命令
     }
   }
 
@@ -144,7 +140,7 @@ export class Cpu {
    * @param addrMode アドレッシングモード
    * @param rx インデクスレジスタ
    * @param dsp 実効アドレス
-   * @returns 読み出した値
+   * @return 読み出した値
    */
   private loadOperand(addrMode: number, rx: number, dsp: number): number {
     switch (addrMode) {
@@ -153,15 +149,13 @@ export class Cpu {
       case addrmode.INDEXED:
         return this.memory.read16(dsp);
       case addrmode.IMMEDIATE:
-        // 命令の次のワードがそのままオペランドになる
-        return this.memory.read16(this.psw.getPC() + 2);
+        return this.memory.read16(this.psw.getPC() + 2); // 命令の次のワードがオペランド
       case addrmode.FP_RELATIVE:
         return this.memory.read16(dsp);
       case addrmode.REG_TO_REG:
-        return this.readReg(rx);
+        return this.readReg(rx); // rxレジスタの内容がオペランド
       case addrmode.SHORT_IMMEDIATE:
-        // rxの値がそのままオペランドになる
-        return this.extSignedInt4(rx);
+        return this.extSignedInt4(rx); // rxの値がオペランド
       case addrmode.REG_INDIRECT:
         return this.memory.read16(dsp);
       case addrmode.BYTE_REG_INDIRECT:
@@ -249,7 +243,7 @@ export class Cpu {
     // ST命令ではrdがディスティネーションではなくソースとなる
     const data = this.readReg(inst.rd);
 
-    if (inst.addrMode == addrmode.BYTE_REG_INDIRECT) {
+    if (inst.addrMode === addrmode.BYTE_REG_INDIRECT) {
       // バイト・レジスタインダイレクトモードのときは, データの下位8ビットのみを書き込む
       this.memory.write8(inst.ea, 0x00ff & data);
     } else {
@@ -270,6 +264,7 @@ export class Cpu {
     this.changeFlag(inst.opcode, ans, v1, v2);
 
     if (inst.opcode !== opcode.CMP) {
+      // CMP命令は値の代入を行わない(フラグ変化のみ)
       this.writeReg(inst.rd, ans);
     }
 
@@ -507,7 +502,7 @@ export class Cpu {
       flags |= flag.SIGN;
     }
 
-    if ((ans & 0xffff) == 0) {
+    if ((ans & 0xffff) === 0) {
       flags |= flag.ZERO;
     }
 
@@ -564,8 +559,8 @@ export class Cpu {
    * @param num レジスタ番号
    * @return 指定した番号のレジスタの内容
    */
-  private readReg(num: number) {
-    if (num == regNum.FLAG) {
+  private readReg(num: number): number {
+    if (num === regNum.FLAG) {
       return this.psw.getFlags();
     }
     return this.register.read(num);
@@ -577,15 +572,15 @@ export class Cpu {
    * @param num レジスタ番号
    * @param val 書き込みたいデータ
    */
-  private writeReg(num: number, val: number) {
-    if (num == regNum.FLAG) {
+  private writeReg(num: number, val: number): void {
+    if (num === regNum.FLAG) {
       this.psw.setFlags(val);
     } else {
       this.register.write(num, val);
     }
   }
 
-  reset() {
+  reset(): void {
     this.isHalt = false;
   }
 }
