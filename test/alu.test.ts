@@ -1,6 +1,6 @@
 import { Alu } from '../src/renderer/TaC/cpu/alu';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
-import * as intr from '../src/renderer/TaC/interrupt/interruptNum';
+import * as intr from '../src/renderer/TaC/interrupt/interruptKind';
 import * as opcode from '../src/renderer/TaC/cpu/const/opcode';
 
 test('Alu calculation test', () => {

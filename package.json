@@ -4,20 +4,20 @@
   "description": "TaC simulator written by TypeScript",
   "main": "dist/main.js",
   "scripts": {
-    "clean": "rimraf dist && rimraf TacSimulator",
+    "start": "electron .",
     "compile": "run-p compile:*",
     "compile:main": "tsc --project tsconfig.main.json",
     "compile:renderer": "webpack",
     "dev": "cross-env NODE_ENV=\"development\" run-s compile start",
-    "start": "electron .",
-    "package:mac": "electron-builder --mac --x64",
-    "package:win": "electron-builder --win --x64",
     "build:mac": "cross-env NODE_ENV=\"production\" run-s compile package:mac",
     "build:win": "cross-env NODE_ENV=\"production\" run-s compile package:win",
+    "package:mac": "electron-builder --mac --x64",
+    "package:win": "electron-builder --win --x64",
     "test": "jest",
     "coverage": "jest --coverage",
     "lint": "eslint ./src/**/*.ts",
-    "fmt": "prettier --write ./src/**/* && prettier --write ./public/**/*.{html,css}"
+    "fmt": "prettier --write ./src/**/* && prettier --write ./public/**/*.{html,css}",
+    "clean": "rimraf dist && rimraf TacSimulator"
   },
   "repository": {
     "type": "git",

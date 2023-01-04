@@ -2,7 +2,7 @@ import { Memory } from '../src/renderer/TaC/memory/memory';
 import { Mmu } from '../src/renderer/TaC/memory/mmu';
 import { Psw } from '../src/renderer/TaC/cpu/psw';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
-import * as intr from '../src/renderer/TaC/interrupt/interruptNum';
+import * as intr from '../src/renderer/TaC/interrupt/interruptKind';
 
 test('Memory read/write test', () => {
   const memory = new Memory();

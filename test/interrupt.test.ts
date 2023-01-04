@@ -1,5 +1,5 @@
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
-import * as intr from '../src/renderer/TaC/interrupt/interruptNum';
+import * as intr from '../src/renderer/TaC/interrupt/interruptKind';
 
 test('Interrupt test', () => {
   const intrController = new IntrController();

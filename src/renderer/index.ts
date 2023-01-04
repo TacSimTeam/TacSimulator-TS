@@ -4,6 +4,7 @@ import { querySelector } from './util/dom.result';
 const canvas = querySelector<HTMLCanvasElement>('#console').unwrap();
 const terminal = querySelector<HTMLTextAreaElement>('#terminal').unwrap();
 
+// eslint-disable-next-line
 const tac = new Tac(canvas, terminal);
 
 const btnOpen = querySelector<HTMLButtonElement>('#btn-openFile').unwrap();

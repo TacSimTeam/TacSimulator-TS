@@ -1,3 +1,4 @@
 src/main/**/*
 test/**/*
 webpack.config.ts
+jest.config.ts
