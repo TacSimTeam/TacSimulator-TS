@@ -1,4 +1,11 @@
-import { IIOHostController, IIOTimer, IIOSerial, IIOConsole, IIOSdHostController, IIOMmu } from '../interface';
+import {
+  IIOHostController,
+  IIOTimer,
+  IIOSerial,
+  IIOConsole,
+  IIOSdHostController,
+  IIOMmu,
+} from '../interface';
 import * as io from './ioMapAddr';
 
 export class IOHostController implements IIOHostController {

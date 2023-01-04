@@ -36,7 +36,7 @@ export interface IIOMmu {
 
   /**
    * メモリ保護違反が発生したときに原因となった論理アドレスを取得する
-   * 
+   *
    * @return メモリ保護違反の原因となった論理アドレス
    */
   getErrorAddr(): number;

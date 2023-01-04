@@ -43,9 +43,23 @@ export class Tac {
     this.sdHost = new SdHostController(this.memory, this.intrController);
     this.console = new Console(canvas, this.memory, this.psw, this.register);
 
-    this.ioHost = new IOHostController(this.timer0, this.timer1, this.serialIO, this.sdHost, this.mmu, this.console);
+    this.ioHost = new IOHostController(
+      this.timer0,
+      this.timer1,
+      this.serialIO,
+      this.sdHost,
+      this.mmu,
+      this.console
+    );
 
-    this.cpu = new Cpu(this.mmu, this.register, this.psw, this.psw, this.intrController, this.ioHost);
+    this.cpu = new Cpu(
+      this.mmu,
+      this.register,
+      this.psw,
+      this.psw,
+      this.intrController,
+      this.ioHost
+    );
 
     this.cpuEventId = null;
     this.terminal = terminal;
@@ -82,7 +96,10 @@ export class Tac {
    */
   private initButtonEvent(): void {
     this.console.setRunBtnFunc(() => {
-      this.breakAddr = parseInt(querySelector<HTMLInputElement>('#break-address').unwrap().value, 16);
+      this.breakAddr = parseInt(
+        querySelector<HTMLInputElement>('#break-address').unwrap().value,
+        16
+      );
       this.console.setRunLED(true);
       this.run();
     });

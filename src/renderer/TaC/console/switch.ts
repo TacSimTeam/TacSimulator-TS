@@ -57,7 +57,11 @@ export class Switch implements IConsoleComponent {
       this.ctx.beginPath();
       this.ctx.rect(
         this.posX + SWITCH_BASE_WIDTH / 2 - SWITCH_BODY_WIDTH / 2,
-        this.posY + SWITCH_BASE_HEIGHT / 2 - SWITCH_BODY_WIDTH / 2 - SWITCH_BODY_HEIGHT - SWITCH_HEAD_HEIGHT,
+        this.posY +
+          SWITCH_BASE_HEIGHT / 2 -
+          SWITCH_BODY_WIDTH / 2 -
+          SWITCH_BODY_HEIGHT -
+          SWITCH_HEAD_HEIGHT,
         SWITCH_BODY_WIDTH,
         SWITCH_HEAD_HEIGHT
       );

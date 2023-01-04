@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8"/>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"/>
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"/>
-    <link href="style.css" rel="stylesheet"/>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+    <link href="style.css" rel="stylesheet" />
     <title>TaC Simulator</title>
   </head>
 
@@ -13,18 +13,16 @@
       <div class="content-area">
         <div class="console-area">
           <canvas height="390px" width="430px" id="console"> TeC7コンソール </canvas>
-          <img src="image/TaC.png" id="console-image"/>
+          <img src="image/TaC.png" id="console-image" />
         </div>
         <div class="debugprint-area">
           <div class="openfile-area">
-            <button type="button" id="btn-openFile">Open microSD image file</button> <br>
-            File path: <strong id="filePath">ファイルが選択されていません</strong>            
+            <button type="button" id="btn-openFile">Open microSD image file</button> <br />
+            File path: <strong id="filePath">ファイルが選択されていません</strong>
           </div>
 
-          <div class="breakpoint-area">
-            BREAKPOINT : <input type="text" id="break-address"/>
-          </div>
-          
+          <div class="breakpoint-area">BREAKPOINT : <input type="text" id="break-address" /></div>
+
           <div class="register-print-area">
             <table id="reg-table">
               <tbody>
@@ -77,7 +75,7 @@
                   <td class="reg-table-value" id="reg-value-MA">0x0000</td>
                 </tr>
               </tbody>
-            </table>            
+            </table>
           </div>
         </div>
       </div>

@@ -29,13 +29,25 @@ export class Button implements IConsoleComponent {
   draw(): void {
     // ボタンのふち(黒)の描画
     this.ctx.beginPath();
-    this.ctx.arc(this.posX + BUTTON_WIDTH / 2, this.posY + BUTTON_HEIGHT / 2, BUTTON_RADIUS + 2, 0, Math.PI * 2);
+    this.ctx.arc(
+      this.posX + BUTTON_WIDTH / 2,
+      this.posY + BUTTON_HEIGHT / 2,
+      BUTTON_RADIUS + 2,
+      0,
+      Math.PI * 2
+    );
     this.ctx.fillStyle = BUTTON_COLOR_EDGE;
     this.ctx.fill();
 
     // ボタン(白に近い灰色)の描画
     this.ctx.beginPath();
-    this.ctx.arc(this.posX + BUTTON_WIDTH / 2, this.posY + BUTTON_HEIGHT / 2, BUTTON_RADIUS, 0, Math.PI * 2);
+    this.ctx.arc(
+      this.posX + BUTTON_WIDTH / 2,
+      this.posY + BUTTON_HEIGHT / 2,
+      BUTTON_RADIUS,
+      0,
+      Math.PI * 2
+    );
     this.ctx.fillStyle = BUTTON_COLOR_BODY;
     this.ctx.fill();
   }

@@ -1,4 +1,11 @@
-import { IDataBus, IIntrController, IIOHostController, IRegister, IPsw, IPrivModeSignal } from '../interface';
+import {
+  IDataBus,
+  IIntrController,
+  IIOHostController,
+  IRegister,
+  IPsw,
+  IPrivModeSignal,
+} from '../interface';
 import { TlbMissError } from '../error';
 import { Alu } from './alu';
 import { Instruction } from './instruction/instruction';
