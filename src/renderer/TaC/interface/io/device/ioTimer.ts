@@ -3,21 +3,21 @@
  */
 export interface IIOTimer {
   /**
+   * タイマーをスタートする
+   */
+  start(): void;
+
+  /**
+   * タイマーをストップする
+   */
+  stop(): void;
+
+  /**
    * タイマーの現在値を取得する
    *
    * @return タイマーのカウンタの現在値
    */
   getCounter(): number;
-
-  /**
-   * カウンタの値と周期レジスタの値が一致すると
-   * 1になるフラグの値を取得する
-   *
-   * 読み出されるとリセットされる
-   *
-   * @return カウンタの値と周期の値が一致したならtrue
-   */
-  isMatched(): boolean;
 
   /**
    * タイマーの周期を設定する
@@ -34,12 +34,12 @@ export interface IIOTimer {
   setIntrFlag(flag: boolean): void;
 
   /**
-   * タイマーをスタートする
+   * カウンタの値と周期レジスタの値が一致すると
+   * 1になるフラグの値を取得する
+   *
+   * 読み出されるとリセットされる
+   *
+   * @return カウンタの値と周期の値が一致したならtrue
    */
-  start(): void;
-
-  /**
-   * タイマーをストップする
-   */
-  stop(): void;
+  isMatched(): boolean;
 }

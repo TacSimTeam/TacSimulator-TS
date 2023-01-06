@@ -18,13 +18,6 @@ export class Register implements IRegister {
     this.reset();
   }
 
-  reset(): void {
-    this.generals.fill(0);
-    this.fp = 0;
-    this.ssp = 0;
-    this.usp = 0;
-  }
-
   read(num: number): number {
     switch (num) {
       case 12:
@@ -60,5 +53,12 @@ export class Register implements IRegister {
       default:
         this.generals[num] = val & 0xffff;
     }
+  }
+
+  reset(): void {
+    this.generals.fill(0);
+    this.fp = 0;
+    this.ssp = 0;
+    this.usp = 0;
   }
 }

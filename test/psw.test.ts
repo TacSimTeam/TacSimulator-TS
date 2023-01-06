@@ -16,7 +16,9 @@ test('PSW PC += 2 test', () => {
   psw['pc'] = 0xfffe;
   psw.nextPC();
   expect(console.warn).toBeCalled();
-  expect(spyLog.mock.calls[0][0]).toEqual('このnextPC()呼び出しによって、PCの値が0xffffを超えてしまいます');
+  expect(spyLog.mock.calls[0][0]).toEqual(
+    'このnextPC()呼び出しによって、PCの値が0xffffを超えてしまいます'
+  );
 
   spyLog.mockRestore();
 });
@@ -52,17 +54,17 @@ test('PSW jump test', () => {
 test('PSW evaluation flag test', () => {
   const psw = new Psw();
 
-  expect(psw.evalFlag(flag.ZERO)).toBe(false);
+  expect(psw.checkFlag(flag.ZERO)).toBe(false);
   psw['flags'] = flag.ZERO;
-  expect(psw.evalFlag(flag.ZERO)).toBe(true);
+  expect(psw.checkFlag(flag.ZERO)).toBe(true);
 
-  expect(psw.evalFlag(flag.SIGN)).toBe(false);
+  expect(psw.checkFlag(flag.SIGN)).toBe(false);
   psw['flags'] |= flag.SIGN;
-  expect(psw.evalFlag(flag.SIGN)).toBe(true);
+  expect(psw.checkFlag(flag.SIGN)).toBe(true);
 
-  expect(psw.evalFlag(flag.ENABLE_INTR)).toBe(false);
+  expect(psw.checkFlag(flag.ENABLE_INTR)).toBe(false);
   psw['flags'] |= flag.ENABLE_INTR;
-  expect(psw.evalFlag(flag.ENABLE_INTR)).toBe(true);
+  expect(psw.checkFlag(flag.ENABLE_INTR)).toBe(true);
 });
 
 test('PSW get privileged mode flag test', () => {

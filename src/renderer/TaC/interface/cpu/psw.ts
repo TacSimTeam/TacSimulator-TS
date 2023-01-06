@@ -42,11 +42,5 @@ export interface IPsw {
    *             例) Iビットを確認したいなら00100000
    * @return フラグが1ならtrue
    */
-  evalFlag(flag: number): boolean;
-
-  /**
-   * PSWの中身をリセットする
-   * pcは0xe000, flagsはPフラグのみ立っている状態になる
-   */
-  reset(): void;
+  checkFlag(flag: number): boolean;
 }

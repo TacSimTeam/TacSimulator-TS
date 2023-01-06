@@ -3,32 +3,6 @@
  */
 export interface IIOSdHostController {
   /**
-   * アイドル状態かどうか確認する
-   *
-   * @return アイドル状態ならtrue
-   */
-  isIdle(): boolean;
-
-  /**
-   * エラーが発生したかどうか確認する
-   *
-   * @return エラーが発生しているならtrue
-   */
-  isErrorOccurred(): boolean;
-
-  /**
-   * 処理終了時の割込みを許可するかどうかのフラグを設定する
-   *
-   * @param flag 割込み許可フラグ
-   */
-  setIntrFlag(flag: boolean): void;
-
-  /**
-   * SDホストコントローラの内部変数を初期化する
-   */
-  init(): void;
-
-  /**
    * SDからの読み込みを開始する
    */
   startReading(): void;
@@ -53,6 +27,16 @@ export interface IIOSdHostController {
   setMemAddr(addr: number): void;
 
   /**
+   * データを読み書きするセクタのLBA方式の32bitのアドレスの上位16bitを取得する
+   */
+  getSecAddrH(): number;
+
+  /**
+   * データを読み書きするセクタのLBA方式の32bitのアドレスの下位16bitを取得する
+   */
+  getSecAddrL(): number;
+
+  /**
    * データを読み書きするセクタのLBA方式の32bitのアドレスの上位16bitを設定する
    *
    * @param addrH セクタアドレス上位16bit
@@ -67,12 +51,28 @@ export interface IIOSdHostController {
   setSecAddrL(addrL: number): void;
 
   /**
-   * データを読み書きするセクタのLBA方式の32bitのアドレスの上位16bitを取得する
+   * 処理終了時の割込みを許可するかどうかのフラグを設定する
+   *
+   * @param flag 割込み許可フラグ
    */
-  getSecAddrH(): number;
+  setIntrFlag(flag: boolean): void;
 
   /**
-   * データを読み書きするセクタのLBA方式の32bitのアドレスの下位16bitを取得する
+   * アイドル状態かどうか確認する
+   *
+   * @return アイドル状態ならtrue
    */
-  getSecAddrL(): number;
+  isIdle(): boolean;
+
+  /**
+   * エラーが発生したかどうか確認する
+   *
+   * @return エラーが発生しているならtrue
+   */
+  isErrorOccurred(): boolean;
+
+  /**
+   * SDホストコントローラの内部変数を初期化する
+   */
+  init(): void;
 }

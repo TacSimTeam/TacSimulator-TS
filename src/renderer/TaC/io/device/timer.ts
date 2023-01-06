@@ -20,6 +20,21 @@ export class Timer implements IIOTimer {
     this.intrSignal = intrSignal;
   }
 
+  start(): void {
+    this.clear();
+
+    // 1ms毎にroutine()関数を呼ぶ
+    // JavaScriptの仕様上, 実際には遅延があり2ms~4ms程になる
+    // 2022-12-23時点ではタイマーの正確さは妥協して実装した
+    this.intervalId = setInterval(() => {
+      this.routine();
+    }, 1);
+  }
+
+  stop(): void {
+    this.clear();
+  }
+
   getCounter(): number {
     return this.count;
   }
@@ -37,30 +52,7 @@ export class Timer implements IIOTimer {
     this.intrFlag = flag;
   }
 
-  start(): void {
-    this.clear();
-
-    // 1ms毎にroutine()関数を呼ぶ
-    // JavaScriptの仕様上, 実際には遅延があり2ms~4ms程になる
-    // 2022-12-23時点ではタイマーの正確さは妥協して実装した
-    this.intervalId = setInterval(() => {
-      this.routine();
-    }, 1);
-  }
-
-  stop(): void {
-    this.clear();
-  }
-
-  reset(): void {
-    this.clear();
-    this.count = 0;
-    this.cycle = 0;
-    this.matchFlag = false;
-    this.intrFlag = false;
-  }
-
-  clear(): void {
+  private clear(): void {
     if (this.intervalId !== null) {
       clearInterval(this.intervalId);
     }
@@ -79,5 +71,13 @@ export class Timer implements IIOTimer {
     } else {
       this.count++;
     }
+  }
+
+  reset(): void {
+    this.clear();
+    this.count = 0;
+    this.cycle = 0;
+    this.matchFlag = false;
+    this.intrFlag = false;
   }
 }

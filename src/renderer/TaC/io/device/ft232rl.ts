@@ -29,6 +29,12 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     this.intrSignal = intrSignal;
   }
 
+  receive(): number {
+    // bufのデータを受信し終えたのでbufを空として扱っていい
+    this.emptyFlag = true;
+    return this.buf;
+  }
+
   send(val: number): void {
     if (val === 0x08) {
       // バックスペースなら末尾を削除する
@@ -48,20 +54,6 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     }
   }
 
-  receive(): number {
-    // bufのデータを受信し終えたのでbufを空として扱っていい
-    this.emptyFlag = true;
-    return this.buf;
-  }
-
-  isWriteable(): boolean {
-    return this.emptyFlag;
-  }
-
-  isReadable(): boolean {
-    return !this.emptyFlag;
-  }
-
   // setSendableIntrFlag()とsetReceivableIntrFlag()についてのメモ
   //
   // 実際のTaCではSIO内の割込み許可フラグとemptyフラグのANDの
@@ -70,6 +62,13 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   // シミュレータ内では、割込み許可フラグが変更された時に
   // 割込み許可フラグとemptyフラグの両方がtrueであれば, 割込みを発生させる
 
+  setReceivableIntrFlag(flag: boolean): void {
+    this.receivableIntrFlag = flag;
+    if (this.receivableIntrFlag && !this.emptyFlag) {
+      this.intrSignal.interrupt(FT232RL_RECEIVED);
+    }
+  }
+
   setSendableIntrFlag(flag: boolean): void {
     this.sendableIntrFlag = flag;
     if (this.sendableIntrFlag && this.emptyFlag) {
@@ -77,11 +76,12 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     }
   }
 
-  setReceivableIntrFlag(flag: boolean): void {
-    this.receivableIntrFlag = flag;
-    if (this.receivableIntrFlag && !this.emptyFlag) {
-      this.intrSignal.interrupt(FT232RL_RECEIVED);
-    }
+  isReadable(): boolean {
+    return !this.emptyFlag;
+  }
+
+  isWriteable(): boolean {
+    return this.emptyFlag;
   }
 
   inputKeyDown(e: KeyboardEvent): void {

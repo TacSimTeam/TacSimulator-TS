@@ -3,18 +3,18 @@
  */
 export interface IIOConsole {
   /**
-   * データスイッチの値を取得する
-   *
-   * @return データSWの値(SWがONになっている位置のbitが1)
-   */
-  getDataSwitch(): number;
-
-  /**
    * Memory Address Registerの値を取得する
    *
    * @return MAレジスタの値
    */
   getMemAddr(): number;
+
+  /**
+   * データスイッチの値を取得する
+   *
+   * @return データSWの値(SWがONになっている位置のbitが1)
+   */
+  getDataSwitch(): number;
 
   /**
    * ロータリSWの位置を取得する

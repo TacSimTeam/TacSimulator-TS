@@ -11,24 +11,20 @@ export class Memory implements IDmaSignal {
     this.mem = new Uint8Array(this.size);
   }
 
-  write8(addr: number, val: number): void {
-    this.mem[addr] = val;
-  }
-
   read8(addr: number): number {
     return this.mem[addr];
   }
 
-  write16(addr: number, val: number): void {
-    this.write8(addr, (val & 0xff00) >> 8);
-    this.write8(addr + 1, val & 0x00ff);
+  write8(addr: number, val: number): void {
+    this.mem[addr] = val;
   }
 
   read16(addr: number): number {
     return (this.read8(addr) << 8) | this.read8(addr + 1);
   }
 
-  getMemorySize(): number {
-    return this.size;
+  write16(addr: number, val: number): void {
+    this.write8(addr, (val & 0xff00) >> 8);
+    this.write8(addr + 1, val & 0x00ff);
   }
 }

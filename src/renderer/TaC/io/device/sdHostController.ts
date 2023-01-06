@@ -25,27 +25,6 @@ export class SdHostController implements IIOSdHostController {
     this.intrSignal = intrSignal;
   }
 
-  isIdle(): boolean {
-    return this.idleFlag;
-  }
-
-  isErrorOccurred(): boolean {
-    return this.errorFlag;
-  }
-
-  setIntrFlag(flag: boolean): void {
-    this.intrFlag = flag;
-  }
-
-  init(): void {
-    this.idleFlag = true;
-    this.errorFlag = false;
-    this.intrFlag = false;
-    this.memAddr = 0;
-    this.secAddrH = 0;
-    this.secAddrL = 0;
-  }
-
   startReading(): void {
     if (!this.idleFlag) {
       return;
@@ -107,20 +86,20 @@ export class SdHostController implements IIOSdHostController {
     this.memAddr = addr;
   }
 
-  setSecAddrH(addrH: number): void {
-    this.secAddrH = addrH;
-  }
-
-  setSecAddrL(addrL: number): void {
-    this.secAddrL = addrL;
-  }
-
   getSecAddrH(): number {
     return this.secAddrH;
   }
 
   getSecAddrL(): number {
     return this.secAddrL;
+  }
+
+  setSecAddrH(addrH: number): void {
+    this.secAddrH = addrH;
+  }
+
+  setSecAddrL(addrL: number): void {
+    this.secAddrL = addrL;
   }
 
   /**
@@ -130,6 +109,27 @@ export class SdHostController implements IIOSdHostController {
    */
   private secAddr(): number {
     return (this.secAddrH << 16) | this.secAddrL;
+  }
+
+  setIntrFlag(flag: boolean): void {
+    this.intrFlag = flag;
+  }
+
+  isIdle(): boolean {
+    return this.idleFlag;
+  }
+
+  isErrorOccurred(): boolean {
+    return this.errorFlag;
+  }
+
+  init(): void {
+    this.idleFlag = true;
+    this.errorFlag = false;
+    this.intrFlag = false;
+    this.memAddr = 0;
+    this.secAddrH = 0;
+    this.secAddrL = 0;
   }
 
   reset(): void {

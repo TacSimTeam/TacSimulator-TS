@@ -56,7 +56,7 @@ export class Cpu {
       return;
     }
 
-    if (this.psw.evalFlag(flag.ENABLE_INTR) || this.intrHost.isExceptionOccurred()) {
+    if (this.psw.checkFlag(flag.ENABLE_INTR) || this.intrHost.isExceptionOccurred()) {
       // 割込み許可フラグが1 or 例外発生ならば割込みの確認を行う
       const intrNum = this.intrHost.checkIntrNum();
 
@@ -282,10 +282,10 @@ export class Cpu {
   }
 
   private instrJump(inst: Instruction): void {
-    const zFlag = this.psw.evalFlag(flag.ZERO);
-    const cFlag = this.psw.evalFlag(flag.CARRY);
-    const sFlag = this.psw.evalFlag(flag.SIGN);
-    const vFlag = this.psw.evalFlag(flag.OVERFLOW);
+    const zFlag = this.psw.checkFlag(flag.ZERO);
+    const cFlag = this.psw.checkFlag(flag.CARRY);
+    const sFlag = this.psw.checkFlag(flag.SIGN);
+    const vFlag = this.psw.checkFlag(flag.OVERFLOW);
 
     switch (inst.rd) {
       case opcode.JMP_JZ:
@@ -418,7 +418,7 @@ export class Cpu {
   }
 
   private instrIn(inst: Instruction): void {
-    if (this.psw.evalFlag(flag.PRIV) || this.psw.evalFlag(flag.IO_PRIV)) {
+    if (this.psw.checkFlag(flag.PRIV) || this.psw.checkFlag(flag.IO_PRIV)) {
       this.writeReg(inst.rd, this.ioHost.input(inst.ea));
     } else {
       // ユーザーモードのときはIN命令は実行できない
@@ -432,7 +432,7 @@ export class Cpu {
   }
 
   private instrOut(inst: Instruction): void {
-    if (this.psw.evalFlag(flag.PRIV) || this.psw.evalFlag(flag.IO_PRIV)) {
+    if (this.psw.checkFlag(flag.PRIV) || this.psw.checkFlag(flag.IO_PRIV)) {
       this.ioHost.output(inst.ea, this.readReg(inst.rd));
     } else {
       // ユーザーモードのときOUT命令は実行できない
@@ -446,7 +446,7 @@ export class Cpu {
   }
 
   private instrHalt(): void {
-    if (this.psw.evalFlag(flag.PRIV)) {
+    if (this.psw.checkFlag(flag.PRIV)) {
       this.isHalt = true;
     } else {
       // 特権モード以外ではHALT命令は実行できない

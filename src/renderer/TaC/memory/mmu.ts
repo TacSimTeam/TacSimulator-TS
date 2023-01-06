@@ -36,10 +36,31 @@ export class Mmu implements IDataBus, IIOMmu {
     this.tlbMissPage = 0;
   }
 
-  initTlbEntries(): void {
+  private initTlbEntries(): void {
     for (let i = 0; i < TLB_ENTRY_SIZE; i++) {
       this.tlbs[i] = new TlbEntry(0);
     }
+  }
+
+  read8(addr: number): number {
+    // MMUが有効かつ特権モード以外ならp-f変換を行う
+    if (this.mmuMode && !this.privSig.getPrivFlag()) {
+      const page = (addr & 0xff00) >> 8;
+      const entry = this.searchTlbNum(page);
+
+      if (entry === null) {
+        this.reportTlbMissError(page);
+        throw new TlbMissError();
+      } else if (!this.tlbs[entry].isReadable()) {
+        this.reportMemVioError(addr);
+        return 0;
+      }
+
+      const frame = this.tlbs[entry].getFrame();
+      addr = (frame << 8) | (addr & 0x00ff);
+    }
+
+    return this.memory.read8(addr);
   }
 
   write8(addr: number, val: number): void {
@@ -68,7 +89,12 @@ export class Mmu implements IDataBus, IIOMmu {
     this.memory.write8(addr, val);
   }
 
-  read8(addr: number): number {
+  read16(addr: number): number {
+    if (addr % 2 === 1) {
+      this.reportBadAddrError(addr);
+      return 0;
+    }
+
     // MMUが有効かつ特権モード以外ならp-f変換を行う
     if (this.mmuMode && !this.privSig.getPrivFlag()) {
       const page = (addr & 0xff00) >> 8;
@@ -86,7 +112,7 @@ export class Mmu implements IDataBus, IIOMmu {
       addr = (frame << 8) | (addr & 0x00ff);
     }
 
-    return this.memory.read8(addr);
+    return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
   }
 
   write16(addr: number, val: number): void {
@@ -118,32 +144,6 @@ export class Mmu implements IDataBus, IIOMmu {
 
     this.memory.write8(addr, (val & 0xff00) >> 8);
     this.memory.write8(addr + 1, val & 0x00ff);
-  }
-
-  read16(addr: number): number {
-    if (addr % 2 === 1) {
-      this.reportBadAddrError(addr);
-      return 0;
-    }
-
-    // MMUが有効かつ特権モード以外ならp-f変換を行う
-    if (this.mmuMode && !this.privSig.getPrivFlag()) {
-      const page = (addr & 0xff00) >> 8;
-      const entry = this.searchTlbNum(page);
-
-      if (entry === null) {
-        this.reportTlbMissError(page);
-        throw new TlbMissError();
-      } else if (!this.tlbs[entry].isReadable()) {
-        this.reportMemVioError(addr);
-        return 0;
-      }
-
-      const frame = this.tlbs[entry].getFrame();
-      addr = (frame << 8) | (addr & 0x00ff);
-    }
-
-    return (this.memory.read8(addr) << 8) | this.memory.read8(addr + 1);
   }
 
   fetch(pc: number): number {
@@ -204,22 +204,12 @@ export class Mmu implements IDataBus, IIOMmu {
     this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
   }
 
-  loadIpl(): void {
-    if (this.iplMode) {
-      return;
-    }
-
-    for (let i = 0; i < ipl.length; i++) {
-      this.write16(0xe000 + i * 2, ipl[i]);
-    }
-    this.iplMode = true;
+  getTlbHigh8(entryNum: number): number {
+    return this.tlbs[entryNum].getHigh8();
   }
 
-  detachIpl(): void {
-    this.iplMode = false;
-    for (let i = 0xe000; i <= 0xffff; i++) {
-      this.memory.write8(i, 0);
-    }
+  getTlbLow16(entryNum: number): number {
+    return this.tlbs[entryNum].getLow16();
   }
 
   setTlbHigh8(entryNum: number, val: number): void {
@@ -228,14 +218,6 @@ export class Mmu implements IDataBus, IIOMmu {
 
   setTlbLow16(entryNum: number, val: number): void {
     this.tlbs[entryNum].setLow16(val);
-  }
-
-  getTlbHigh8(entryNum: number): number {
-    return this.tlbs[entryNum].getHigh8();
-  }
-
-  getTlbLow16(entryNum: number): number {
-    return this.tlbs[entryNum].getLow16();
   }
 
   getErrorAddr(): number {
@@ -257,6 +239,24 @@ export class Mmu implements IDataBus, IIOMmu {
 
   enable(): void {
     this.mmuMode = true;
+  }
+
+  detachIpl(): void {
+    this.iplMode = false;
+    for (let i = 0xe000; i <= 0xffff; i++) {
+      this.memory.write8(i, 0);
+    }
+  }
+
+  loadIpl(): void {
+    if (this.iplMode) {
+      return;
+    }
+
+    for (let i = 0; i < ipl.length; i++) {
+      this.write16(0xe000 + i * 2, ipl[i]);
+    }
+    this.iplMode = true;
   }
 
   reset(): void {

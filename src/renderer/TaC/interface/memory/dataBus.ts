@@ -6,15 +6,26 @@
  */
 export interface IDataBus {
   /**
-   * 16bitのデータをメモリに書き込む
+   * バイトデータをメモリから読み込む
    *
-   * 以下の状況のときはErrorをthrowするので処理する必要がある
-   * - TLBミスが発生したとき
+   * バイト・レジスタインダイレクトモードでしか使わないので
+   * 基本的にはread16()を使ってください
+   *
+   * @param addr 読み込むデータのアドレス
+   * @return 8bitデータ
+   */
+  read8(addr: number): number;
+
+  /**
+   * バイトデータをメモリに書き込む
+   *
+   * バイト・レジスタインダイレクトモードでしか使わないので
+   * 基本的にはwrite16()を使ってください
    *
    * @param addr 書き込み先のアドレス
-   * @param val  書き込みたい16bitデータ
+   * @param val  書き込みたい8bitデータ
    */
-  write16(addr: number, val: number): void;
+  write8(addr: number, val: number): void;
 
   /**
    * 16bitのデータをメモリから読み込む
@@ -26,6 +37,17 @@ export interface IDataBus {
    * @return 16bitデータ
    */
   read16(addr: number): number;
+
+  /**
+   * 16bitのデータをメモリに書き込む
+   *
+   * 以下の状況のときはErrorをthrowするので処理する必要がある
+   * - TLBミスが発生したとき
+   *
+   * @param addr 書き込み先のアドレス
+   * @param val  書き込みたい16bitデータ
+   */
+  write16(addr: number, val: number): void;
 
   /**
    * 16bitのデータをメモリから読み込む
@@ -40,26 +62,4 @@ export interface IDataBus {
    * @return 16bitデータ
    */
   fetch(pc: number): number;
-
-  /**
-   * バイトデータをメモリに書き込む
-   *
-   * バイト・レジスタインダイレクトモードでしか使わないので
-   * 基本的にはwrite16()を使ってください
-   *
-   * @param addr 書き込み先のアドレス
-   * @param val  書き込みたい8bitデータ
-   */
-  write8(addr: number, val: number): void;
-
-  /**
-   * バイトデータをメモリから読み込む
-   *
-   * バイト・レジスタインダイレクトモードでしか使わないので
-   * 基本的にはread16()を使ってください
-   *
-   * @param addr 読み込むデータのアドレス
-   * @return 8bitデータ
-   */
-  read8(addr: number): number;
 }

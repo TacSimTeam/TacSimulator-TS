@@ -344,12 +344,12 @@ export class Console implements IIOConsole {
 
   // I/O機器としてのインターフェース
 
-  getDataSwitch(): number {
-    return this.readSwValue();
-  }
-
   getMemAddr(): number {
     return this.memAddr;
+  }
+
+  getDataSwitch(): number {
+    return this.readSwValue();
   }
 
   getRotSwitch(): number {
