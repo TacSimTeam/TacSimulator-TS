@@ -1,4 +1,4 @@
-import { IIntrController } from '../interface/';
+import { IIntrController } from '../interface';
 import * as intr from './interruptKind';
 
 export class IntrController implements IIntrController {

@@ -1,9 +1,9 @@
 import { IConsoleComponent, IDmaSignal, IIOConsole, IPsw, IRegister } from '../interface';
-import { querySelector } from '../../util/dom.result';
 import { Button } from './button';
-import { Switch } from './switch';
 import { Led } from './led';
+import { Switch } from './switch';
 import { Speaker } from './speaker';
+import { querySelector } from '../../util/dom.result';
 
 export class Console implements IIOConsole {
   private ctx: CanvasRenderingContext2D;

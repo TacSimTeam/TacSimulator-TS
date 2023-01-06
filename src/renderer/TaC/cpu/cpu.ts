@@ -6,13 +6,13 @@ import {
   IPsw,
   IPrivModeSignal,
 } from '../interface';
-import { TlbMissError } from '../error';
 import { Alu } from './alu';
 import { Instruction } from './instruction/instruction';
-import * as opcode from './const/opcode';
+import { TlbMissError } from '../error';
 import * as addrmode from './const/addrmode';
-import * as regNum from './const/regNum';
 import * as flag from './const/flag';
+import * as opcode from './const/opcode';
+import * as regNum from './const/regNum';
 import * as intr from '../interrupt/interruptKind';
 
 const INTERRUPT_VECTOR = 0xffe0;

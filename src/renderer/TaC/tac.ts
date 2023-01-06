@@ -1,9 +1,9 @@
-import { Memory } from './memory/memory';
-import { Mmu } from './memory/mmu';
-import { IntrController } from './interrupt/intrController';
 import { Cpu } from './cpu/cpu';
+import { IntrController } from './interrupt/intrController';
 import { Psw } from './cpu/psw';
 import { Register } from './cpu/register';
+import { Memory } from './memory/memory';
+import { Mmu } from './memory/mmu';
 import { IOHostController } from './io/ioHostController';
 import { Timer } from './io/device/timer';
 import { Ft232rl } from './io/device/ft232rl';

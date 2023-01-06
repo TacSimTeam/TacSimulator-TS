@@ -1,5 +1,5 @@
-import { IKeyboardDriver } from '../../../interface/keyboardDriver';
 import { IIOSerial, IIntrSignal } from '../../interface';
+import { IKeyboardDriver } from '../../../interface/keyboardDriver';
 import { FT232RL_RECEIVED, FT232RL_SENT } from '../../interrupt/interruptKind';
 
 /**

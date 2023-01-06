@@ -1,6 +1,6 @@
 import { IDataBus, IDmaSignal, IIntrSignal, IIOMmu, IPrivModeSignal } from '../interface';
-import { ipl } from '../ipl';
 import { TlbEntry } from './tlb';
+import { ipl } from '../ipl';
 import { TlbMissError, ReadonlyError } from '../error';
 import * as intr from '../interrupt/interruptKind';
 
