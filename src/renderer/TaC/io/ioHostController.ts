@@ -12,6 +12,7 @@ export class IOHostController implements IIOHostController {
   private timer0: IIOTimer;
   private timer1: IIOTimer;
   private ft232rl: IIOSerial;
+  private rn4020: IIOSerial;
   private sd: IIOSdHostController;
   private mmu: IIOMmu;
   private console: IIOConsole;
@@ -20,6 +21,7 @@ export class IOHostController implements IIOHostController {
     timer0: IIOTimer,
     timer1: IIOTimer,
     ft232rl: IIOSerial,
+    rn4020: IIOSerial,
     sd: IIOSdHostController,
     mmu: IIOMmu,
     console: IIOConsole
@@ -27,6 +29,7 @@ export class IOHostController implements IIOHostController {
     this.timer0 = timer0;
     this.timer1 = timer1;
     this.ft232rl = ft232rl;
+    this.rn4020 = rn4020;
     this.sd = sd;
     this.mmu = mmu;
     this.console = console;
@@ -80,6 +83,20 @@ export class IOHostController implements IIOHostController {
         return this.sd.getSecAddrL();
       case io.PIO_MODE_00:
         // 本当はジャンパから取得するが強制的にTaCモードで実行する
+        return 0x01;
+      case io.RN4020_RECEIVE_SERVE:
+        return this.rn4020.receive();
+      case io.RN4020_STAT_CTRL:
+        if (this.rn4020.isWriteable()) {
+          val |= 0x0080;
+        }
+        if (this.rn4020.isReadable()) {
+          val |= 0x0040;
+        }
+        return val;
+      case io.RN4020_00_COMMAND:
+        return 0x00;
+      case io.RN4020_CONNECTION:
         return 0x01;
       case io.MMU_TLB0HIGH:
         return this.mmu.getTlbHigh8(0);
@@ -216,6 +233,17 @@ export class IOHostController implements IIOHostController {
         break;
       case io.MICROSD_SECTORLOW:
         this.sd.setSecAddrL(val);
+        break;
+      case io.RN4020_RECEIVE_SERVE:
+        this.rn4020.send(val);
+        break;
+      case io.RN4020_STAT_CTRL:
+        this.rn4020.setSendableIntrFlag((val & 0x0080) !== 0);
+        this.rn4020.setReceivableIntrFlag((val & 0x0040) !== 0);
+        break;
+      case io.RN4020_00_COMMAND:
+        break;
+      case io.RN4020_CONNECTION:
         break;
       case io.MMU_TLB0HIGH:
         this.mmu.setTlbHigh8(0, val);
