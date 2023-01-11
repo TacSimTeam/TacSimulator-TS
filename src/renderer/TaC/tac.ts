@@ -137,18 +137,25 @@ export class Tac {
    */
   run(): void {
     const start = new Date();
+
+    // タイマーが一時停止している時は再開する
+    this.timer0.restart();
+    this.timer1.restart();
+
     for (;;) {
       this.cpu.run();
 
       if (this.console.getBreakSwitchValue() && this.psw.getPC() === this.breakAddr) {
         // BREAKスイッチがONかつBREAKするアドレスなので, 命令実行後一時停止
         this.update();
+        this.stop();
         return;
       }
 
       if (this.console.getStepSwitchValue()) {
         // STEPスイッチがONなので1命令ずつ実行
         this.update();
+        this.stop();
         return;
       }
 
@@ -193,6 +200,12 @@ export class Tac {
    * TaCの動作を停止する
    */
   private stop(): void {
+    console.log(this.ioHost);
+
+    // STOP中はタイマーを一時停止する
+    this.timer0.pause();
+    this.timer1.pause();
+
     if (this.cpuEventId !== null) {
       clearTimeout(this.cpuEventId);
     }
@@ -213,6 +226,7 @@ export class Tac {
     this.timer0.reset();
     this.timer1.reset();
     this.serialIO.reset();
+    this.logger.reset();
     this.sdHost.reset();
     this.mmu.loadIpl();
 

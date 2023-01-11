@@ -10,6 +10,8 @@ export class Timer implements IIOTimer {
   private intervalId: NodeJS.Timer | null; // NodeJSのタイマーのID
   private intrSignal: IIntrSignal; // 割込み信号
 
+  private pauseFlag: boolean; // TaCがSTOP状態になっているか
+
   constructor(timerNum: number, intrSignal: IIntrSignal) {
     this.count = 0;
     this.cycle = 0;
@@ -18,6 +20,8 @@ export class Timer implements IIOTimer {
     this.intrFlag = false;
     this.intervalId = null;
     this.intrSignal = intrSignal;
+
+    this.pauseFlag = false;
   }
 
   start(): void {
@@ -59,6 +63,12 @@ export class Timer implements IIOTimer {
   }
 
   private routine(): void {
+    if (this.pauseFlag) {
+      // もしTaCがSTOP状態(あるいはSTEP実行中)なら
+      // カウンタを進めずに終了する
+      return;
+    }
+
     if (this.count === this.cycle) {
       // カウンタの値と周期レジスタの値が一致したときは
       // カウンタをリセットし, フラグをtrueにする
@@ -73,11 +83,31 @@ export class Timer implements IIOTimer {
     }
   }
 
+  // tac.ts側から使用するインタフェース
+
+  /**
+   * TaCがSTOP状態になる時に呼び出す
+   *
+   * ポーズ中はタイマー処理は内部に存在するが
+   * カウンタが進まない状態になる(割込みも発生しない)
+   */
+  pause(): void {
+    this.pauseFlag = true;
+  }
+
+  /**
+   * TaCのSTOP状態が解除される時に呼び出す
+   */
+  restart(): void {
+    this.pauseFlag = false;
+  }
+
   reset(): void {
     this.clear();
     this.count = 0;
     this.cycle = 0;
     this.matchFlag = false;
     this.intrFlag = false;
+    this.pauseFlag = false;
   }
 }
