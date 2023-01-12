@@ -81,7 +81,14 @@ export class Cpu {
     const inst = this.decode(instData);
 
     // 実効アドレス計算
-    inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
+    try {
+      inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
+    } catch (e) {
+      if (e instanceof TlbMissError) {
+        // TLBMissが発生したのでPCを進めずに一旦戻す
+        return;
+      }
+    }
 
     // 命令実行(TLBミスが発生する可能性有り)
     try {
