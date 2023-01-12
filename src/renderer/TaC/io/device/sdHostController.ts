@@ -124,15 +124,19 @@ export class SdHostController implements IIOSdHostController {
   }
 
   init(): void {
+    // 実機ではmicroSDのドライバを初期化してから割込みを出すが
+    // シミュレータではすぐに割込みを出して終了
+    if (this.intrFlag) {
+      this.intrSignal.interrupt(intr.MICRO_SD);
+    }
+  }
+
+  reset(): void {
     this.idleFlag = true;
     this.errorFlag = false;
     this.intrFlag = false;
     this.memAddr = 0;
     this.secAddrH = 0;
     this.secAddrL = 0;
-  }
-
-  reset(): void {
-    this.init();
   }
 }
