@@ -16,8 +16,8 @@ export class Console implements IIOConsole {
   private components: IConsoleComponent[];
 
   private memAddr: number;
-
   private rotSwCur: number;
+  private runFlag: boolean;
 
   private addrLeds: Led[];
   private dataLeds: Led[];
@@ -55,6 +55,7 @@ export class Console implements IIOConsole {
 
     this.memAddr = 0;
     this.rotSwCur = 0;
+    this.runFlag = false;
 
     // コンソール部品の初期化
     this.addrLeds = new Array(8);
@@ -197,6 +198,12 @@ export class Console implements IIOConsole {
   }
 
   update(): void {
+    if (this.runFlag) {
+      // TaC実行中はLEDやロータリースイッチの状態を変化させない
+      this.drawAll();
+      return;
+    }
+
     this.updateRotSw();
     this.updateLED();
     this.drawAll();
@@ -377,11 +384,23 @@ export class Console implements IIOConsole {
     this.dataLeds[2].setState((val & (1 << 2)) !== 0);
     this.dataLeds[1].setState((val & (1 << 1)) !== 0);
     this.dataLeds[0].setState((val & (1 << 0)) !== 0);
+    this.drawAll();
   }
 
   // tac.ts側が使用するインターフェース
 
   onClick(posX: number, posY: number): void {
+    if (this.runFlag) {
+      // TaC実行中はRESET, STOPボタンとデータスイッチのみ有効
+      this.resetBtn.onClick(posX, posY);
+      this.stopBtn.onClick(posX, posY);
+      this.dataSws.forEach((element) => {
+        element.onClick(posX, posY);
+      });
+      this.update();
+      return;
+    }
+
     this.components.forEach((element) => {
       element.onClick(posX, posY);
     });
@@ -400,8 +419,9 @@ export class Console implements IIOConsole {
     return this.breakSw.getState();
   }
 
-  setRunLED(val: boolean): void {
+  setRunFlag(val: boolean): void {
     this.runLed.setState(val);
+    this.runFlag = val;
     this.update();
   }
 

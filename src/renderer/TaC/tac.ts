@@ -107,17 +107,17 @@ export class Tac {
         querySelector<HTMLInputElement>('#break-address').unwrap().value,
         16
       );
-      this.console.setRunLED(true);
+      this.console.setRunFlag(true);
       this.run();
     });
 
     this.console.setResetBtnFunc(() => {
-      this.console.setRunLED(false);
+      this.console.setRunFlag(false);
       this.reset();
     });
 
     this.console.setStopBtnFunc(() => {
-      this.console.setRunLED(false);
+      this.console.setRunFlag(false);
       this.stop();
       this.update();
     });
