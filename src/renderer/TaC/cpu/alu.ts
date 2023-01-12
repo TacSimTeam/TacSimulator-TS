@@ -65,6 +65,7 @@ export class Alu {
       this.intrSignal.interrupt(EXCP_ZERO_DIV);
       return 0;
     }
+
     return dividend % divisor;
   }
 

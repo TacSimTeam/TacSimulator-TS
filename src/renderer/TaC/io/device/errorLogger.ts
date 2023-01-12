@@ -64,4 +64,9 @@ export class ErrorLogger implements IIOSerial {
   isWriteable(): boolean {
     return true;
   }
+
+  reset(): void {
+    this.sendableIntrFlag = false;
+    this.errorText = '';
+  }
 }
