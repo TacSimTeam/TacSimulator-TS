@@ -18,15 +18,15 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   private buf: number; // 送受信するデータのバッファ
 
   private terminal: HTMLTextAreaElement; // HTMLから取得したターミナル
-  private intrSignal: IIntrSignal; // 割込み信号
+  private intrSig: IIntrSignal; // 割込み信号
 
-  constructor(terminal: HTMLTextAreaElement, intrSignal: IIntrSignal) {
+  constructor(terminal: HTMLTextAreaElement, intrSig: IIntrSignal) {
     this.receivableIntrFlag = false;
     this.sendableIntrFlag = false;
     this.emptyFlag = true;
     this.buf = 0;
     this.terminal = terminal;
-    this.intrSignal = intrSignal;
+    this.intrSig = intrSig;
   }
 
   receive(): number {
@@ -50,7 +50,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     }
 
     if (this.sendableIntrFlag) {
-      this.intrSignal.interrupt(FT232RL_SENT);
+      this.intrSig.interrupt(FT232RL_SENT);
     }
   }
 
@@ -65,14 +65,14 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
   setReceivableIntrFlag(flag: boolean): void {
     this.receivableIntrFlag = flag;
     if (this.receivableIntrFlag && !this.emptyFlag) {
-      this.intrSignal.interrupt(FT232RL_RECEIVED);
+      this.intrSig.interrupt(FT232RL_RECEIVED);
     }
   }
 
   setSendableIntrFlag(flag: boolean): void {
     this.sendableIntrFlag = flag;
     if (this.sendableIntrFlag && this.emptyFlag) {
-      this.intrSignal.interrupt(FT232RL_SENT);
+      this.intrSig.interrupt(FT232RL_SENT);
     }
   }
 
@@ -89,7 +89,7 @@ export class Ft232rl implements IIOSerial, IKeyboardDriver {
     this.emptyFlag = false;
 
     if (this.receivableIntrFlag) {
-      this.intrSignal.interrupt(FT232RL_RECEIVED);
+      this.intrSig.interrupt(FT232RL_RECEIVED);
     }
   }
 

@@ -12,7 +12,7 @@ const ERROR_CAUSE_BAD_ADDRESS = 0x02;
 
 export class Mmu implements IDataBus, IIOMmu {
   private memory: IDmaSignal;
-  private intrSignal: IIntrSignal;
+  private intrSig: IIntrSignal;
   private privSig: IPrivModeSignal;
 
   private tlbs: TlbEntry[]; // TLBエントリ
@@ -23,9 +23,9 @@ export class Mmu implements IDataBus, IIOMmu {
   private errorCause: number; // メモリ保護違反の原因
   private tlbMissPage: number; // TLBミス例外の原因となったページ番号
 
-  constructor(memory: IDmaSignal, intrController: IIntrSignal, privSig: IPrivModeSignal) {
+  constructor(memory: IDmaSignal, intrSig: IIntrSignal, privSig: IPrivModeSignal) {
     this.memory = memory;
-    this.intrSignal = intrController;
+    this.intrSig = intrSig;
     this.privSig = privSig;
     this.tlbs = new Array(TLB_ENTRY_SIZE);
     this.initTlbEntries();
@@ -202,19 +202,19 @@ export class Mmu implements IDataBus, IIOMmu {
 
   private reportTlbMissError(page: number): void {
     this.tlbMissPage = page;
-    this.intrSignal.interrupt(intr.EXCP_TLB_MISS);
+    this.intrSig.interrupt(intr.EXCP_TLB_MISS);
   }
 
   private reportBadAddrError(addr: number): void {
     this.errorAddr = addr;
     this.errorCause |= ERROR_CAUSE_BAD_ADDRESS;
-    this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+    this.intrSig.interrupt(intr.EXCP_MEMORY_ERROR);
   }
 
   private reportMemVioError(addr: number): void {
     this.errorAddr = addr;
     this.errorCause |= ERROR_CAUSE_MEMORY_VIOLATION;
-    this.intrSignal.interrupt(intr.EXCP_MEMORY_ERROR);
+    this.intrSig.interrupt(intr.EXCP_MEMORY_ERROR);
   }
 
   getTlbHigh8(entryNum: number): number {

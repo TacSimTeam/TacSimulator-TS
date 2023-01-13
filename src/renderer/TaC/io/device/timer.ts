@@ -8,18 +8,18 @@ export class Timer implements IIOTimer {
   private matchFlag: boolean; // カウンタの値と周期の値が一致したかどうか
   private intrFlag: boolean; // trueであれば処理終了後に割込みを発生させる
   private intervalId: NodeJS.Timer | null; // NodeJSのタイマーのID
-  private intrSignal: IIntrSignal; // 割込み信号
+  private intrSig: IIntrSignal; // 割込み信号
 
   private pauseFlag: boolean; // TaCがSTOP状態になっているか
 
-  constructor(timerNum: number, intrSignal: IIntrSignal) {
+  constructor(timerNum: number, intrSig: IIntrSignal) {
     this.count = 0;
     this.cycle = 0;
     this.timerNum = timerNum;
     this.matchFlag = false;
     this.intrFlag = false;
     this.intervalId = null;
-    this.intrSignal = intrSignal;
+    this.intrSig = intrSig;
 
     this.pauseFlag = false;
   }
@@ -76,7 +76,7 @@ export class Timer implements IIOTimer {
       this.matchFlag = true;
 
       if (this.intrFlag) {
-        this.intrSignal.interrupt(TIMER0 + this.timerNum);
+        this.intrSig.interrupt(TIMER0 + this.timerNum);
       }
     } else {
       this.count++;

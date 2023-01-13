@@ -12,9 +12,9 @@ export class SdHostController implements IIOSdHostController {
   private secAddrL: number; // セクタのアドレス(LBA方式)の下位16ビット
 
   private memory: IDmaSignal; // DMA方式で接続されているメモリ
-  private intrSignal: IIntrSignal; // 割込み信号
+  private intrSig: IIntrSignal; // 割込み信号
 
-  constructor(memory: IDmaSignal, intrSignal: IIntrSignal) {
+  constructor(memory: IDmaSignal, intrSig: IIntrSignal) {
     this.idleFlag = true;
     this.errorFlag = false;
     this.intrFlag = false;
@@ -22,7 +22,7 @@ export class SdHostController implements IIOSdHostController {
     this.secAddrH = 0;
     this.secAddrL = 0;
     this.memory = memory;
-    this.intrSignal = intrSignal;
+    this.intrSig = intrSig;
   }
 
   startReading(): void {
@@ -41,7 +41,7 @@ export class SdHostController implements IIOSdHostController {
 
         this.idleFlag = true;
         if (this.intrFlag) {
-          this.intrSignal.interrupt(intr.MICRO_SD);
+          this.intrSig.interrupt(intr.MICRO_SD);
         }
       })
       .catch(() => {
@@ -69,7 +69,7 @@ export class SdHostController implements IIOSdHostController {
       .then(() => {
         this.idleFlag = true;
         if (this.intrFlag) {
-          this.intrSignal.interrupt(intr.MICRO_SD);
+          this.intrSig.interrupt(intr.MICRO_SD);
         }
       })
       .catch(() => {
@@ -127,7 +127,7 @@ export class SdHostController implements IIOSdHostController {
     // 実機ではmicroSDのドライバを初期化してから割込みを出すが
     // シミュレータではすぐに割込みを出して終了
     if (this.intrFlag) {
-      this.intrSignal.interrupt(intr.MICRO_SD);
+      this.intrSig.interrupt(intr.MICRO_SD);
     }
   }
 

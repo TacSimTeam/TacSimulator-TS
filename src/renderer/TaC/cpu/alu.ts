@@ -3,10 +3,10 @@ import { EXCP_ZERO_DIV } from '../interrupt/interruptKind';
 import * as opcode from './const/opcode';
 
 export class Alu {
-  private intrSignal: IIntrSignal;
+  private intrSig: IIntrSignal;
 
-  constructor(intrSignal: IIntrSignal) {
-    this.intrSignal = intrSignal;
+  constructor(intrSig: IIntrSignal) {
+    this.intrSig = intrSig;
   }
 
   /**
@@ -54,7 +54,7 @@ export class Alu {
 
   private div(dividend: number, divisor: number): number {
     if (divisor === 0) {
-      this.intrSignal.interrupt(EXCP_ZERO_DIV);
+      this.intrSig.interrupt(EXCP_ZERO_DIV);
       return 0;
     }
     return Math.trunc(dividend / divisor);
@@ -62,7 +62,7 @@ export class Alu {
 
   private mod(dividend: number, divisor: number): number {
     if (divisor === 0) {
-      this.intrSignal.interrupt(EXCP_ZERO_DIV);
+      this.intrSig.interrupt(EXCP_ZERO_DIV);
       return 0;
     }
 

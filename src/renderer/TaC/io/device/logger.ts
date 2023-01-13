@@ -11,13 +11,13 @@ import { RN4020_SENT } from '../../interrupt/interruptKind';
 export class Logger implements IIOSerial {
   private sendableIntrFlag: boolean; // 送信可能時の割込み発生フラグ
 
-  private text: string; // 出力するエラーのバッファ
+  private buf: string; // 出力するエラーのバッファ
 
   private intrSig: IIntrSignal; // 割込み信号
 
   constructor(intrSig: IIntrSignal) {
     this.sendableIntrFlag = false;
-    this.text = '';
+    this.buf = '';
     this.intrSig = intrSig;
   }
 
@@ -29,15 +29,15 @@ export class Logger implements IIOSerial {
   send(val: number): void {
     if (val === 0x08) {
       // バックスペースなら末尾を削除する
-      this.text = this.text.slice(0, -1);
+      this.buf = this.buf.slice(0, -1);
     } else {
       // CRを除去してターミナルに文字を出力する
       const ch = String.fromCodePoint(val).replace(/\r/, '');
-      this.text += ch;
+      this.buf += ch;
       if (ch === '\n') {
         // 改行がきたらエラー文を出力し, バッファをクリアする
-        console.info(this.text);
-        this.text = '';
+        console.info(this.buf);
+        this.buf = '';
       }
     }
 
@@ -67,6 +67,6 @@ export class Logger implements IIOSerial {
 
   reset(): void {
     this.sendableIntrFlag = false;
-    this.text = '';
+    this.buf = '';
   }
 }
