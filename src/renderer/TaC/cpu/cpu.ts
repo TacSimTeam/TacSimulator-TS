@@ -85,7 +85,6 @@ export class Cpu {
       inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
     } catch (e) {
       if (e instanceof TlbMissError) {
-        // TLBMissが発生したのでPCを進めずに一旦戻す
         return;
       }
     }
@@ -95,7 +94,6 @@ export class Cpu {
       this.execInstruction(inst);
     } catch (e) {
       if (e instanceof TlbMissError) {
-        // TLBMissが発生したのでPCを進めずに一旦戻す
         // eslint-disable-next-line
         return;
       }
@@ -122,6 +120,7 @@ export class Cpu {
 
   /**
    * 実効アドレス計算
+   * TLB Missの可能性アリ
    *
    * @param addrMode アドレッシングモード
    * @param rx インデクスレジスタ

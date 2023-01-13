@@ -17,7 +17,7 @@ export class TlbEntry {
   }
 
   setHigh8(value: number): void {
-    this.value = (value << 16) | (this.value & 0xffff);
+    this.value = ((value & 0xffff) << 16) | (this.value & 0xffff);
   }
 
   setLow16(value: number): void {
@@ -36,14 +36,6 @@ export class TlbEntry {
     return (this.value & (1 << 15)) !== 0;
   }
 
-  isRefered(): boolean {
-    return (this.value & (1 << 12)) !== 0;
-  }
-
-  isDirty(): boolean {
-    return (this.value & (1 << 11)) !== 0;
-  }
-
   isReadable(): boolean {
     return (this.value & (1 << 10)) !== 0;
   }
@@ -54,6 +46,14 @@ export class TlbEntry {
 
   isExecutable(): boolean {
     return (this.value & (1 << 8)) !== 0;
+  }
+
+  setReferenceFlag(): void {
+    this.value |= 1 << 12;
+  }
+
+  setDirtyFlag(): void {
+    this.value |= 1 << 11;
   }
 
   reset(): void {

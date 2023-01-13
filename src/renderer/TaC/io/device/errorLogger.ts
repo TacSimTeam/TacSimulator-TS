@@ -36,7 +36,7 @@ export class ErrorLogger implements IIOSerial {
       this.errorText += ch;
       if (ch === '\n') {
         // 改行がきたらエラー文を出力し, バッファをクリアする
-        console.info(this.errorText);
+        // console.info(this.errorText);
         this.errorText = '';
       }
     }

@@ -3,6 +3,7 @@ import { TlbEntry } from './tlb';
 import { ipl } from '../ipl';
 import { TlbMissError, ReadonlyError } from '../error';
 import * as intr from '../interrupt/interruptKind';
+import { toHexString } from '../../util/lib';
 
 const TLB_ENTRY_SIZE = 16;
 
@@ -56,6 +57,8 @@ export class Mmu implements IDataBus, IIOMmu {
         return 0;
       }
 
+      this.tlbs[entry].setReferenceFlag();
+
       const frame = this.tlbs[entry].getFrame();
       addr = (frame << 8) | (addr & 0x00ff);
     }
@@ -82,6 +85,9 @@ export class Mmu implements IDataBus, IIOMmu {
         return;
       }
 
+      this.tlbs[entry].setReferenceFlag();
+      this.tlbs[entry].setDirtyFlag();
+
       const frame = this.tlbs[entry].getFrame();
       addr = (frame << 8) | (addr & 0x00ff);
     }
@@ -107,6 +113,8 @@ export class Mmu implements IDataBus, IIOMmu {
         this.reportMemVioError(addr);
         return 0;
       }
+
+      this.tlbs[entry].setReferenceFlag();
 
       const frame = this.tlbs[entry].getFrame();
       addr = (frame << 8) | (addr & 0x00ff);
@@ -138,6 +146,9 @@ export class Mmu implements IDataBus, IIOMmu {
         return;
       }
 
+      this.tlbs[entry].setReferenceFlag();
+      this.tlbs[entry].setDirtyFlag();
+
       const frame = this.tlbs[entry].getFrame();
       addr = (frame << 8) | (addr & 0x00ff);
     }
@@ -164,6 +175,8 @@ export class Mmu implements IDataBus, IIOMmu {
         this.reportMemVioError(pc);
         return 0;
       }
+
+      this.tlbs[entry].setReferenceFlag();
 
       const frame = this.tlbs[entry].getFrame();
       pc = (frame << 8) | (pc & 0x00ff);
