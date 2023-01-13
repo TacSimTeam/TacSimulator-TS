@@ -7,10 +7,9 @@ export class Timer implements IIOTimer {
   private timerNum: number; // タイマーの番号(現状TaCは0か1)
   private matchFlag: boolean; // カウンタの値と周期の値が一致したかどうか
   private intrFlag: boolean; // trueであれば処理終了後に割込みを発生させる
+  private pauseFlag: boolean; // TaCがSTOP状態になっているか
   private intervalId: NodeJS.Timer | null; // NodeJSのタイマーのID
   private intrSig: IIntrSignal; // 割込み信号
-
-  private pauseFlag: boolean; // TaCがSTOP状態になっているか
 
   constructor(timerNum: number, intrSig: IIntrSignal) {
     this.count = 0;
@@ -18,10 +17,9 @@ export class Timer implements IIOTimer {
     this.timerNum = timerNum;
     this.matchFlag = false;
     this.intrFlag = false;
+    this.pauseFlag = false;
     this.intervalId = null;
     this.intrSig = intrSig;
-
-    this.pauseFlag = false;
   }
 
   start(): void {
@@ -29,7 +27,7 @@ export class Timer implements IIOTimer {
 
     // 1ms毎にroutine()関数を呼ぶ
     // JavaScriptの仕様上, 実際には遅延があり2ms~4ms程になる
-    // 2022-12-23時点ではタイマーの正確さは妥協して実装した
+    // 令和4年度の卒業研究ではタイマーの正確さは妥協して実装した
     this.intervalId = setInterval(() => {
       this.routine();
     }, 1);
@@ -43,10 +41,6 @@ export class Timer implements IIOTimer {
     return this.count;
   }
 
-  isMatched(): boolean {
-    return this.matchFlag;
-  }
-
   setCycle(cycle: number): void {
     this.cycle = cycle;
   }
@@ -54,6 +48,10 @@ export class Timer implements IIOTimer {
   setIntrFlag(flag: boolean): void {
     this.clear();
     this.intrFlag = flag;
+  }
+
+  isMatched(): boolean {
+    return this.matchFlag;
   }
 
   private clear(): void {

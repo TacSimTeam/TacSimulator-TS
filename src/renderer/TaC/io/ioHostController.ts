@@ -13,7 +13,7 @@ export class IOHostController implements IIOHostController {
   private timer1: IIOTimer;
   private ft232rl: IIOSerial;
   private rn4020: IIOSerial;
-  private sd: IIOSdHostController;
+  private sdHost: IIOSdHostController;
   private mmu: IIOMmu;
   private console: IIOConsole;
 
@@ -22,7 +22,7 @@ export class IOHostController implements IIOHostController {
     timer1: IIOTimer,
     ft232rl: IIOSerial,
     rn4020: IIOSerial,
-    sd: IIOSdHostController,
+    sdHost: IIOSdHostController,
     mmu: IIOMmu,
     console: IIOConsole
   ) {
@@ -30,73 +30,42 @@ export class IOHostController implements IIOHostController {
     this.timer1 = timer1;
     this.ft232rl = ft232rl;
     this.rn4020 = rn4020;
-    this.sd = sd;
+    this.sdHost = sdHost;
     this.mmu = mmu;
     this.console = console;
   }
 
   input(addr: number): number {
-    let val = 0;
-
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
         return this.timer0.getCounter();
       case io.TIMER0_FLAG_CTRL:
-        if (this.timer0.isMatched()) {
-          val |= 0x8000;
-        }
-        return val;
+        return this.getTimerFlag(0);
       case io.TIMER1_COUNTER_CYCLE:
         return this.timer1.getCounter();
       case io.TIMER1_FLAG_CTRL:
-        if (this.timer1.isMatched()) {
-          val |= 0x8000;
-        }
-        return val;
+        return this.getTimerFlag(1);
       case io.FT232RL_RECEIVE_SERVE:
         return this.ft232rl.receive();
       case io.FT232RL_STAT_CTRL:
-        if (this.ft232rl.isWriteable()) {
-          val |= 0x0080;
-        }
-        if (this.ft232rl.isReadable()) {
-          val |= 0x0040;
-        }
-        return val;
+        return this.getFt232rlStatus();
       case io.MICROSD_STAT_CTRL:
-        if (this.sd.isIdle()) {
-          val |= 0x0080;
-        }
-        if (this.sd.isErrorOccurred()) {
-          val |= 0x0040;
-        }
-        if (!window.electronAPI.isSDImgLoaded()) {
-          // SDカードが挿入されていなければLSBを1にして返す
-          val |= 0x0001;
-        }
-        return val;
+        return this.getMicroSDStatus();
       case io.MICROSD_MEMADDR:
-        return this.sd.getMemAddr();
+        return this.sdHost.getMemAddr();
       case io.MICROSD_SECTORHIGH:
-        return this.sd.getSecAddrH();
+        return this.sdHost.getSecAddrH();
       case io.MICROSD_SECTORLOW:
-        return this.sd.getSecAddrL();
+        return this.sdHost.getSecAddrL();
       case io.PIO_MODE_00:
         // 本当はジャンパから取得するが強制的にTaCモードで実行する
         return 0x01;
       case io.RN4020_RECEIVE_SERVE:
         return this.rn4020.receive();
       case io.RN4020_STAT_CTRL:
-        if (this.rn4020.isWriteable()) {
-          val |= 0x0080;
-        }
-        if (this.rn4020.isReadable()) {
-          val |= 0x0040;
-        }
-        return val;
-      case io.RN4020_00_COMMAND:
-        return 0x00;
+        return this.getRN4020Status();
       case io.RN4020_CONNECTION:
+        // シミュレータでは常に接続状態にしておく
         return 0x01;
       case io.MMU_TLB0HIGH:
         return this.mmu.getTlbHigh8(0);
@@ -182,29 +151,70 @@ export class IOHostController implements IIOHostController {
     }
   }
 
+  private getTimerFlag(timerNum: number): number {
+    if (timerNum === 0) {
+      return this.timer0.isMatched() ? 0x8000 : 0;
+    }
+
+    return this.timer1.isMatched() ? 0x8000 : 0;
+  }
+
+  private getFt232rlStatus(): number {
+    let val = 0;
+
+    if (this.ft232rl.isWriteable()) {
+      val |= 0x0080;
+    }
+    if (this.ft232rl.isReadable()) {
+      val |= 0x0040;
+    }
+
+    return val;
+  }
+
+  private getMicroSDStatus(): number {
+    let val = 0;
+
+    if (this.sdHost.isIdle()) {
+      val |= 0x0080;
+    }
+    if (this.sdHost.isErrorOccurred()) {
+      val |= 0x0040;
+    }
+    if (!window.electronAPI.isSDImgLoaded()) {
+      // SDカードが挿入されていなければLSBを1にして返す
+      val |= 0x0001;
+    }
+
+    return val;
+  }
+
+  private getRN4020Status(): number {
+    let val = 0;
+
+    if (this.rn4020.isWriteable()) {
+      val |= 0x0080;
+    }
+    if (this.rn4020.isReadable()) {
+      val |= 0x0040;
+    }
+
+    return val;
+  }
+
   output(addr: number, val: number): void {
     switch (addr) {
       case io.TIMER0_COUNTER_CYCLE:
         this.timer0.setCycle(val);
         break;
       case io.TIMER0_FLAG_CTRL:
-        this.timer0.setIntrFlag((val & 0x8000) !== 0);
-        if ((val & 0x0001) !== 0) {
-          this.timer0.start();
-        } else {
-          this.timer0.stop();
-        }
+        this.setTimerCtrlFlag(0, val);
         break;
       case io.TIMER1_COUNTER_CYCLE:
         this.timer1.setCycle(val);
         break;
       case io.TIMER1_FLAG_CTRL:
-        this.timer1.setIntrFlag((val & 0x8000) !== 0);
-        if ((val & 0x0001) !== 0) {
-          this.timer1.start();
-        } else {
-          this.timer1.stop();
-        }
+        this.setTimerCtrlFlag(1, val);
         break;
       case io.FT232RL_RECEIVE_SERVE:
         this.ft232rl.send(val);
@@ -214,25 +224,16 @@ export class IOHostController implements IIOHostController {
         this.ft232rl.setReceivableIntrFlag((val & 0x0040) !== 0);
         break;
       case io.MICROSD_STAT_CTRL:
-        this.sd.setIntrFlag((val & 0x80) !== 0);
-        if ((val & 0x04) !== 0) {
-          this.sd.init();
-        }
-        if ((val & 0x02) !== 0) {
-          this.sd.startReading();
-        }
-        if ((val & 0x01) !== 0) {
-          this.sd.startWriting();
-        }
+        this.setMicroSDCtrlFlag(val);
         break;
       case io.MICROSD_MEMADDR:
-        this.sd.setMemAddr(val);
+        this.sdHost.setMemAddr(val);
         break;
       case io.MICROSD_SECTORHIGH:
-        this.sd.setSecAddrH(val);
+        this.sdHost.setSecAddrH(val);
         break;
       case io.MICROSD_SECTORLOW:
-        this.sd.setSecAddrL(val);
+        this.sdHost.setSecAddrL(val);
         break;
       case io.RN4020_RECEIVE_SERVE:
         this.rn4020.send(val);
@@ -240,10 +241,6 @@ export class IOHostController implements IIOHostController {
       case io.RN4020_STAT_CTRL:
         this.rn4020.setSendableIntrFlag((val & 0x0080) !== 0);
         this.rn4020.setReceivableIntrFlag((val & 0x0040) !== 0);
-        break;
-      case io.RN4020_00_COMMAND:
-        break;
-      case io.RN4020_CONNECTION:
         break;
       case io.MMU_TLB0HIGH:
         this.mmu.setTlbHigh8(0, val);
@@ -354,6 +351,37 @@ export class IOHostController implements IIOHostController {
       case io.CONSOLE_DATASW_DATAREG:
         this.console.setLEDLamps(val);
         break;
+    }
+  }
+
+  private setTimerCtrlFlag(timerNum: number, val: number): void {
+    if (timerNum === 0) {
+      this.timer0.setIntrFlag((val & 0x8000) !== 0);
+      if ((val & 0x0001) !== 0) {
+        this.timer0.start();
+      } else {
+        this.timer0.stop();
+      }
+    } else {
+      this.timer1.setIntrFlag((val & 0x8000) !== 0);
+      if ((val & 0x0001) !== 0) {
+        this.timer1.start();
+      } else {
+        this.timer1.stop();
+      }
+    }
+  }
+
+  private setMicroSDCtrlFlag(val: number): void {
+    this.sdHost.setIntrFlag((val & 0x80) !== 0);
+    if ((val & 0x04) !== 0) {
+      this.sdHost.init();
+    }
+    if ((val & 0x02) !== 0) {
+      this.sdHost.startReading();
+    }
+    if ((val & 0x01) !== 0) {
+      this.sdHost.startWriting();
     }
   }
 }

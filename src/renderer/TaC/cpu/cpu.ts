@@ -77,7 +77,7 @@ export class Cpu {
       }
     }
 
-    // 命令デコード
+    // 命令デコード(TLBミスが発生する可能性有り)
     const inst = this.decode(instData);
 
     // 実効アドレス計算
@@ -228,12 +228,10 @@ export class Cpu {
         this.instrReturn(inst);
         break;
       case opcode.SVC:
-        this.intrHost.interrupt(intr.EXCP_SVC);
-        this.psw.nextPC();
+        this.instrSvc();
         break;
       case opcode.HALT:
         this.instrHalt();
-        this.psw.nextPC();
         break;
       default:
         // 未定義命令なので例外を出す
@@ -451,6 +449,11 @@ export class Cpu {
     }
   }
 
+  private instrSvc(): void {
+    this.intrHost.interrupt(intr.EXCP_SVC);
+    this.psw.nextPC();
+  }
+
   private instrHalt(): void {
     if (this.psw.checkFlag(flag.PRIV)) {
       this.isHalt = true;
@@ -458,6 +461,8 @@ export class Cpu {
       // 特権モード以外ではHALT命令は実行できない
       this.intrHost.interrupt(intr.EXCP_PRIV_ERROR);
     }
+
+    this.psw.nextPC();
   }
 
   /**

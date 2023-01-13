@@ -13,11 +13,11 @@ export class Console implements IIOConsole {
   private psw: IPsw; // PCとフラグを読むために必要
   private register: IRegister; // レジスタのデータを読み書きするので必要
 
-  private components: IConsoleComponent[];
-
   private memAddr: number;
   private rotSwCur: number;
   private runFlag: boolean;
+
+  private components: IConsoleComponent[];
 
   private addrLeds: Led[];
   private dataLeds: Led[];
@@ -51,11 +51,11 @@ export class Console implements IIOConsole {
     this.psw = psw;
     this.register = register;
 
-    this.components = [];
-
     this.memAddr = 0;
     this.rotSwCur = 0;
     this.runFlag = false;
+
+    this.components = [];
 
     // コンソール部品の初期化
     this.addrLeds = new Array(8);
@@ -344,7 +344,9 @@ export class Console implements IIOConsole {
    * @param val 16bitデータ
    */
   private writeMemData(val: number): void {
+    // 奇数番地アクセスを防ぐためにLSBを0にする
     const addr = this.memAddr & 0xfffe;
+
     this.memory.write8(addr, (val & 0xff00) >> 8);
     this.memory.write8(addr + 1, val & 0x00ff);
   }

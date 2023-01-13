@@ -16,7 +16,7 @@ import { querySelector } from '../util/dom.result';
 export class Tac {
   private memory: Memory;
   private mmu: Mmu;
-  private intrController: IntrController;
+  private intrHost: IntrController;
   private cpu: Cpu;
   private psw: Psw;
   private register: Register;
@@ -34,19 +34,19 @@ export class Tac {
 
   constructor(canvas: HTMLCanvasElement, terminal: HTMLTextAreaElement) {
     this.memory = new Memory();
-    this.intrController = new IntrController();
+    this.intrHost = new IntrController();
     this.psw = new Psw();
     this.register = new Register(this.psw);
 
-    this.mmu = new Mmu(this.memory, this.intrController, this.psw);
-    this.timer0 = new Timer(0, this.intrController);
-    this.timer1 = new Timer(1, this.intrController);
-    this.serialIO = new Ft232rl(terminal, this.intrController);
+    this.mmu = new Mmu(this.memory, this.intrHost, this.psw);
+    this.timer0 = new Timer(0, this.intrHost);
+    this.timer1 = new Timer(1, this.intrHost);
+    this.serialIO = new Ft232rl(terminal, this.intrHost);
 
     // シミュレータではBluetoothでのシリアル通信を使用しないので
     // 代わりに開発者ツールのコンソールに出力する
-    this.logger = new Logger(this.intrController);
-    this.sdHost = new SdHostController(this.memory, this.intrController);
+    this.logger = new Logger(this.intrHost);
+    this.sdHost = new SdHostController(this.memory, this.intrHost);
     this.console = new Console(canvas, this.memory, this.psw, this.register);
 
     this.ioHost = new IOHostController(
@@ -59,14 +59,7 @@ export class Tac {
       this.console
     );
 
-    this.cpu = new Cpu(
-      this.mmu,
-      this.register,
-      this.psw,
-      this.psw,
-      this.intrController,
-      this.ioHost
-    );
+    this.cpu = new Cpu(this.mmu, this.register, this.psw, this.psw, this.intrHost, this.ioHost);
 
     this.cpuEventId = null;
     this.terminal = terminal;
@@ -222,7 +215,7 @@ export class Tac {
     this.psw.reset();
     this.register.reset();
     this.mmu.reset();
-    this.intrController.reset();
+    this.intrHost.reset();
     this.timer0.reset();
     this.timer1.reset();
     this.serialIO.reset();
