@@ -193,8 +193,6 @@ export class Tac {
    * TaCの動作を停止する
    */
   private stop(): void {
-    console.log(this.ioHost);
-
     // STOP中はタイマーを一時停止する
     this.timer0.pause();
     this.timer1.pause();
