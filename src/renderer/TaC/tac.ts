@@ -8,7 +8,7 @@ import { IOHostController } from './io/ioHostController';
 import { Timer } from './io/device/timer';
 import { Ft232rl } from './io/device/ft232rl';
 import { SdHostController } from './io/device/sdHostController';
-import { ErrorLogger } from './io/device/errorLogger';
+import { Logger } from './io/device/logger';
 import { Console } from './console/console';
 import { toHexString } from '../util/lib';
 import { querySelector } from '../util/dom.result';
@@ -24,7 +24,7 @@ export class Tac {
   private timer0: Timer;
   private timer1: Timer;
   private serialIO: Ft232rl;
-  private logger: ErrorLogger;
+  private logger: Logger;
   private sdHost: SdHostController;
   private console: Console;
 
@@ -45,7 +45,7 @@ export class Tac {
 
     // シミュレータではBluetoothでのシリアル通信を使用しないので
     // 代わりに開発者ツールのコンソールに出力する
-    this.logger = new ErrorLogger(this.intrController);
+    this.logger = new Logger(this.intrController);
     this.sdHost = new SdHostController(this.memory, this.intrController);
     this.console = new Console(canvas, this.memory, this.psw, this.register);
 

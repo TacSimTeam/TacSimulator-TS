@@ -8,17 +8,17 @@ import { RN4020_SENT } from '../../interrupt/interruptKind';
  * を送信することでデバッグを行うが, シミュレータはBluetoothモジュールを使用しないため
  * 代わりにブラウザの開発者ツール内のコンソールにエラーを出力する
  */
-export class ErrorLogger implements IIOSerial {
+export class Logger implements IIOSerial {
   private sendableIntrFlag: boolean; // 送信可能時の割込み発生フラグ
 
-  private errorText: string; // 出力するエラーのバッファ
+  private text: string; // 出力するエラーのバッファ
 
-  private intrSignal: IIntrSignal; // 割込み信号
+  private intrSig: IIntrSignal; // 割込み信号
 
-  constructor(intrSignal: IIntrSignal) {
+  constructor(intrSig: IIntrSignal) {
     this.sendableIntrFlag = false;
-    this.errorText = '';
-    this.intrSignal = intrSignal;
+    this.text = '';
+    this.intrSig = intrSig;
   }
 
   receive(): number {
@@ -29,20 +29,20 @@ export class ErrorLogger implements IIOSerial {
   send(val: number): void {
     if (val === 0x08) {
       // バックスペースなら末尾を削除する
-      this.errorText = this.errorText.slice(0, -1);
+      this.text = this.text.slice(0, -1);
     } else {
       // CRを除去してターミナルに文字を出力する
       const ch = String.fromCodePoint(val).replace(/\r/, '');
-      this.errorText += ch;
+      this.text += ch;
       if (ch === '\n') {
         // 改行がきたらエラー文を出力し, バッファをクリアする
-        // console.info(this.errorText);
-        this.errorText = '';
+        console.info(this.text);
+        this.text = '';
       }
     }
 
     if (this.sendableIntrFlag) {
-      this.intrSignal.interrupt(RN4020_SENT);
+      this.intrSig.interrupt(RN4020_SENT);
     }
   }
 
@@ -53,7 +53,7 @@ export class ErrorLogger implements IIOSerial {
   setSendableIntrFlag(flag: boolean): void {
     this.sendableIntrFlag = flag;
     if (this.sendableIntrFlag) {
-      this.intrSignal.interrupt(RN4020_SENT);
+      this.intrSig.interrupt(RN4020_SENT);
     }
   }
 
@@ -67,6 +67,6 @@ export class ErrorLogger implements IIOSerial {
 
   reset(): void {
     this.sendableIntrFlag = false;
-    this.errorText = '';
+    this.text = '';
   }
 }
