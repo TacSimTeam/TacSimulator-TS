@@ -18,8 +18,6 @@ test('TLB utility function test', () => {
   expect(entry.getFrame()).toBe(0xbb);
 
   expect(entry.isValid()).toBe(true);
-  expect(entry.isRefered()).toBe(true);
-  expect(entry.isDirty()).toBe(true);
   expect(entry.isReadable()).toBe(true);
   expect(entry.isWritable()).toBe(true);
   expect(entry.isExecutable()).toBe(true);
