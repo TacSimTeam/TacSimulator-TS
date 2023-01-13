@@ -1,3 +1,5 @@
+import { check } from 'prettier';
+import { querySelector } from '../../../util/dom.result';
 import { IIOSerial, IIntrSignal } from '../../interface';
 import { RN4020_SENT } from '../../interrupt/interruptKind';
 
@@ -15,10 +17,13 @@ export class Logger implements IIOSerial {
 
   private intrSig: IIntrSignal; // 割込み信号
 
+  private loggerSwitch: HTMLInputElement; // ロガーを有効にするかどうかのスイッチ(checkbox)
+
   constructor(intrSig: IIntrSignal) {
     this.sendableIntrFlag = false;
     this.buf = '';
     this.intrSig = intrSig;
+    this.loggerSwitch = querySelector<HTMLInputElement>('#enable-logger').unwrap();
   }
 
   receive(): number {
@@ -27,7 +32,10 @@ export class Logger implements IIOSerial {
   }
 
   send(val: number): void {
-    if (val === 0x08) {
+    if (!this.loggerSwitch.checked) {
+      // ロガーが無効ならば何もしない
+      this.buf = '';
+    } else if (val === 0x08) {
       // バックスペースなら末尾を削除する
       this.buf = this.buf.slice(0, -1);
     } else {
