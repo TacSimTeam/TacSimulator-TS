@@ -3,10 +3,12 @@ import { IKeyboardDriver } from '../../../interface/keyboardDriver';
 import { FT232RL_RECEIVED, FT232RL_SENT } from '../../interrupt/interruptKind';
 
 /**
- * TaCのUSBシリアル変換IC(FT232RL)を再現したもの
+ * シミュレータのターミナルとの通信を行う機器
+ *
+ * TaCのUSBシリアル変換ICの代替
  * キーボード入力を実現するための機能を実装している
  */
-export class Ft232rl implements IIOSerial, IKeyboardDriver {
+export class TerminalIO implements IIOSerial, IKeyboardDriver {
   private sendableIntrFlag: boolean; // 送信可能時の割込み発生フラグ
   private receivableIntrFlag: boolean; // 受信可能時の割込み発生フラグ
 

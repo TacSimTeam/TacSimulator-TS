@@ -6,7 +6,7 @@ import { Memory } from './memory/memory';
 import { Mmu } from './memory/mmu';
 import { IOHostController } from './io/ioHostController';
 import { Timer } from './io/device/timer';
-import { Ft232rl } from './io/device/ft232rl';
+import { TerminalIO } from './io/device/terminalIO';
 import { SdHostController } from './io/device/sdHostController';
 import { Logger } from './io/device/logger';
 import { Console } from './console/console';
@@ -23,7 +23,7 @@ export class Tac {
   private ioHost: IOHostController;
   private timer0: Timer;
   private timer1: Timer;
-  private serialIO: Ft232rl;
+  private terminalIO: TerminalIO;
   private logger: Logger;
   private sdHost: SdHostController;
   private console: Console;
@@ -41,7 +41,7 @@ export class Tac {
     this.mmu = new Mmu(this.memory, this.intrHost, this.psw);
     this.timer0 = new Timer(0, this.intrHost);
     this.timer1 = new Timer(1, this.intrHost);
-    this.serialIO = new Ft232rl(terminal, this.intrHost);
+    this.terminalIO = new TerminalIO(terminal, this.intrHost);
 
     // シミュレータではBluetoothでのシリアル通信を使用しないので
     // 代わりに開発者ツールのコンソールに出力する
@@ -52,7 +52,7 @@ export class Tac {
     this.ioHost = new IOHostController(
       this.timer0,
       this.timer1,
-      this.serialIO,
+      this.terminalIO,
       this.logger,
       this.sdHost,
       this.mmu,
@@ -121,7 +121,7 @@ export class Tac {
    */
   private initTerminal(): void {
     this.terminal.onkeydown = (e) => {
-      this.serialIO.inputKeyDown(e);
+      this.terminalIO.inputKeyDown(e);
     };
   }
 
@@ -216,7 +216,7 @@ export class Tac {
     this.intrHost.reset();
     this.timer0.reset();
     this.timer1.reset();
-    this.serialIO.reset();
+    this.terminalIO.reset();
     this.logger.reset();
     this.sdHost.reset();
     this.mmu.loadIpl();
