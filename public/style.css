@@ -67,10 +67,6 @@ input#break-address {
   width: 100px;
 }
 
-input#pid-to-monitor {
-  width: 100px;
-}
-
 #reg-table {
   border-collapse: collapse;
 }
