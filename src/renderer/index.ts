@@ -11,7 +11,7 @@ const btnOpen = querySelector<HTMLButtonElement>('#btn-openFile').unwrap();
 
 /* 「Open a File」ボタンが押された時の動作 */
 btnOpen.addEventListener('click', () => {
-  const filePathElement = querySelector<HTMLElement>('#filePath').unwrap();
+  const filenameElement = querySelector<HTMLElement>('#filename').unwrap();
 
   window.electronAPI
     .getSDImgPath()
@@ -23,7 +23,7 @@ btnOpen.addEventListener('click', () => {
       window.electronAPI
         .openFile(filePath)
         .then(() => {
-          filePathElement.innerText = filePath;
+          filenameElement.innerText = filePath;
         })
         .catch(() => {
           alert('ファイルが正常に読み込まれませんでした');

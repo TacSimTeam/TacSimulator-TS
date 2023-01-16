@@ -17,15 +17,13 @@
         </div>
         <div class="debugprint-area">
           <div class="openfile-area">
-            <button type="button" id="btn-openFile">Open microSD image file</button> <br />
-            File path: <strong id="filePath">ファイルが選択されていません</strong>
+            <button type="button" id="btn-openFile">OPEN A MICROSD IMAGE FILE</button> <br />
+            <div class="filename-area">
+              FILENAME : <strong id="filename">ファイルが選択されていません</strong>
+            </div>
           </div>
 
-          <div class="breakpoint-area">BREAKPOINT : <input type="text" id="break-address" /></div>
-          
-          <div class="log-button-area"><input type="checkbox" id="enable-logger"> ENABLE LOGGER </div>
-
-          <div class="register-print-area">
+          <div class="register-print-area debugtool">
             <table id="reg-table">
               <tbody>
                 <tr>
@@ -79,6 +77,16 @@
               </tbody>
             </table>
           </div>
+
+          <div class="breakpoint-area debugtool">BREAKPOINT : <input type="text" id="break-address" /></div>
+          
+          <div class="monitoring-area debugtool">
+            PID : <input type="text" id="pid-to-monitor" />
+            <button type="button" id="btn-start-monitoring">MONITORING START</button>
+          </div>
+
+          <div class="log-button-area debugtool"><input type="checkbox" id="enable-logger"> ENABLE LOGGER </div>
+
         </div>
       </div>
       <div class="terminal-area">
