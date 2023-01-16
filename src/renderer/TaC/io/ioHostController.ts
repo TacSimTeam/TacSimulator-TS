@@ -17,6 +17,8 @@ export class IOHostController implements IIOHostController {
   private mmu: IIOMmu;
   private console: IIOConsole;
 
+  private pid: number;
+
   constructor(
     timer0: IIOTimer,
     timer1: IIOTimer,
@@ -33,6 +35,7 @@ export class IOHostController implements IIOHostController {
     this.sdHost = sdHost;
     this.mmu = mmu;
     this.console = console;
+    this.pid = 0;
   }
 
   input(addr: number): number {
@@ -351,6 +354,8 @@ export class IOHostController implements IIOHostController {
       case io.CONSOLE_DATASW_DATAREG:
         this.console.setLEDLamps(val);
         break;
+      case 0x38:
+        this.pid = val;
     }
   }
 
@@ -383,5 +388,9 @@ export class IOHostController implements IIOHostController {
     if ((val & 0x01) !== 0) {
       this.sdHost.startWriting();
     }
+  }
+
+  getPID(): number {
+    return this.pid;
   }
 }

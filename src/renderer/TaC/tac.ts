@@ -10,6 +10,7 @@ import { TerminalIO } from './io/device/terminalIO';
 import { SdHostController } from './io/device/sdHostController';
 import { Logger } from './io/device/logger';
 import { Console } from './console/console';
+import { InstMonitor } from './debug/instMonitor';
 import { toHexString } from '../util/lib';
 import { querySelector } from '../util/dom.result';
 
@@ -31,6 +32,8 @@ export class Tac {
   private cpuEventId: NodeJS.Timeout | null;
   private terminal: HTMLTextAreaElement;
   private breakAddr: number;
+
+  private instMonitor: InstMonitor;
 
   constructor(canvas: HTMLCanvasElement, terminal: HTMLTextAreaElement) {
     this.memory = new Memory();
@@ -64,6 +67,8 @@ export class Tac {
     this.cpuEventId = null;
     this.terminal = terminal;
     this.breakAddr = 0;
+
+    this.instMonitor = new InstMonitor(this.psw, this.ioHost);
 
     this.mmu.loadIpl();
 
@@ -136,7 +141,10 @@ export class Tac {
     this.timer1.restart();
 
     for (;;) {
-      this.cpu.run();
+      const inst = this.cpu.run();
+
+      // 実行した命令を記録する
+      this.instMonitor.record(inst);
 
       if (this.console.getBreakSwitchValue() && this.psw.getPC() === this.breakAddr) {
         // BREAKスイッチがONかつBREAKするアドレスなので, 命令実行後一時停止
