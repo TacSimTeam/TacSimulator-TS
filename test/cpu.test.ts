@@ -3,7 +3,7 @@ import { Mmu } from '../src/renderer/TaC/memory/mmu';
 import { Psw } from '../src/renderer/TaC/cpu/psw';
 import { Cpu } from '../src/renderer/TaC/cpu/cpu';
 import { Register } from '../src/renderer/TaC/cpu/register';
-import { Instruction } from '../src/renderer/TaC/cpu/instruction/instruction';
+import { Instruction } from '../src/renderer/TaC/cpu/instruction';
 import { IntrController } from '../src/renderer/TaC/interrupt/intrController';
 import { IIOHostController } from '../src/renderer/TaC/interface';
 import * as regNum from '../src/renderer/TaC/cpu/const/regNum';

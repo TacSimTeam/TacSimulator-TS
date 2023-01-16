@@ -7,7 +7,7 @@ import {
   IPrivModeSignal,
 } from '../interface';
 import { Alu } from './alu';
-import { Instruction } from './instruction/instruction';
+import { Instruction } from './instruction';
 import { TlbMissError } from '../error';
 import * as addrmode from './const/addrmode';
 import * as flag from './const/flag';
@@ -50,7 +50,7 @@ export class Cpu {
   /**
    * 命令実行サイクル
    */
-  run(): void {
+  run(): Instruction | undefined {
     if (this.isHalt) {
       // HALT命令が呼び出されているなら何も実行しない
       return;
@@ -98,6 +98,8 @@ export class Cpu {
         return;
       }
     }
+
+    return inst;
   }
 
   /**
