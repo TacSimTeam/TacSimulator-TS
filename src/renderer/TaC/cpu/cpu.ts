@@ -48,7 +48,14 @@ export class Cpu {
   }
 
   /**
-   * 命令実行サイクル
+   * 次の手順で命令を1つフェッチして実行する
+   * 1. 割込み・例外の確認
+   * 2. 命令フェッチ
+   * 3. 命令デコード(実行される命令を表すInstructionオブジェクトの生成)
+   * 4. 実効アドレス計算
+   * 5. 命令実行
+   *
+   * @returns 実行した命令のInstructionオブジェクトを返すか、何も返さない
    */
   run(): Instruction | undefined {
     if (this.isHalt) {
