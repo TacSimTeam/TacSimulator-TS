@@ -4,7 +4,8 @@ import { Psw } from '../cpu/psw';
 import { IOHostController } from '../io/ioHostController';
 
 export class InstMonitor {
-  private count: number;
+  private execCount: number;
+  private tlbMissCount: number;
   private monitoring: boolean;
 
   private psw: Psw;
@@ -13,7 +14,8 @@ export class InstMonitor {
   private countElement: HTMLElement;
 
   constructor(psw: Psw, ioHost: IOHostController) {
-    this.count = 0;
+    this.execCount = 0;
+    this.tlbMissCount = 0;
     this.monitoring = false;
     this.psw = psw;
     this.ioHost = ioHost;
@@ -24,11 +26,16 @@ export class InstMonitor {
 
   record(inst: Instruction | undefined): void {
     if (!this.monitoring || this.psw.getPrivFlag()) {
+      // 監視中でないorカーネル動作中ならば記録しない
       return;
     }
 
-    if (parseInt(this.inputPID.value) === this.ioHost.getPID()) {
-      this.count++;
+    if (inst === undefined) {
+      // Cpu.run()が何も返していないならばTLBMiss
+      this.tlbMissCount++;
+    } else if (parseInt(this.inputPID.value) === this.ioHost.getPID()) {
+      // ユーザの設定したProcessIDのときにカウントを進める
+      this.execCount++;
     }
   }
 
@@ -37,9 +44,10 @@ export class InstMonitor {
 
     btnStart.addEventListener('click', () => {
       if (this.monitoring) {
-        this.countElement.innerHTML = this.count.toString();
+        this.countElement.innerHTML = `${this.execCount} (TLBMiss : ${this.tlbMissCount})`;
         btnStart.innerHTML = 'Monitoring start';
-        this.count = 0;
+        this.execCount = 0;
+        this.tlbMissCount = 0;
       } else {
         btnStart.innerHTML = 'Monitoring stop';
       }
