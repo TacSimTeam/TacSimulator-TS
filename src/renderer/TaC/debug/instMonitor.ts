@@ -30,12 +30,14 @@ export class InstMonitor {
       return;
     }
 
-    if (inst === undefined) {
-      // Cpu.run()が何も返していないならばTLBMiss
-      this.tlbMissCount++;
-    } else if (parseInt(this.inputPID.value) === this.ioHost.getPID()) {
-      // ユーザの設定したProcessIDのときにカウントを進める
-      this.execCount++;
+    if (parseInt(this.inputPID.value) === this.ioHost.getPID()) {
+      if (inst === undefined) {
+        // Cpu.run()が何も返していないならばTLBMiss
+        this.tlbMissCount++;
+      } else {
+        // ユーザの設定したProcessIDのときにカウントを進める
+        this.execCount++;
+      }
     }
   }
 
