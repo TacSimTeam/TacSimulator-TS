@@ -10,6 +10,7 @@
 %\usepackage{arydshln}
 \usepackage{multirow}
 \usepackage{array}
+\usepackage{here}
 
 %------------------------------------------------------------------------------
 % 図表のキャプションを太字に
@@ -29,9 +30,15 @@
 \newcommand{\tecS}{\textrm{TeC7}}
 \newcommand{\tec}{\textrm{TeC}}
 \newcommand{\tac}{\textrm{TaC}}
+\newcommand{\cmm}{{\tt C--}}
 \newcommand{\tacos}{\textrm{TacOS}}
 \newcommand{\tacsim}{\tac シミュレータ}
 \newcommand{\ts}{\textrm{TypeScript}}
+\newcommand{\js}{\textrm{JavaScript}}
+\newcommand{\html}{\textrm{HTML}}
+\newcommand{\css}{\textrm{CSS}}
+\newcommand{\vhdl}{\textrm{VHDL}}
+\newcommand{\electron}{\textrm{Electron}}
 
 %------------------------------------------------------------------------------
 % 便利マクロ
@@ -82,4 +89,10 @@
 %  frame=shadowbox,
   frame=single,
   commentstyle=\slshape
+}
+
+\newenvironment{mylist}
+{%\vspace{0.3cm}
+\begin{center}\begin{tabular}{|c|}\hline\\\begin{minipage}{0.9\textwidth}}
+{\end{minipage}\\\\\hline\end{tabular}\end{center}%\vspace{0.3cm}
 }
