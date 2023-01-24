@@ -11,8 +11,8 @@ import * as io from './ioMapAddr';
 export class IOHostController implements IIOHostController {
   private timer0: IIOTimer;
   private timer1: IIOTimer;
-  private ft232rl: IIOSerial;
-  private rn4020: IIOSerial;
+  private terminalSerial: IIOSerial;
+  private logSerial: IIOSerial;
   private sdHost: IIOSdHostController;
   private mmu: IIOMmu;
   private console: IIOConsole;
@@ -22,16 +22,16 @@ export class IOHostController implements IIOHostController {
   constructor(
     timer0: IIOTimer,
     timer1: IIOTimer,
-    ft232rl: IIOSerial,
-    rn4020: IIOSerial,
+    terminalSerial: IIOSerial,
+    logSerial: IIOSerial,
     sdHost: IIOSdHostController,
     mmu: IIOMmu,
     console: IIOConsole
   ) {
     this.timer0 = timer0;
     this.timer1 = timer1;
-    this.ft232rl = ft232rl;
-    this.rn4020 = rn4020;
+    this.terminalSerial = terminalSerial;
+    this.logSerial = logSerial;
     this.sdHost = sdHost;
     this.mmu = mmu;
     this.console = console;
@@ -49,7 +49,7 @@ export class IOHostController implements IIOHostController {
       case io.TIMER1_FLAG_CTRL:
         return this.getTimerFlag(1);
       case io.FT232RL_RECEIVE_SERVE:
-        return this.ft232rl.receive();
+        return this.terminalSerial.receive();
       case io.FT232RL_STAT_CTRL:
         return this.getFt232rlStatus();
       case io.MICROSD_STAT_CTRL:
@@ -64,7 +64,7 @@ export class IOHostController implements IIOHostController {
         // 本当はジャンパから取得するが強制的にTaCモードで実行する
         return 0x01;
       case io.RN4020_RECEIVE_SERVE:
-        return this.rn4020.receive();
+        return this.logSerial.receive();
       case io.RN4020_STAT_CTRL:
         return this.getRN4020Status();
       case io.RN4020_CONNECTION:
@@ -165,10 +165,10 @@ export class IOHostController implements IIOHostController {
   private getFt232rlStatus(): number {
     let val = 0;
 
-    if (this.ft232rl.isWriteable()) {
+    if (this.terminalSerial.isWriteable()) {
       val |= 0x0080;
     }
-    if (this.ft232rl.isReadable()) {
+    if (this.terminalSerial.isReadable()) {
       val |= 0x0040;
     }
 
@@ -195,10 +195,10 @@ export class IOHostController implements IIOHostController {
   private getRN4020Status(): number {
     let val = 0;
 
-    if (this.rn4020.isWriteable()) {
+    if (this.logSerial.isWriteable()) {
       val |= 0x0080;
     }
-    if (this.rn4020.isReadable()) {
+    if (this.logSerial.isReadable()) {
       val |= 0x0040;
     }
 
@@ -220,11 +220,11 @@ export class IOHostController implements IIOHostController {
         this.setTimerCtrlFlag(1, val);
         break;
       case io.FT232RL_RECEIVE_SERVE:
-        this.ft232rl.send(val);
+        this.terminalSerial.send(val);
         break;
       case io.FT232RL_STAT_CTRL:
-        this.ft232rl.setSendableIntrFlag((val & 0x0080) !== 0);
-        this.ft232rl.setReceivableIntrFlag((val & 0x0040) !== 0);
+        this.terminalSerial.setSendableIntrFlag((val & 0x0080) !== 0);
+        this.terminalSerial.setReceivableIntrFlag((val & 0x0040) !== 0);
         break;
       case io.MICROSD_STAT_CTRL:
         this.setMicroSDCtrlFlag(val);
@@ -239,11 +239,11 @@ export class IOHostController implements IIOHostController {
         this.sdHost.setSecAddrL(val);
         break;
       case io.RN4020_RECEIVE_SERVE:
-        this.rn4020.send(val);
+        this.logSerial.send(val);
         break;
       case io.RN4020_STAT_CTRL:
-        this.rn4020.setSendableIntrFlag((val & 0x0080) !== 0);
-        this.rn4020.setReceivableIntrFlag((val & 0x0040) !== 0);
+        this.logSerial.setSendableIntrFlag((val & 0x0080) !== 0);
+        this.logSerial.setReceivableIntrFlag((val & 0x0040) !== 0);
         break;
       case io.MMU_TLB0HIGH:
         this.mmu.setTlbHigh8(0, val);

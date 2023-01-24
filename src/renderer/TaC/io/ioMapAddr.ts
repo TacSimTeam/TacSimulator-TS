@@ -12,8 +12,11 @@ export const TIMER0_COUNTER_CYCLE = 0x00;
 export const TIMER0_FLAG_CTRL = 0x02;
 export const TIMER1_COUNTER_CYCLE = 0x04;
 export const TIMER1_FLAG_CTRL = 0x06;
+
+// シミュレータでは内蔵のターミナルに接続される
 export const FT232RL_RECEIVE_SERVE = 0x08;
 export const FT232RL_STAT_CTRL = 0x0a;
+
 export const TECSERIAL_RECEIVE_SERVE = 0x0c;
 export const TECSERIAL_STAT_CTRL = 0x0e;
 export const MICROSD_STAT_CTRL = 0x10;
@@ -28,10 +31,13 @@ export const SPI_SHIFT = 0x20;
 export const SPI_STAT_SCLKFREQ = 0x22;
 export const IOINTR_00_MASK = 0x24;
 export const IOINTR_00_XOR = 0x26;
+
+// シミュレータでは開発者ツールのコンソールログに接続される
 export const RN4020_RECEIVE_SERVE = 0x28;
 export const RN4020_STAT_CTRL = 0x2a;
 export const RN4020_00_COMMAND = 0x2c;
 export const RN4020_CONNECTION = 0x2e;
+
 export const TEC_DATALAMP_00 = 0x30;
 export const TEC_00_DATASW = 0x32;
 export const TEC_00_FUNCSW = 0x34;
