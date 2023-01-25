@@ -43,6 +43,23 @@ export const TEC_00_DATASW = 0x32;
 export const TEC_00_FUNCSW = 0x34;
 export const TEC_STAT_CTRL = 0x36;
 
+export const MMU_TLB16HIGH = 0x40;
+export const MMU_TLB16LOW = 0x42;
+export const MMU_TLB17HIGH = 0x44;
+export const MMU_TLB17LOW = 0x46;
+export const MMU_TLB18HIGH = 0x48;
+export const MMU_TLB18LOW = 0x4a;
+export const MMU_TLB19HIGH = 0x4c;
+export const MMU_TLB19LOW = 0x4e;
+export const MMU_TLB20HIGH = 0x50;
+export const MMU_TLB20LOW = 0x52;
+export const MMU_TLB21HIGH = 0x54;
+export const MMU_TLB21LOW = 0x56;
+export const MMU_TLB22HIGH = 0x58;
+export const MMU_TLB22LOW = 0x5a;
+export const MMU_TLB23HIGH = 0x5c;
+export const MMU_TLB23LOW = 0x5e;
+
 export const MMU_TLB0HIGH = 0x60;
 export const MMU_TLB0LOW = 0x62;
 export const MMU_TLB1HIGH = 0x64;
