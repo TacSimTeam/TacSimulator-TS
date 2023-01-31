@@ -134,7 +134,7 @@ export class Tac {
    * TaCを実行する
    */
   run(): void {
-    const start = new Date();
+    const startTime = Date.now();
 
     // タイマーが一時停止している時は再開する
     this.timer0.restart();
@@ -160,10 +160,10 @@ export class Tac {
         return;
       }
 
-      const stop = new Date();
+      const endTime = Date.now();
 
-      // CPUが10ms動作したら一旦アプリ側に制御を渡す
-      if (stop.getTime() - start.getTime() > 10) {
+      // CPUが15ms動作したら一旦アプリ側に制御を渡す
+      if (endTime - startTime > 15) {
         // setTimeout()でアプリ側の制御が終わったらすぐにCPUを再度動作させるように予約する
         this.cpuEventId = setTimeout(() => {
           this.run();
