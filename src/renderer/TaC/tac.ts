@@ -162,7 +162,7 @@ export class Tac {
 
       const endTime = Date.now();
 
-      // CPUが10ms動作したら一旦アプリ側に制御を渡す
+      // CPUが15ms動作したら一旦アプリ側に制御を渡す
       if (endTime - startTime > 15) {
         // setTimeout()でアプリ側の制御が終わったらすぐにCPUを再度動作させるように予約する
         this.cpuEventId = setTimeout(() => {
