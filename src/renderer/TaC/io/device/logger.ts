@@ -1,4 +1,3 @@
-import { check } from 'prettier';
 import { querySelector } from '../../../util/dom.result';
 import { IIOSerial, IIntrSignal } from '../../interface';
 import { RN4020_SENT } from '../../interrupt/interruptKind';
@@ -69,7 +68,7 @@ export class Logger implements IIOSerial {
     return false;
   }
 
-  isWriteable(): boolean {
+  isWritable(): boolean {
     return true;
   }
 

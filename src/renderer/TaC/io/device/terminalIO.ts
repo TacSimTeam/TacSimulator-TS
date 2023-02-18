@@ -82,7 +82,7 @@ export class TerminalIO implements IIOSerial, IKeyboardDriver {
     return !this.emptyFlag;
   }
 
-  isWriteable(): boolean {
+  isWritable(): boolean {
     return this.emptyFlag;
   }
 

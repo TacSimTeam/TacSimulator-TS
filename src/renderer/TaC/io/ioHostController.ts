@@ -165,7 +165,7 @@ export class IOHostController implements IIOHostController {
   private getFt232rlStatus(): number {
     let val = 0;
 
-    if (this.terminalSerial.isWriteable()) {
+    if (this.terminalSerial.isWritable()) {
       val |= 0x0080;
     }
     if (this.terminalSerial.isReadable()) {
@@ -195,7 +195,7 @@ export class IOHostController implements IIOHostController {
   private getRN4020Status(): number {
     let val = 0;
 
-    if (this.logSerial.isWriteable()) {
+    if (this.logSerial.isWritable()) {
       val |= 0x0080;
     }
     if (this.logSerial.isReadable()) {

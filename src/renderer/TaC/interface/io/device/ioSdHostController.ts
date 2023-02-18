@@ -13,38 +13,38 @@ export interface IIOSdHostController {
   startWriting(): void;
 
   /**
-   * MicroSDとのデータのやり取りに使用するバッファのアドレスを取得する
+   * マイクロSDの読み書きに使用するバッファ領域の先頭アドレスを取得する
    *
    * @return バッファ領域の先頭アドレス
    */
   getMemAddr(): number;
 
   /**
-   * MicroSDとのデータのやり取りに使用するバッファのアドレスを取得する
+   * マイクロSDの読み書きに使用するバッファ領域の先頭アドレスを設定する
    *
    * @param addr バッファ領域の先頭アドレス
    */
   setMemAddr(addr: number): void;
 
   /**
-   * データを読み書きするセクタのLBA方式の32bitのアドレスの上位16bitを取得する
+   * データを読み書きするセクタアドレス(LBA方式，32bit)の上位16bitを取得する
    */
   getSecAddrH(): number;
 
   /**
-   * データを読み書きするセクタのLBA方式の32bitのアドレスの下位16bitを取得する
+   * データを読み書きするセクタアドレス(LBA方式，32bit)の下位16bitを取得する
    */
   getSecAddrL(): number;
 
   /**
-   * データを読み書きするセクタのLBA方式の32bitのアドレスの上位16bitを設定する
+   * データを読み書きするセクタアドレス(LBA方式，32bit)の上位16bitを設定する
    *
    * @param addrH セクタアドレス上位16bit
    */
   setSecAddrH(addrH: number): void;
 
   /**
-   * データを読み書きするセクタのLBA方式の32bitのアドレスの下位16bitを設定する
+   * データを読み書きするセクタアドレス(LBA方式，32bit)の下位16bitを設定する
    *
    * @param addrL セクタアドレス下位16bit
    */

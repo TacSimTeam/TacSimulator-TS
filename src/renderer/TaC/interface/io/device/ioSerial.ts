@@ -42,5 +42,5 @@ export interface IIOSerial {
    *
    * @return 送信データが書込み可能ならtrue
    */
-  isWriteable(): boolean;
+  isWritable(): boolean;
 }
