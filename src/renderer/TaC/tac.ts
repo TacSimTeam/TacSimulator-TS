@@ -227,7 +227,8 @@ export class Tac {
     this.terminalIO.reset();
     this.logger.reset();
     this.sdHost.reset();
-    this.mmu.loadIpl();
+
+    this.mmu.loadIpl(); // IPLを再度読み込んでおく
 
     this.update();
   }
