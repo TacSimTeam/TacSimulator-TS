@@ -84,10 +84,10 @@ export class Cpu {
       }
     }
 
-    // 命令デコード(TLBミスが発生する可能性有り)
+    // 命令デコード
     const inst = this.decode(instData);
 
-    // 実効アドレス計算
+    // 実効アドレス計算(TLBミスが発生する可能性有り)
     try {
       inst.ea = this.calcEffectiveAddress(inst.addrMode, inst.rx);
     } catch (e) {
